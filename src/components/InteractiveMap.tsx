@@ -8,6 +8,8 @@ import {
 } from "@vis.gl/react-google-maps";
 import { useState } from "react";
 
+const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
 const InteractiveMap = () => {
   const [open, setOpen] = useState(false);
   const position = { lat: 19.2488939, lng: -103.7521401 };
@@ -15,7 +17,7 @@ const InteractiveMap = () => {
   const daisushiPinoPosition = { lat: 19.2529951, lng: -103.7331614 };
 
   return (
-    <APIProvider apiKey="AIzaSyA0PZVMqFew4mwbrAfOHs1muylqfyGYqn8">
+    <APIProvider apiKey={googleMapsApiKey}>
       <div style={{ height: "100%", width: "100%" }}>
         <Map
           zoom={14}
