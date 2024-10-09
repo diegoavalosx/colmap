@@ -11,10 +11,31 @@ import { useState } from "react";
 const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
 const InteractiveMap = () => {
-  const [open, setOpen] = useState(false);
-  const position = { lat: 19.2488939, lng: -103.7521401 };
-  const daisushiPosition = { lat: 19.2654075, lng: -103.7391145 };
-  const daisushiPinoPosition = { lat: 19.2529951, lng: -103.7331614 };
+  const [openInfoWindowId, setOpenInfoWindowId] = useState<string | null>(null);
+  const position = { lat: 19.256616017981763, lng: -103.71668343037342 };
+
+  const markers = [
+    {
+      id: "daisushiVilla",
+      position: { lat: 19.26557965830582, lng: -103.73563838204402 },
+      label: "Daisushii Villa de Álvarez",
+    },
+    {
+      id: "daisushiPino",
+      position: { lat: 19.253197611245835, lng: -103.73058652759573 },
+      label: "Daisushii Pinosuarez",
+    },
+    {
+      id: "daisushiSendera",
+      position: { lat: 19.276378120037304, lng: -103.71827244297553 },
+      label: "Daisushii Sendera",
+    },
+    {
+      id: "daisushiConsti",
+      position: { lat: 19.26257150759906, lng: -103.71212367537348 },
+      label: "Daisushii Constitución",
+    },
+  ];
 
   return (
     <APIProvider apiKey={googleMapsApiKey}>
@@ -26,27 +47,24 @@ const InteractiveMap = () => {
           gestureHandling={"greedy"}
           disableDefaultUI={true}
         >
-          <AdvancedMarker
-            position={daisushiPosition}
-            onClick={() => setOpen(true)}
-          >
-            <Pin background="white" />
-          </AdvancedMarker>
-          <AdvancedMarker
-            position={daisushiPinoPosition}
-            onClick={() => setOpen(true)}
-          >
-            <Pin background="white" />
-          </AdvancedMarker>
+          {markers.map((marker) => (
+            <AdvancedMarker
+              key={marker.id}
+              position={marker.position}
+              onClick={() => setOpenInfoWindowId(marker.id)}
+            >
+              <Pin background="white" />
+              {openInfoWindowId === marker.id && (
+                <InfoWindow
+                  position={marker.position}
+                  onCloseClick={() => setOpenInfoWindowId(null)}
+                >
+                  <p>Aquí está {marker.label}</p>
+                </InfoWindow>
+              )}
+            </AdvancedMarker>
+          ))}
         </Map>
-        {open ? (
-          <InfoWindow
-            position={daisushiPosition}
-            onCloseClick={() => setOpen(false)}
-          >
-            <p>Aquí está Daisushii</p>
-          </InfoWindow>
-        ) : null}
       </div>
     </APIProvider>
   );
