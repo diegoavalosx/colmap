@@ -35,6 +35,11 @@ const InteractiveMap = () => {
       position: { lat: 19.26257150759906, lng: -103.71212367537348 },
       label: "Daisushii Constitución",
     },
+    {
+      id: "elpechugon",
+      position: { lat:19.2487024491823, lng: -103.75667438373682 },
+      label: "El pechugón"
+    }
   ];
 
   return (

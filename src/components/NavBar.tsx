@@ -17,8 +17,8 @@ const NavBar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const classNames= twMerge(
-    `${isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`,
-    !isOpen && 'hidden',
+    'transition-all duration-500 ease-in-out overflow-hidden',
+    isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0',
     'md:max-h-full md:opacity-100 md:block'
   )
   
@@ -40,10 +40,7 @@ const NavBar = () => {
 
             </div>
 
-        <ul className={`md:flex md:items-center font-semibold text-base me-5 md:pb-0 md:static  bg-white md:z-auto 
-          z[1] transform w-full md:w-auto transition-all duration-500 ease-in-out
-           overflow-hidden ${classNames}
-           `}>
+        <ul className={`md:flex md:items-center font-semibold text-base me-5 md:pb-0 md:static bg-white md:z-auto z-1 w-full md:w-auto ${classNames}`}>
           {
             Links.map(link => 
               <li key={link.id} className="p-3 hover:bg-sky-400 hover:text-white rounded-md transition-all cursor-pointer">
