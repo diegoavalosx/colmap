@@ -1,3 +1,5 @@
+import { useRef } from "react";
+
 const Home = () => {
   const homeRef = useRef<HTMLDivElement | null>(null);
 

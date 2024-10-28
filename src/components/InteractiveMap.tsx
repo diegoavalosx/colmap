@@ -37,9 +37,9 @@ const InteractiveMap = () => {
     },
     {
       id: "elpechugon",
-      position: { lat:19.2487024491823, lng: -103.75667438373682 },
-      label: "El pechugón"
-    }
+      position: { lat: 19.2487024491823, lng: -103.75667438373682 },
+      label: "El pechugón",
+    },
   ];
 
   return (

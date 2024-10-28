@@ -1,26 +1,19 @@
 import { Menu, X } from "lucide-react";
 import logo from "../assets/logo.png";
-import { useState } from "react";
+import { type MutableRefObject, useState } from "react";
 import { twMerge } from "tailwind-merge";
-        
+
 type LinkType = {
   id: number;
   name: string;
   ref: MutableRefObject<undefined>;
-}
+};
 
 type NavBarTypes = {
-  links: LinkType[]
-}
+  links: LinkType[];
+};
 
-const NavBar = () => {
-  const Links = [
-    { id: 1, name: "Home", link: "/" },
-    { id: 2, name: "Services", link: "/" },
-    { id: 3, name: "About", link: "/" },
-    { id: 4, name: "Contact", link: "/" },
-  ];
-
+const NavBar = ({ links }: NavBarTypes) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const classNames = twMerge(
@@ -32,30 +25,31 @@ const NavBar = () => {
   return (
     <div className="shadow-md w-full">
       <div className="md:flex justify-between items-center text-black py-4 px-8 md:px-10 bg-white drop-shadow-md">
-       
-       
         <img
           src={logo}
           alt=""
           className="w-52 hover:scale-105 transition-all ms-10 relative z-10"
         />
-
-        {/* Menu Icon */}
-
-        <div onClick={() => setIsOpen(!isOpen)} className="w-7 h-7 absolute right-8 top-6 cursor-pointer md:hidden">
-              {
-                isOpen ? <X/> : <Menu/>
-              }
-
-            </div>
-
-        <ul className={`md:flex md:items-center font-semibold text-base me-5 md:pb-0 md:static bg-white md:z-auto z-1 w-full md:w-auto ${classNames}`}>
-          {
-            links.map(link => 
-              <li key={link.id} className="p-3 hover:bg-sky-400 hover:text-white rounded-md transition-all cursor-pointer">
-                <a href="/" ref={link.ref}>{link.name}</a>
-              </li>)
-          }
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="w-7 h-7 absolute right-8 top-6 cursor-pointer md:hidden"
+          type="button"
+        >
+          {isOpen ? <X /> : <Menu />}
+        </button>
+        <ul
+          className={`md:flex md:items-center font-semibold text-base me-5 md:pb-0 md:static bg-white md:z-auto z-1 w-full md:w-auto ${classNames}`}
+        >
+          {links.map((link) => (
+            <li
+              key={link.id}
+              className="p-3 hover:bg-sky-400 hover:text-white rounded-md transition-all cursor-pointer"
+            >
+              <a href="/" ref={link.ref}>
+                {link.name}
+              </a>
+            </li>
+          ))}
         </ul>
       </div>
     </div>
