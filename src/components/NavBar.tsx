@@ -1,31 +1,32 @@
 import { Menu, X } from "lucide-react";
 import logo from "../assets/image.png";
-import { useState } from "react";
+import {  MutableRefObject, useState } from "react";
 import { twMerge } from 'tailwind-merge';
 
+type LinkType = {
+  id: number;
+  name: string;
+  ref: MutableRefObject<undefined>;
+}
 
+type NavBarTypes = {
+  links: LinkType[]
+}
 
-const NavBar = () => {
-
-  const Links = [
-    {id: 1, name: 'Home', link: '/'},
-    {id: 2, name: 'Services', link: '/'},
-    {id: 3, name: 'About', link: '/'},
-    {id: 4, name: 'Contact', link: '/'},
-  ]
-
+const NavBar = ({links} : NavBarTypes) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const classNames= twMerge(
+  const classNames = twMerge(
     'transition-all duration-500 ease-in-out overflow-hidden',
     isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0',
     'md:max-h-full md:opacity-100 md:block'
   )
-  
 
   return (
     <div className="shadow-md w-full">
       <div className="md:flex justify-between items-center text-black py-4 px-8 md:px-10 bg-white drop-shadow-md">
+       
+       
         <img
           src={logo}
           alt=""
@@ -42,9 +43,9 @@ const NavBar = () => {
 
         <ul className={`md:flex md:items-center font-semibold text-base me-5 md:pb-0 md:static bg-white md:z-auto z-1 w-full md:w-auto ${classNames}`}>
           {
-            Links.map(link => 
+            links.map(link => 
               <li key={link.id} className="p-3 hover:bg-sky-400 hover:text-white rounded-md transition-all cursor-pointer">
-                <a href="/">{link.name}</a>
+                <a href="/" ref={link.ref}>{link.name}</a>
               </li>)
           }
         </ul>
