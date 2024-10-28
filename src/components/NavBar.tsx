@@ -1,8 +1,8 @@
 import { Menu, X } from "lucide-react";
-import logo from "../assets/image.png";
-import {  MutableRefObject, useState } from "react";
-import { twMerge } from 'tailwind-merge';
-
+import logo from "../assets/logo.png";
+import { useState } from "react";
+import { twMerge } from "tailwind-merge";
+        
 type LinkType = {
   id: number;
   name: string;
@@ -13,14 +13,21 @@ type NavBarTypes = {
   links: LinkType[]
 }
 
-const NavBar = ({links} : NavBarTypes) => {
+const NavBar = () => {
+  const Links = [
+    { id: 1, name: "Home", link: "/" },
+    { id: 2, name: "Services", link: "/" },
+    { id: 3, name: "About", link: "/" },
+    { id: 4, name: "Contact", link: "/" },
+  ];
+
   const [isOpen, setIsOpen] = useState(false);
 
   const classNames = twMerge(
-    'transition-all duration-500 ease-in-out overflow-hidden',
-    isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0',
-    'md:max-h-full md:opacity-100 md:block'
-  )
+    "transition-all duration-500 ease-in-out overflow-hidden",
+    isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0",
+    "md:max-h-full md:opacity-100 md:block"
+  );
 
   return (
     <div className="shadow-md w-full">
@@ -34,6 +41,7 @@ const NavBar = ({links} : NavBarTypes) => {
         />
 
         {/* Menu Icon */}
+
         <div onClick={() => setIsOpen(!isOpen)} className="w-7 h-7 absolute right-8 top-6 cursor-pointer md:hidden">
               {
                 isOpen ? <X/> : <Menu/>
@@ -55,4 +63,3 @@ const NavBar = ({links} : NavBarTypes) => {
 };
 
 export default NavBar;
-

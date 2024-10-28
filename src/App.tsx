@@ -1,5 +1,4 @@
 import "./App.css";
-import InteractiveMap from "./components/InteractiveMap";
 import NavBar from "./components/NavBar";
 import Home from "./components/Home"
 import React, { useRef } from "react";
@@ -13,11 +12,9 @@ function App() {
   ]
 
   return (
-    <React.Fragment>
-      <NavBar links={links} />
-      <InteractiveMap />
-      <Home ref={links[0].ref} />
-    </React.Fragment>
+    <>
+      <NavBar />
+    </>
   );
 }
 
