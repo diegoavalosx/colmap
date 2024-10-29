@@ -43,7 +43,7 @@ const NavBar = ({ links }: NavBarTypes) => {
           {links.map((link) => (
             <li
               key={link.id}
-              className="p-3 hover:bg-sky-400 hover:text-white rounded-md transition-all cursor-pointer"
+              className="p-3 hover:bg-black hover:text-white rounded-md transition-all cursor-pointer"
             >
               <a href="/" ref={link.ref}>
                 {link.name}
