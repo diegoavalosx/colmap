@@ -1,18 +1,21 @@
 import "./App.css";
+import About from "./components/About";
 import NavBar from "./components/NavBar";
-import { useRef } from "react";
+import WhoWR from "./components/WhoWR";
+import {useRef} from 'react'
 
 function App() {
-  const links = [
-    { id: 1, name: "Home", ref: useRef() },
-    { id: 2, name: "Services", ref: useRef() },
-    { id: 3, name: "About", ref: useRef() },
-    { id: 4, name: "Contact", ref: useRef() },
-  ];
+  
+  const homeRef = useRef<HTMLDivElement | null>(null);
+  const whoWeAreRef = useRef<HTMLDivElement | null>(null);
+  const whyUsRef = useRef<HTMLDivElement | null>(null);
+  const contactRef = useRef<HTMLDivElement | null>(null);
 
   return (
     <>
-      <NavBar links={links} />
+      <NavBar refs = {{homeRef, whoWeAreRef, whyUsRef, contactRef}}/>
+      <About refs= {{homeRef, whoWeAreRef, whyUsRef, contactRef}}/>
+      <WhoWR />
     </>
   );
 }
