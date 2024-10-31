@@ -1,7 +1,7 @@
 import "./App.css";
 import About from "./components/About";
 import NavBar from "./components/NavBar";
-import Main from './components/Main'
+
 // import WhoWR from "./components/WhoWR";
 import {useRef} from 'react'
 
@@ -12,11 +12,11 @@ function App() {
   const contactRef = useRef<HTMLDivElement | null>(null);
 
   return (
-    <>
+    <div>
       <NavBar
         refs = {{mainRef, whoWeAreRef, whyUsRef, contactRef}}/>
       <About refs= {{ whoWeAreRef, whyUsRef, contactRef, mainRef}}/>
-    </>
+    </div>
   );
 }
 

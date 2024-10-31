@@ -3,7 +3,9 @@ import Main from '../components/Main'
 import WhoWR from '../components/WhoWR';
 import WhyUs from '../components/WhyUs';
 import Contact from '../components/Contact'
-import Carousel from '../components/Carousel'
+import Carousel from './Carousel';
+import { Car } from 'lucide-react';
+// import Carousel from '../components/Carousel'
 
 type AboutProps = {
   refs: {
@@ -18,11 +20,11 @@ const About:React.FC<AboutProps> = ({ refs}) => {
   
   return (
     <div>
-    <Carousel />
     <Main ref={refs.mainRef}/>
     <WhoWR ref={refs.whoWeAreRef}/>
     <WhyUs ref={refs.whyUsRef}/>
     <Contact ref={refs.contactRef}/>
+    <Carousel />
     <button 
       className='my-10 bg-black text-white'
       onClick={()=>{

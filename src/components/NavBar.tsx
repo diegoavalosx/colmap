@@ -29,7 +29,7 @@ const NavBar: React.FC<NavBarProps> = ({ refs }) => {
   const handleScroll = () =>{
     const scrollPosition = window.scrollY;
 
-    links.forEach((link) => {
+    for( const link of links){
       const section = link.ref.current;
       if (section){
         const sectionTop = section.offsetTop;
@@ -41,7 +41,8 @@ const NavBar: React.FC<NavBarProps> = ({ refs }) => {
           setActiveLink(link.id);
         }
       }
-    });
+    }
+   
   };
 
   useEffect( () =>{
@@ -54,7 +55,7 @@ const NavBar: React.FC<NavBarProps> = ({ refs }) => {
 
   return (
     <div className="shadow-md fixed top-0 left-0  w-full z-10">
-      <div className="md:flex justify-between items-center text-black py-4 px-8 md:px-10 bg-gradient-to-r from-black via-purple-700 to-pink-500 drop-shadow-md">
+      <div className="md:flex justify-between items-center text-white py-4 px-8 md:px-10 bg-black drop-shadow-md">
         <img
           src={logo}
           alt=""
@@ -77,7 +78,7 @@ const NavBar: React.FC<NavBarProps> = ({ refs }) => {
             <button
               key={link.id}
               type="button"
-              className={`p-3 font-bold hover:bg-black hover:text-white rounded-md transition-all cursor-pointer ${activeLink === link.id ? 'bg-black text-white' : ''}`}
+              className={`p-3 font-bold hover:bg-[#7024e4] hover:text-white rounded-md transition-all cursor-pointer ${activeLink === link.id ? 'bg-[#7024e4] text-white' : ''}`}
               onClick={() => {
                 link.ref.current?.scrollIntoView({
                   behavior: "smooth",

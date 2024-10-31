@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import WhyUsImage from '../assets/whyohyeah.png'
+import WhyUsImage from '../assets/whoweare.png'
 
 type WhoWRProps = {
   refs: {
