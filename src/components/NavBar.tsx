@@ -1,5 +1,5 @@
 import { Menu, X } from "lucide-react";
-import logo from "../assets/LOGO Oohyeah white.png";
+import logo from "../assets/oohyeah-logo-white.png";
 import { useEffect, useState } from "react";
 
 type NavBarProps = {
