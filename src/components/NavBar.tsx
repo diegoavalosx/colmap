@@ -19,37 +19,39 @@ const NavBar: React.FC<NavBarProps> = ({ refs }) => {
     { id: 4, name: "Contact", ref: refs.contactRef },
   ];
   const [activeLink, setActiveLink] = useState(links[0].id); // Estado de enlace activo
-  
+
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
 
-  const handleScroll = () =>{
+  const handleScroll = () => {
     const scrollPosition = window.scrollY;
 
-    for( const link of links){
+    for (const link of links) {
       const section = link.ref.current;
-      if (section){
+      if (section) {
         const sectionTop = section.offsetTop;
         const sectionHeight = section.clientHeight;
 
         // Verificar si está dentro de la sección
 
-        if(scrollPosition >= sectionTop - sectionHeight / 2 && scrollPosition < sectionTop + sectionHeight / 2){
+        if (
+          scrollPosition >= sectionTop - sectionHeight / 2 &&
+          scrollPosition < sectionTop + sectionHeight / 2
+        ) {
           setActiveLink(link.id);
         }
       }
     }
-   
   };
 
-  useEffect( () =>{
-    window.addEventListener('scroll', handleScroll);
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll);
 
-    return () =>{
-      window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
     };
   }, [links]);
 

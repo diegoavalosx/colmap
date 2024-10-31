@@ -1,9 +1,7 @@
 import "./App.css";
 import About from "./components/About";
 import NavBar from "./components/NavBar";
-
-// import WhoWR from "./components/WhoWR";
-import {useRef} from 'react'
+import { useRef } from "react";
 
 function App() {
   const mainRef = useRef<HTMLDivElement | null>(null);
@@ -12,11 +10,10 @@ function App() {
   const contactRef = useRef<HTMLDivElement | null>(null);
 
   return (
-    <div>
-      <NavBar
-        refs = {{mainRef, whoWeAreRef, whyUsRef, contactRef}}/>
-      <About refs= {{ whoWeAreRef, whyUsRef, contactRef, mainRef}}/>
-    </div>
+    <>
+      <NavBar refs={{ mainRef, whoWeAreRef, whyUsRef, contactRef }} />
+      <About refs={{ whoWeAreRef, whyUsRef, contactRef, mainRef }} />
+    </>
   );
 }
 

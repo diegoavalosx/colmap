@@ -4,3 +4,21 @@
   margin: 0 auto;
   text-align: center;
 }
+
+.hover-with-svg::after {
+  content: "";
+  display: block;
+  position: absolute;
+  background-image: url("/src/assets/paint-stroke.svg");
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: -1;
+  height: 50px;
+  width: 50px;
+}
+
+.hover-with-svg:hover::after {
+  opacity: 1;
+}
