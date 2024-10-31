@@ -1,5 +1,5 @@
 import { Menu, X } from "lucide-react";
-import logo from "../assets/logo.png";
+import logo from "../assets/oohyeah-logo-white.png";
 import { useEffect, useState } from "react";
 
 type NavBarProps = {
@@ -53,8 +53,8 @@ const NavBar: React.FC<NavBarProps> = ({ refs }) => {
   }, [links]);
 
   return (
-    <div className="shadow-md fixed top-0 left-0 w-full  bg-white z-10">
-      <div className="md:flex justify-between items-center text-black py-4 px-8 md:px-10 bg-white drop-shadow-md">
+    <div className="shadow-md fixed top-0 left-0  w-full z-10">
+      <div className="md:flex justify-between items-center text-black py-4 px-8 md:px-10 bg-gradient-to-r from-black via-purple-700 to-pink-500 drop-shadow-md">
         <img
           src={logo}
           alt=""
@@ -69,7 +69,7 @@ const NavBar: React.FC<NavBarProps> = ({ refs }) => {
           {isOpen ? <X /> : <Menu />}
         </button>
         <ul
-          className={`md:flex md:items-center font-semibold text-base me-5 md:pb-0 md:static bg-white md:z-auto z-1 w-full md:w-auto ${
+          className={`md:flex md:items-center font-semibold text-base me-5 md:pb-0 md:static  md:z-auto z-1 w-full md:w-auto ${
             isOpen ? "block" : "hidden"
           } md:block`}
         >
