@@ -80,9 +80,7 @@ const NavBar: React.FC<NavBarProps> = ({ refs }) => {
             <button
               key={link.id}
               type="button"
-              className={`relative p-3 font-bold hover:text-hover-purple rounded-md transition-all cursor-pointer ${
-                activeLink === link.id ? "text-hover-purple" : ""
-              }`}
+              className={`p-3 font-bold hover:bg-[#7024e4] hover:text-white rounded-md transition-all cursor-pointer ${activeLink === link.id ? 'bg-[#7024e4] text-white' : ''}`}
               onClick={() => {
                 link.ref.current?.scrollIntoView({
                   behavior: "smooth",

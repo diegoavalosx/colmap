@@ -17,7 +17,7 @@ const Carousel = () => {
         }
   const divClases = "card bg-gray-800 rounded-lg mx-1 "
     return (
-        <div className="my-10 mx-auto max-w-6xl pt-20">
+        <div className="my-10 mx-auto max-w-6xl pt-20 bg-white">
             <h1 className="text-3xl font bold text-center mb-8">Carousel</h1>
             <CarouselReact 
               responsive={responsive} 

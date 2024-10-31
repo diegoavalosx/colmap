@@ -15,7 +15,7 @@ type AboutProps = {
 
 const About: React.FC<AboutProps> = ({ refs }) => {
   return (
-    <div className="font-sans h-full">
+    <div className="font-sans">
       <Main ref={refs.mainRef} />
       <WhoWR ref={refs.whoWeAreRef} />
       <WhyUs ref={refs.whyUsRef} />
