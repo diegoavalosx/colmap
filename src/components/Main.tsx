@@ -1,14 +1,7 @@
 import { forwardRef } from "react";
 import bgImage from "../assets/bg-image.png";
 
-
-type MainProps = {
-  refs: {
-    mainRef: React.RefObject<HTMLDivElement>;
-  }
-}
-
-const Main = forwardRef((props, ref) => {
+const Main = forwardRef<HTMLDivElement>((_, ref) => {
   return (
     <div className="h-full w-full flex" ref={ref}>
       <div className="relative h-3/4 w-full bg-black">
