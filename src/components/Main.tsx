@@ -3,7 +3,7 @@ import bgImage from "../assets/bg-image-2.png";
 
 const Main = forwardRef<HTMLDivElement>((_, ref) => {
   return (
-    <div className="h-3/4 flex bg-gray-900" ref={ref}>
+    <div className="h-3/4 flex" ref={ref}>
       <div className="flex h-full w-full bg-white rounded-br-custom-br">
         <div className="flex justify-center w-2/4 flex-col p-6 h-full">
           <h1 className="text-black text-4xl font-bold mr-5 transition-transform duration-300 hover:scale-105 mb-6">
@@ -17,7 +17,7 @@ const Main = forwardRef<HTMLDivElement>((_, ref) => {
             installation, tailored to captivate and engage.
           </h2>
         </div>
-        <div className="flex justify-center w-2/4 flex-col h-full bg-gray-900">
+        <div className="flex justify-center w-2/4 flex-col h-full bg-black">
           <img
             className="h-full opacity-70 rounded-br-custom-br"
             src={bgImage}

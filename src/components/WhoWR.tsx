@@ -3,10 +3,7 @@ import bgImage from "../assets/bg-image.png";
 
 const WhoWR = forwardRef<HTMLDivElement>((_, ref) => {
   return (
-    <div
-      className="h-full bg-gray-900 p-16 flex flex-col items-center"
-      ref={ref}
-    >
+    <div className="h-full bg-black p-16 flex flex-col items-center" ref={ref}>
       <h1 className="text-white text-3xl font-bold mr-5 transition-transform duration-300 hover:scale-105 mb-4">
         WHO WE ARE
       </h1>
