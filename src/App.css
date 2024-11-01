@@ -22,3 +22,20 @@
 .hover-with-svg:hover::after {
   opacity: 1;
 }
+
+.appear-on-load {
+  opacity: 0;
+  transform: translateY(20px); /* Optional slide effect */
+  animation: fadeInUp 1s forwards; /* Animation duration and forward filling */
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

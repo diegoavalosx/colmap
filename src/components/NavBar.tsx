@@ -56,14 +56,13 @@ const NavBar: React.FC<NavBarProps> = ({ refs }) => {
   }, [links]);
 
   return (
-    <div className="shadow-md fixed top-0 left-0  w-full z-10">
-      <div className="md:flex justify-between items-center text-black py-4 px-8 md:px-10 bg-white drop-shadow-md">
+    <div className="fixed top-0 left-0 w-full z-10 h-20">
+      <div className="md:flex justify-between items-center text-black py-4 px-8 md:px-10 bg-white h-full">
         <img
           src={logo}
           alt=""
           className="w-52 hover:scale-105 transition-all ms-10 relative z-10"
         />
-
         <button
           onClick={toggleMenu}
           className="w-7 h-7 absolute right-8 top-6 cursor-pointer md:hidden"
@@ -80,11 +79,25 @@ const NavBar: React.FC<NavBarProps> = ({ refs }) => {
             <button
               key={link.id}
               type="button"
-              className={`p-3 font-bold hover:bg-gradient-to-r from-[#7024e4] to-pink-500  hover:text-white rounded-md transition-all cursor-pointer ${activeLink === link.id ? 'bg-gradient-to-r from-[#7024e4] to-pink-500  text-white' : ''}`}
+              className={`p-3 font-bold  hover:text-ooh-yeah-pink rounded-md duration-300 hover:scale-105 transition-all cursor-pointer ${
+                activeLink === link.id ? "text-ooh-yeah-pink" : ""
+              }`}
               onClick={() => {
-                link.ref.current?.scrollIntoView({
-                  behavior: "smooth",
-                });
+                if (link.ref.current) {
+                  // Get the position of the element relative to the top of the document
+                  const topPosition =
+                    link.ref.current.getBoundingClientRect().top +
+                    window.pageYOffset;
+
+                  // Subtract the height of the fixed navbar (e.g., 64px or the specific height of your navbar)
+                  const offset = 80; // Adjust this value to match your navbar's height
+
+                  // Scroll to the element with the offset
+                  window.scrollTo({
+                    top: topPosition - offset,
+                    behavior: "smooth",
+                  });
+                }
               }}
             >
               {link.name}
