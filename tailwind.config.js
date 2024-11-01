@@ -5,10 +5,14 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        "hover-purple": "#7024e4", // Custom color name
+        "hover-purple": "#7024e4",
+        "ooh-yeah-pink": "#ff7ccc",
       },
       fontFamily: {
-        sans: ["Helvetica", "Arial", "sans-serif"], // Adding Helvetica as the primary font
+        sans: ['"Helvetica Neue"', "Helvetica", "Arial", "sans-serif"],
+      },
+      borderRadius: {
+        "custom-br": "9.5rem",
       },
     },
   },

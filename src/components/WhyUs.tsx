@@ -1,55 +1,38 @@
 import { forwardRef } from "react";
-import whyUsImage from '../assets/whyohyeah.png'
-import icon from '../assets/punto-info.png'
+import whyUsImage from "../assets/whyohyeah.png";
 
-type WhyUsProps = {
-  refs: {
-    whyUsRef: React.RefObject<HTMLDivElement>;
-  }
-}
-const WhyUs = forwardRef ((props, ref) => {  
-  
+const WhyUs = forwardRef<HTMLDivElement>((_, ref) => {
   return (
-        <div className="flex flex-col md:flex-row items-center justify-between p-16 bg-gray-50 rounded-lg shadow-md pt-20 pb-20" ref={ref}>
-          <div className="md:w-1/2 me-5 text-center">
-            <h1 className="text-4xl font-bold mb-6 font-serif uppercase">Why us</h1>
-              <p className="text-lg font-sans text-black mb-4">
-                 We are the best option because offer...
-              </p>
-                <ul className="list-none space-y-4">
-                  <li className="flex items-center">
-                    <img src={icon} alt="Ícono" className="w-5 h-5 mr-2"/>
-                    Daily inspections
-                  </li>
-                  <li className="flex items-center">
-                    <img src={icon} alt="Ícono" className="w-5 h-5 mr-2"/>
-                    Industry-leading refresh frequency
-                  </li>
-                  <li className="flex items-center">
-                    <img src={icon} alt="Ícono" className="w-5 h-5 mr-2"/>
-                    High-quality marketing collateral
-                  </li>
-                  <li className="flex items-center">
-                    <img src={icon} alt="Ícono" className="w-5 h-5 mr-2"/>
-                    State-of-the-art compaign completion videos
-                  </li>
-                  <li className="flex items-center">
-                    <img src={icon} alt="Ícono" className="w-5 h-5 mr-2"/>
-                    Comprehensive reports delivered within 24 hours of each posting</li>
-                  <li className="flex items-center">
-                    <img src={icon} alt="Ícono" className="w-5 h-5 mr-2"/>
-                    Weekly updates including posting lists and site maps</li>
-                </ul>
-          </div> 
-          <div className="md:w-1/2 mt-6 md:mt-0">
-            <img
-              className="w-full h-auto rounded-lg shadow-lg transition-transform duration-300 hover:scale-105"
-              src={whyUsImage}
-              alt="background"/>
-          </div>
+    <div
+      className="h-full bg-gray-900 p-16 flex flex-col items-center justify-center rounded-bl-custom-br"
+      ref={ref}
+    >
+      <h1 className="text-white text-3xl font-bold mr-5 transition-transform duration-300 hover:scale-105 mb-4">
+        WHY US
+      </h1>
+      <div className="flex p-5">
+        <div className="flex-1 p-6">
+          <img
+            className="h-full transition-transform duration-300 hover:scale-105"
+            src={whyUsImage}
+            alt="background"
+          />
+        </div>
+        <div className="flex-1 mt-6 md:mt-0 p-2 h-full items-center flex">
+          <p className="text-white font-bold text-lg">
+            Wild posting brings a contemporary urban feel that captivates
+            audiences and creates a strong street-level presence. It allows
+            brands to dominate prime territories with maximum impact while
+            maintaining minimal spend, making it an efficient choice for those
+            seeking high visibility without breaking the budget. Leveraging the
+            classic power of posters, wild posting campaigns harness a proven
+            format to amplify brand messaging and resonate with passersby in an
+            authentic and engaging way.
+          </p>
+        </div>
+      </div>
     </div>
-    
   );
-  });
-  
-  export default WhyUs;
+});
+
+export default WhyUs;
