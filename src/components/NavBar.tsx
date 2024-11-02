@@ -38,8 +38,8 @@ const NavBar: React.FC<NavBarProps> = ({ refs }) => {
         // Verificar si está dentro de la sección
 
         if (
-          scrollPosition >= sectionTop - sectionHeight / 2 &&
-          scrollPosition < sectionTop + sectionHeight / 2
+          scrollPosition >= sectionTop - sectionHeight / 2  &&
+          scrollPosition < sectionTop + sectionHeight / 2 
         ) {
           setActiveLink(link.id);
         }
@@ -71,9 +71,9 @@ const NavBar: React.FC<NavBarProps> = ({ refs }) => {
           {isOpen ? <X /> : <Menu />}
         </button>
         <ul
-          className={`md:flex md:items-center font-semibold text-base me-5 md:pb-0 md:static  md:z-auto z-1 w-full md:w-auto ${
+          className={`md:flex md:items-center font-semibold text-base md:pb-0 md:static  md:z-auto z-1 w-full md:w-auto absolute bg-white ${
             isOpen ? "block" : "hidden"
-          } md:block`}
+          } md:block flex top-full left-0 right-0 items-center justify-center`}
         >
           {links.map((link) => (
             <button
@@ -90,7 +90,7 @@ const NavBar: React.FC<NavBarProps> = ({ refs }) => {
                     window.pageYOffset;
 
                   // Subtract the height of the fixed navbar (e.g., 64px or the specific height of your navbar)
-                  const offset = 80; // Adjust this value to match your navbar's height
+                  const offset = window.innerWidth >= 1024 ? 80: 100; // Adjust this value to match your navbar's height
 
                   // Scroll to the element with the offset
                   window.scrollTo({

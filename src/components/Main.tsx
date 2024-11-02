@@ -4,7 +4,7 @@ import bgImage from "../assets/bg-image-2.png";
 const Main = forwardRef<HTMLDivElement>((_, ref) => {
   return (
     <div
-      className="h-3/4 flex flex-col w-full bg-white rounded-br-custom-br lg:flex-row"
+      className="h-3/4 flex flex-col w-full bg-white rounded-br-custom-br lg:flex-row justify-center"
       ref={ref}
     >
       <div className="flex justify-center w-full flex-col p-6 h-full md:w-2/4">
