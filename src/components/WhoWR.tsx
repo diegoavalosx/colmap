@@ -3,18 +3,18 @@ import bgImage from "../assets/bg-image.png";
 
 const WhoWR = forwardRef<HTMLDivElement>((_, ref) => {
   return (
-    <div className="h-full bg-black p-16 flex flex-col items-center" ref={ref}>
+    <div className="h-auto bg-black p-8 md:p-16 flex flex-col items-center" ref={ref}>
       <h1 className="text-white text-3xl font-bold mr-5 transition-transform duration-300 hover:scale-105 mb-4">
         WHO WE ARE
       </h1>
-      <h2 className="text-white w-2/3 font-bold mb-6 text-xl">
+      <h2 className="text-white w-full md:w-2/3 font-bold mb-6 text-xl text-center md:text-left">
         Oohyeah is a boutique outdoor media agency specializing in{" "}
         <span className="text-ooh-yeah-pink">distinctive</span> guerrilla
         marketing. We offer <span className="text-ooh-yeah-pink">wild</span>{" "}
         posting, and chalk stencils, managing the entire process from design to
         installation.
       </h2>
-      <div className="flex text-base text-white font-bold space-x-4">
+      <div className="flex flex-col md:flex-row text-base text-white font-bold space-y-4 md:space-y-0 md:space-x-4">
         <div className="flex-1">
           <img className="pb-6" src={bgImage} alt="first" />
           <p>
