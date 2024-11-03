@@ -44,7 +44,7 @@ const InteractiveMap = () => {
 
   return (
     <APIProvider apiKey={googleMapsApiKey}>
-      <div className="h-full bg-slate-700 p-12">
+      <div className="h-full p-12">
         <Map
           zoom={14}
           center={position}

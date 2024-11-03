@@ -1,25 +1,17 @@
-import { useEffect, useState } from "react";
-import { useAuth } from "./useAuth";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebase-config";
 
-interface LogInFormData {
+interface SignUpFormData {
   email: string;
   password: string;
 }
 
-const Login = () => {
-  const navigate = useNavigate();
-  const { login, user } = useAuth();
-  const [formData, setFormData] = useState<LogInFormData>({
+const SignIn = () => {
+  const [formData, setFormData] = useState<SignUpFormData>({
     email: "",
     password: "",
   });
-
-  useEffect(() => {
-    if (user) {
-      navigate("/dashboard");
-    }
-  }, [user, navigate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -29,12 +21,17 @@ const Login = () => {
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await login(formData.email, formData.password);
+    createUserWithEmailAndPassword(auth, formData.email, formData.password)
+      .then((userCredential) => {
+        const user = userCredential.user;
+        console.log("User signed in:", user);
+      })
+      .catch((error) => {
+        console.error("Error signing up:", error);
+      });
   };
-
-  if (user) return <>{`Welcome, ${user.email}!`}</>;
 
   return (
     <form
@@ -71,10 +68,10 @@ const Login = () => {
         type="submit"
         className="bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
       >
-        Log In
+        Sign Up
       </button>
     </form>
   );
 };
 
-export default Login;
+export default SignIn;
