@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebase-config";
+import { type Auth, createUserWithEmailAndPassword } from "firebase/auth";
+import authPromise from "../firebase-config";
 
 interface SignUpFormData {
   email: string;
@@ -21,16 +21,18 @@ const SignIn = () => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    createUserWithEmailAndPassword(auth, formData.email, formData.password)
-      .then((userCredential) => {
-        const user = userCredential.user;
-        console.log("User signed in:", user);
-      })
-      .catch((error) => {
-        console.error("Error signing up:", error);
-      });
+    authPromise.then((auth: Auth) => {
+      createUserWithEmailAndPassword(auth, formData.email, formData.password)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          console.log("User signed in:", user);
+        })
+        .catch((error) => {
+          console.error("Error signing up:", error);
+        });
+    });
   };
 
   return (
