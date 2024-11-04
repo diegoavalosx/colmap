@@ -23,3 +23,11 @@ dist-ssr
 *.sln
 *.sw?
 *.env
+
+# Firebase config and directories
+.firebase/
+.firebaserc
+
+# TypeScript build info files
+tsconfig.app.tsbuildinfo
+tsconfig.node.tsbuildinfo

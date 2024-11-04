@@ -6,13 +6,25 @@ import {
   Pin,
   InfoWindow,
 } from "@vis.gl/react-google-maps";
-import { useState } from "react";
-
-const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+import { useEffect, useState } from "react";
 
 const InteractiveMap = () => {
   const [openInfoWindowId, setOpenInfoWindowId] = useState<string | null>(null);
+  const [googleMapsApiKey, setGoogleMapsApiKey] = useState<string | null>(null);
   const position = { lat: 19.256616017981763, lng: -103.71668343037342 };
+
+  useEffect(() => {
+    const getGoogleMapsApiKey = async () => {
+      fetch(`${import.meta.env.VITE_API_URL}/app/api/google-maps-config`).then(
+        async (res) => {
+          const { apiKey } = await res.json();
+          setGoogleMapsApiKey(apiKey);
+        }
+      );
+    };
+
+    getGoogleMapsApiKey();
+  }, []);
 
   const markers = [
     {
@@ -43,35 +55,41 @@ const InteractiveMap = () => {
   ];
 
   return (
-    <APIProvider apiKey={googleMapsApiKey}>
-      <div className="h-full p-12">
-        <Map
-          zoom={14}
-          center={position}
-          mapId="80b9549366c22aeb"
-          gestureHandling={"greedy"}
-          disableDefaultUI={true}
-        >
-          {markers.map((marker) => (
-            <AdvancedMarker
-              key={marker.id}
-              position={marker.position}
-              onClick={() => setOpenInfoWindowId(marker.id)}
+    <>
+      {googleMapsApiKey ? (
+        <APIProvider apiKey={googleMapsApiKey}>
+          <div className="h-full p-12">
+            <Map
+              zoom={14}
+              center={position}
+              mapId="80b9549366c22aeb"
+              gestureHandling={"greedy"}
+              disableDefaultUI={true}
             >
-              <Pin background="white" />
-              {openInfoWindowId === marker.id && (
-                <InfoWindow
+              {markers.map((marker) => (
+                <AdvancedMarker
+                  key={marker.id}
                   position={marker.position}
-                  onCloseClick={() => setOpenInfoWindowId(null)}
+                  onClick={() => setOpenInfoWindowId(marker.id)}
                 >
-                  <p>Aquí está {marker.label}</p>
-                </InfoWindow>
-              )}
-            </AdvancedMarker>
-          ))}
-        </Map>
-      </div>
-    </APIProvider>
+                  <Pin background="white" />
+                  {openInfoWindowId === marker.id && (
+                    <InfoWindow
+                      position={marker.position}
+                      onCloseClick={() => setOpenInfoWindowId(null)}
+                    >
+                      <p>Aquí está {marker.label}</p>
+                    </InfoWindow>
+                  )}
+                </AdvancedMarker>
+              ))}
+            </Map>
+          </div>
+        </APIProvider>
+      ) : (
+        <>Loading...</>
+      )}
+    </>
   );
 };
 
