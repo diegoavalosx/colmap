@@ -34,46 +34,46 @@ const Login = () => {
     await login(formData.email, formData.password);
   };
 
-  if (user) return <>{`Welcome, ${user.email}!`}</>;
-
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex flex-col p-4 max-w-sm mx-auto"
-    >
-      <label htmlFor="email" className="mb-2 font-semibold">
-        Email:
-      </label>
-      <input
-        type="email"
-        name="email"
-        id="email"
-        value={formData.email}
-        onChange={handleInputChange}
-        className="mb-4 p-2 border border-gray-300 rounded"
-        required
-      />
-
-      <label htmlFor="password" className="mb-2 font-semibold">
-        Password:
-      </label>
-      <input
-        type="password"
-        name="password"
-        id="password"
-        value={formData.password}
-        onChange={handleInputChange}
-        className="mb-4 p-2 border border-gray-300 rounded"
-        required
-      />
-
-      <button
-        type="submit"
-        className="bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+    <div>
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col p-4 max-w-sm mx-auto"
       >
-        Log In
-      </button>
-    </form>
+        <label htmlFor="email" className="mb-2 font-semibold">
+          Email:
+        </label>
+        <input
+          type="email"
+          name="email"
+          id="email"
+          value={formData.email}
+          onChange={handleInputChange}
+          className="mb-4 p-2 border border-gray-300 rounded"
+          required
+        />
+
+        <label htmlFor="password" className="mb-2 font-semibold">
+          Password:
+        </label>
+        <input
+          type="password"
+          name="password"
+          id="password"
+          value={formData.password}
+          onChange={handleInputChange}
+          className="mb-4 p-2 border border-gray-300 rounded"
+          required
+        />
+
+        <button
+          type="submit"
+          className="bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+        >
+          Log In
+        </button>
+      </form>
+    </div>
   );
 };
 
