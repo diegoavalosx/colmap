@@ -1,6 +1,7 @@
 import { useState, useEffect, type ReactNode } from "react";
 import { AuthContext } from "./AuthContext";
 import authPromise from "../firebase-config";
+import Loader from '../components/Loader'
 import {
   signInWithEmailAndPassword,
   signOut,
@@ -94,7 +95,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <Loader/>;
   }
 
   return (

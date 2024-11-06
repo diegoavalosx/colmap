@@ -1,3 +1,4 @@
+import Loader from '../components/Loader'
 import {
   APIProvider,
   // biome-ignore lint/suspicious/noShadowRestrictedNames: <explanation>
@@ -87,7 +88,7 @@ const InteractiveMap = () => {
           </div>
         </APIProvider>
       ) : (
-        <>Loading...</>
+        <Loader />
       )}
     </>
   );
