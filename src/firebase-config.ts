@@ -5,6 +5,8 @@ import {
   getAuth,
   setPersistence,
 } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+import type { Firestore } from "firebase/firestore/lite";
 
 // Function to fetch configuration from the backend
 async function fetchFirebaseConfig() {
@@ -23,9 +25,14 @@ async function fetchFirebaseConfig() {
   }
 }
 
+interface FirebaseInstances {
+  auth: Auth;
+  db: Firestore;
+}
+
 // Create and export a promise that resolves with `auth` after initialization
-const authPromise: Promise<Auth> = fetchFirebaseConfig().then(
-  (configResponse) => {
+const firebaseInstancesPromise: Promise<FirebaseInstances> =
+  fetchFirebaseConfig().then((configResponse) => {
     const firebaseConfig = {
       apiKey: configResponse.apiKey,
       authDomain: "colmap-9f519.firebaseapp.com",
@@ -40,6 +47,8 @@ const authPromise: Promise<Auth> = fetchFirebaseConfig().then(
 
     const auth = getAuth(app);
 
+    const db = getFirestore(app);
+
     setPersistence(auth, browserSessionPersistence)
       .then(() => {
         console.log("Persistence set");
@@ -48,8 +57,7 @@ const authPromise: Promise<Auth> = fetchFirebaseConfig().then(
         console.error("Error setting persistence:", error);
       });
 
-    return auth;
-  }
-);
+    return { auth, db };
+  });
 
-export default authPromise;
+export default firebaseInstancesPromise;
