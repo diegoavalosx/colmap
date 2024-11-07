@@ -19,6 +19,7 @@ const About: React.FC<AboutProps> = ({ refs }) => {
       <WhoWR ref={refs.whoWeAreRef} />
       <WhyUs ref={refs.whyUsRef} />
       <Contact ref={refs.contactRef} />
+      
     </div>
   );
 };
