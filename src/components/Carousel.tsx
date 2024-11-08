@@ -30,36 +30,42 @@ const Carousel = () => {
           <img
             className="product-image w-full h-60 object-cover rounded-md"
             src={img1}
+            alt=""
           />
         </div>
         <div className={divClases}>
           <img
             className="product-image w-full h-60 object-cover rounded-md"
             src={img2}
+            alt=""
           />
         </div>
         <div className={divClases}>
           <img
             className="product-image w-full h-60 object-cover rounded-md"
             src={img3}
+            alt=""
           />
         </div>
         <div className={divClases}>
           <img
             className="product-image w-full h-60 object-cover rounded-md"
             src={img4}
+            alt=""
           />
         </div>
         <div className={divClases}>
           <img
             className="product-image w-full h-60 object-cover rounded-md"
             src={img5}
+            alt=""
           />
         </div>
         <div className={divClases}>
           <img
             className="product-image w-full h-60 object-cover rounded-md"
             src={img6}
+            alt=""
           />
         </div>
       </CarouselReact>

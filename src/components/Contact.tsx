@@ -1,8 +1,8 @@
-import React, { forwardRef, useRef, useState} from "react";
-import emailjs from '@emailjs/browser'
+import type React from "react";
+import { forwardRef, useRef, useState } from "react";
+import emailjs from "@emailjs/browser";
 
 const Contact = forwardRef<HTMLDivElement>((_, ref) => {
-  
   const form = useRef<HTMLFormElement | null>(null);
 
   // Error states
@@ -15,70 +15,67 @@ const Contact = forwardRef<HTMLDivElement>((_, ref) => {
     let isValid = true;
 
     // Name input validate
-    if(!form.current?.user_name.value){
+    if (!form.current?.user_name.value) {
       setNameError("Name required");
       isValid = false;
-      setTimeout(() => setNameError(""), 3000); 
+      setTimeout(() => setNameError(""), 3000);
     } else {
-      setNameError("")
+      setNameError("");
     }
 
     // email input validate
     const email = form.current?.user_email.value;
-    if(!email) {
+    if (!email) {
       setEmailError("Email required");
       isValid = false;
-      setTimeout(() => setEmailError(""), 3000); 
-    } else if(!/\S+@\S+\.\S+/.test(email)){
+      setTimeout(() => setEmailError(""), 3000);
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
       setEmailError("Invalid email");
       isValid = false;
-      
-    } else{
+    } else {
       setEmailError("");
     }
 
     // message input validate
-    if(!form.current?.message.value){
+    if (!form.current?.message.value) {
       setmessageError("Message required");
       isValid = false;
-      setTimeout(() => setmessageError(""), 3000); 
+      setTimeout(() => setmessageError(""), 3000);
     } else {
       setmessageError("");
     }
     return isValid;
-  }
+  };
   const sendEmail = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
-    if(validateForm()){
+
+    if (validateForm() && form.current) {
       emailjs
-      .sendForm('service_8lw0vae', 'template_oh3nnzt', form.current!, {
-        publicKey: 'o1R8SWpVH1-dSQA6e',
-      })
-      .then(
-        (result) => {
-          console.log(result.text);
-          setformSuccess("Form sent successfully")
-          form.current?.reset();
+        .sendForm("service_8lw0vae", "template_oh3nnzt", form.current, {
+          publicKey: "o1R8SWpVH1-dSQA6e",
+        })
+        .then(
+          (result) => {
+            console.log(result.text);
+            setformSuccess("Form sent successfully");
+            form.current?.reset();
 
-          // Hide success message
-          setTimeout(() => {
-            setformSuccess(null)
-          }, 3000);
-          
-        },
-        (error) => {
-          console.log('FAILED...', error.text);
-          setformSuccess("Error sending form. Try again.");
-          // Hide error message
-          setTimeout(() => {
-            setformSuccess(null)
-          }, 3000);
-        }
-      );
-    } 
+            // Hide success message
+            setTimeout(() => {
+              setformSuccess(null);
+            }, 3000);
+          },
+          (error) => {
+            console.log("FAILED...", error.text);
+            setformSuccess("Error sending form. Try again.");
+            // Hide error message
+            setTimeout(() => {
+              setformSuccess(null);
+            }, 3000);
+          }
+        );
+    }
   };
-
 
   return (
     <div
@@ -103,7 +100,7 @@ const Contact = forwardRef<HTMLDivElement>((_, ref) => {
             id="POST-name"
             type="text"
             name="user_name"
-          /> 
+          />
           {nameError && <p className="text-red-500">{nameError}</p>}
           <label htmlFor="POST-email">Email</label>
           <input
@@ -127,7 +124,15 @@ const Contact = forwardRef<HTMLDivElement>((_, ref) => {
             SEND
           </button>
           {formSuccess && (
-            <p className={formSuccess.startsWith("Form") ? "text-green-500" : "text-red-500"}>{formSuccess}</p>
+            <p
+              className={
+                formSuccess.startsWith("Form")
+                  ? "text-green-500"
+                  : "text-red-500"
+              }
+            >
+              {formSuccess}
+            </p>
           )}
         </form>
       </div>

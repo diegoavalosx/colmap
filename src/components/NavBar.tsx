@@ -38,8 +38,8 @@ const NavBar: React.FC<NavBarProps> = ({ refs }) => {
         // Verificar si está dentro de la sección
 
         if (
-          scrollPosition >= sectionTop - sectionHeight / 2  &&
-          scrollPosition < sectionTop + sectionHeight / 2 
+          scrollPosition >= sectionTop - sectionHeight / 2 &&
+          scrollPosition < sectionTop + sectionHeight / 2
         ) {
           setActiveLink(link.id);
         }
@@ -90,7 +90,7 @@ const NavBar: React.FC<NavBarProps> = ({ refs }) => {
                     window.pageYOffset;
 
                   // Subtract the height of the fixed navbar (e.g., 64px or the specific height of your navbar)
-                  const offset = window.innerWidth >= 1024 ? 80: 100; // Adjust this value to match your navbar's height
+                  const offset = window.innerWidth >= 1024 ? 80 : 100; // Adjust this value to match your navbar's height
 
                   // Scroll to the element with the offset
                   window.scrollTo({
