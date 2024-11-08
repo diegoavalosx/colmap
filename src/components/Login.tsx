@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "./useAuth";
 import { useNavigate } from "react-router-dom";
-import { } from '../components/AuthContext'
-
 interface LogInFormData {
   email: string;
   password: string;
