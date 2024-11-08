@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "./useAuth";
 import { useNavigate } from "react-router-dom";
-
 interface LogInFormData {
   email: string;
   password: string;
@@ -9,7 +8,7 @@ interface LogInFormData {
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login, user } = useAuth();
+  const { login, user, authError, authStatus } = useAuth();
   const [formData, setFormData] = useState<LogInFormData>({
     email: "",
     password: "",
@@ -31,7 +30,10 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await login(formData.email, formData.password);
+    const result = await login(formData.email, formData.password);
+    if(result === "emailNotVerified"){
+      navigate("/email-verification");
+    }
   };
 
   return (
@@ -65,12 +67,16 @@ const Login = () => {
           className="mb-4 p-2 border border-gray-300 rounded"
           required
         />
+        {authError && (
+          <p className="text-red-500 mb-4">{authError}</p>
+        )}
 
         <button
-          type="submit"
+          type="submit" 
           className="bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+          disabled={authStatus === 'loading'}
         >
-          Log In
+          {authStatus === 'loading' ? 'Loading...' : 'Log In'}
         </button>
       </form>
     </div>

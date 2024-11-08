@@ -8,6 +8,7 @@ import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import { AuthProvider } from "./components/AuthProvider.tsx";
 import SignIn from "./components/SignIn.tsx";
 import "./styles/styles.css";
+import EmailVerification from "./components/EmailVerification.tsx";
 
 const rootElement = document.getElementById("root");
 
@@ -32,6 +33,7 @@ if (rootElement) {
                       </ProtectedRoute>
                     }
                   />
+                 <Route path="/email-verified" element={<EmailVerification />} />
                 </Routes>
               </AuthProvider>
             }
