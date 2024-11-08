@@ -8,7 +8,7 @@ interface LogInFormData {
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login, user, authError, authStatus } = useAuth();
+  const { login, user, authStatus, authError, clearAuthError } = useAuth();
   const [formData, setFormData] = useState<LogInFormData>({
     email: "",
     password: "",
@@ -19,6 +19,15 @@ const Login = () => {
       navigate("/dashboard");
     }
   }, [user, navigate]);
+
+  useEffect(() => {
+    if(authError){
+      const timer = setTimeout(() => {
+        clearAuthError();
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [authError, clearAuthError]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -35,7 +44,6 @@ const Login = () => {
       navigate("/email-verification");
     }
   };
-
   return (
     <div className="flex h-full w-full justify-center items-center">
       <form

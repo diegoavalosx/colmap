@@ -7,6 +7,7 @@ export interface AuthContextType {
   login: (email: string, password: string) => Promise<string>;
   logout: () => void;
   authError: string | null;
+  clearAuthError: () => void;
   authStatus: 'idle' | 'loading' | 'authenticated' | 'error';
   dataBase: Firestore | null;
   role: string | null;

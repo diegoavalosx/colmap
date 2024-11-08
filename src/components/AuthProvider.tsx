@@ -120,12 +120,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const clearAuthError = () => {
+    setAuthError(null);
+  }
+
   if (loading) {
     return <Loader />;
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, dataBase, role, authError, authStatus }}>
+    <AuthContext.Provider value={{ user, login, logout, dataBase, role, authError, authStatus, clearAuthError }}>
       {children}
     </AuthContext.Provider>
   );

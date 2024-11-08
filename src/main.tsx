@@ -33,7 +33,7 @@ if (rootElement) {
                       </ProtectedRoute>
                     }
                   />
-                 <Route path="/email-verified" element={<EmailVerification />} />
+                 <Route path="/email-verification" element={<EmailVerification />} />
                 </Routes>
               </AuthProvider>
             }
