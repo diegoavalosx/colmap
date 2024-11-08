@@ -1,5 +1,6 @@
 import { useState, useEffect, type ReactNode } from "react";
-import { AuthContext } from "./AuthContext";
+import { AuthContext, AuthContextType } from "./AuthContext";
+import {FirebaseError} from 'firebase/app'
 import authPromise from "../firebase-config";
 import Loader from '../components/Loader'
 import {
@@ -20,6 +21,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [auth, setAuth] = useState<Auth | null>();
   const [dataBase, setDatabase] = useState<Firestore | null>();
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [authStatus, setAuthStatus] = useState<AuthContextType['authStatus']>('idle');
 
   useEffect(() => {
     authPromise
@@ -42,7 +45,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<"success" | "emailNotVerified" | "error"> => {
+    setAuthStatus('loading');
+    setAuthError(null);
     try {
       if (auth) {
         const userCredential = await signInWithEmailAndPassword(
@@ -51,7 +56,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           password
         );
         const user = userCredential.user;
-
         if (dataBase) {
           const userRef = doc(dataBase, "users", user.uid);
           console.log(userRef);
@@ -65,32 +69,48 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             });
           }
         }
-
         if (user.emailVerified) {
           setUser(user);
-          return true;
-        }
-
+          setAuthStatus('authenticated');
+          return "success";
+        } else {
         await auth.signOut();
-        console.warn("Please verify your email before logging in.");
-        return false;
+        setAuthError("Please verify your email before logging in.");
+        setAuthStatus('error')
+        return "emailNotVerified";
       }
+      
+    }
+      setAuthStatus('error');
+      setAuthError("Authentication failed.")
+      return "error";
 
-      return false;
-    } catch (error) {
-      console.error("Login failed:", error);
-      return false;
+    } catch (error: unknown) {
+      if(error instanceof FirebaseError){
+        setAuthError("Login failed");
+      } else {
+       setAuthError("Unexpected error on login") 
+      }
+      setAuthStatus('error');
+      return "error";
     }
   };
 
   const logout = async () => {
+    setAuthStatus('loading');
     try {
       if (auth) {
         await signOut(auth);
         setUser(null);
+        setAuthStatus('idle');
       }
-    } catch (error) {
-      console.error("Logout failed:", error);
+    } catch (error: unknown) {
+      if(error instanceof FirebaseError){
+      setAuthError("Logout failed")
+      }else {
+      setAuthError("Unexpected error on login")
+    }
+      setAuthStatus('error');
     }
   };
 
@@ -99,7 +119,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, authError, authStatus}}>
       {children}
     </AuthContext.Provider>
   );
