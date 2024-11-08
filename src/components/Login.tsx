@@ -37,10 +37,10 @@ const Login = () => {
   };
 
   return (
-    <div>
+    <div className="flex h-full w-full justify-center items-center">
       <form
         onSubmit={handleSubmit}
-        className="flex flex-col p-4 max-w-sm mx-auto"
+        className="flex flex-col p-4 max-w-md mx-auto"
       >
         <label htmlFor="email" className="mb-2 font-semibold">
           Email:

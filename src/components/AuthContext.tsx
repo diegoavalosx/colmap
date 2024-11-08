@@ -1,4 +1,5 @@
 import type { User } from "firebase/auth";
+import type { Firestore } from "firebase/firestore";
 import { createContext } from "react";
 
 export interface AuthContextType {
@@ -7,6 +8,8 @@ export interface AuthContextType {
   logout: () => void;
   authError: string | null;
   authStatus: 'idle' | 'loading' | 'authenticated' | 'error';
+  dataBase: Firestore | null;
+  role: string | null;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(
