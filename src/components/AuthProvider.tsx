@@ -37,6 +37,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             const userDoc = await getDoc(doc(db, "users", user.uid));
             setRole(userDoc.data()?.role || "user");
           } else {
+            await signOut(auth);
             setUser(null);
             setRole(null);
           }
