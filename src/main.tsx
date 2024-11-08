@@ -25,7 +25,7 @@ if (rootElement) {
                   <Route path="/login" element={<Login />} />
                   <Route path="/signin" element={<SignIn />} />
                   <Route
-                    path="/dashboard"
+                    path="/dashboard/*"
                     element={
                       <ProtectedRoute>
                         <Dashboard />
