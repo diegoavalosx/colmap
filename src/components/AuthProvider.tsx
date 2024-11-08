@@ -1,6 +1,6 @@
 import { useState, useEffect, type ReactNode } from "react";
-import { AuthContext, AuthContextType } from "./AuthContext";
-import {FirebaseError} from 'firebase/app'
+import { AuthContext, type AuthContextType } from "./AuthContext";
+import { FirebaseError } from "firebase/app";
 import authPromise from "../firebase-config";
 import Loader from "../components/Loader";
 import {
@@ -21,7 +21,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [auth, setAuth] = useState<Auth | null>();
   const [authError, setAuthError] = useState<string | null>(null);
-  const [authStatus, setAuthStatus] = useState<AuthContextType['authStatus']>('idle');
+  const [authStatus, setAuthStatus] =
+    useState<AuthContextType["authStatus"]>("idle");
   const [dataBase, setDatabase] = useState<Firestore | null>(null);
   const [role, setRole] = useState<string | null>(null);
 
@@ -49,9 +50,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
   }, []);
 
-  const login = async (email: string, password: string): Promise<"success" | "emailNotVerified" | "error"> => {
-    setAuthStatus('loading');
+  const login = async (
+    email: string,
+    password: string
+  ): Promise<"success" | "emailNotVerified" | "error"> => {
+    setAuthStatus("loading");
     setAuthError(null);
+
     try {
       if (auth) {
         const userCredential = await signInWithEmailAndPassword(
@@ -60,6 +65,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           password
         );
         const user = userCredential.user;
+
         if (dataBase) {
           const userRef = doc(dataBase, "users", user.uid);
           console.log(userRef);
@@ -75,61 +81,71 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             });
           }
         }
+
         if (user.emailVerified) {
           setUser(user);
-          setAuthStatus('authenticated');
+          setAuthStatus("authenticated");
           return "success";
-        } else {
+        }
+
         await auth.signOut();
         setAuthError("Please verify your email before logging in.");
-        setAuthStatus('error')
+        setAuthStatus("error");
         return "emailNotVerified";
       }
-      
-    }
-      setAuthStatus('error');
-      setAuthError("Authentication failed.")
+      setAuthStatus("error");
+      setAuthError("Authentication failed.");
       return "error";
-
     } catch (error: unknown) {
-      if(error instanceof FirebaseError){
+      if (error instanceof FirebaseError) {
         setAuthError("Login failed");
       } else {
-       setAuthError("Unexpected error on login") 
+        setAuthError("Unexpected error on login");
       }
-      setAuthStatus('error');
+      setAuthStatus("error");
       return "error";
     }
   };
 
   const logout = async () => {
-    setAuthStatus('loading');
+    setAuthStatus("loading");
     try {
       if (auth) {
         await signOut(auth);
         setUser(null);
-        setAuthStatus('idle');
+        setAuthStatus("idle");
       }
     } catch (error: unknown) {
-      if(error instanceof FirebaseError){
-      setAuthError("Logout failed")
-      }else {
-      setAuthError("Unexpected error on login")
-    }
-      setAuthStatus('error');
+      if (error instanceof FirebaseError) {
+        setAuthError("Logout failed");
+      } else {
+        setAuthError("Unexpected error on login");
+      }
+      setAuthStatus("error");
     }
   };
 
   const clearAuthError = () => {
     setAuthError(null);
-  }
+  };
 
   if (loading) {
     return <Loader />;
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, dataBase, role, authError, authStatus, clearAuthError }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        logout,
+        dataBase,
+        role,
+        authError,
+        authStatus,
+        clearAuthError,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
