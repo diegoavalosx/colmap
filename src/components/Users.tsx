@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "./useAuth";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, doc, deleteDoc } from "firebase/firestore";
+import { HiXCircle, HiPencilAlt } from "react-icons/hi";
 
 type User = {
   id: string;
@@ -11,6 +12,11 @@ type User = {
 const Users = () => {
   const [users, setUsers] = useState<User[]>([]);
   const { dataBase } = useAuth();
+  const deleteUsers = async (id: string) =>{
+    if(!dataBase) return
+    await deleteDoc(doc( dataBase, "users", id));
+    console.log("Eliminando")
+  };
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -46,6 +52,9 @@ const Users = () => {
               <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
                 Email verified
               </th>
+              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -59,6 +68,10 @@ const Users = () => {
                 </td>
                 <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
                   {user.emailVerified ? "Yes" : "No"}
+                </td>
+                <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
+                  <button><HiPencilAlt size={30}/></button>
+                  <button onClick={() =>{deleteUsers(user.id)}}> <HiXCircle size={30} /></button>
                 </td>
               </tr>
             ))}
