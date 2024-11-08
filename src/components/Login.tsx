@@ -44,7 +44,6 @@ const Login = () => {
       navigate("/email-verification");
     }
   };
-  
   return (
     <div className="flex h-full w-full justify-center items-center">
       <form
