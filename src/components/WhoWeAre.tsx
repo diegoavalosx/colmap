@@ -1,9 +1,8 @@
-import { forwardRef } from "react";
 import bgImage from "../assets/bg-image.png";
 
-const WhoWR = forwardRef<HTMLDivElement>((_, ref) => {
+const WhoWeAre = () => {
   return (
-    <div className="h-auto bg-black p-8 md:p-16 flex flex-col items-center" ref={ref}>
+    <div className="h-auto bg-black p-8 md:p-16 flex flex-col items-center">
       <h1 className="text-white text-3xl font-bold mr-5 transition-transform duration-300 hover:scale-105 mb-4">
         WHO WE ARE
       </h1>
@@ -45,6 +44,6 @@ const WhoWR = forwardRef<HTMLDivElement>((_, ref) => {
       </div>
     </div>
   );
-});
+};
 
-export default WhoWR;
+export default WhoWeAre;

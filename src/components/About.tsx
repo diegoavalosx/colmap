@@ -1,25 +1,25 @@
-import Main from "../components/Main";
-import WhoWR from "../components/WhoWR";
-import WhyUs from "../components/WhyUs";
-import Contact from "./Contact";
+import bgImage from "../assets/bg-image-2.png";
 
-type AboutProps = {
-  refs: {
-    mainRef: React.RefObject<HTMLDivElement>;
-    whoWeAreRef: React.RefObject<HTMLDivElement>;
-    whyUsRef: React.RefObject<HTMLDivElement>;
-    contactRef: React.RefObject<HTMLDivElement>;
-  };
-};
-
-const About: React.FC<AboutProps> = ({ refs }) => {
+const About = () => {
   return (
-    <div className="h-full pt-20">
-      <Main ref={refs.mainRef} />
-      <WhoWR ref={refs.whoWeAreRef} />
-      <WhyUs ref={refs.whyUsRef} />
-      <Contact ref={refs.contactRef} />
-      
+    <div className="h-full flex flex-col w-full bg-white rounded-br-custom-br lg:flex-row justify-center">
+      <div className="flex justify-center w-full flex-col p-6 h-full md:w-2/4">
+        <h1 className="text-black text-4xl font-bold mr-5 transition-transform duration-300 hover:scale-105 mb-6">
+          MAKE YOUR BRAND{" "}
+          <span className="text-ooh-yeah-pink appear-on-load">UNMISSABLE.</span>
+        </h1>
+        <h2 className="font-bold">
+          Boutique outdoor media solutions, from creative design to impactful
+          installation, tailored to captivate and engage.
+        </h2>
+      </div>
+      <div className="flex justify-center w-full flex-col h-full bg-black md:w-2/4">
+        <img
+          className="h-full opacity-70 rounded-br-custom-br"
+          src={bgImage}
+          alt=""
+        />
+      </div>
     </div>
   );
 };

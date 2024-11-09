@@ -1,11 +1,9 @@
 import type React from "react";
-import { forwardRef, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import emailjs from "@emailjs/browser";
 
-const Contact = forwardRef<HTMLDivElement>((_, ref) => {
+const Contact = () => {
   const form = useRef<HTMLFormElement | null>(null);
-
-  // Error states
   const [nameError, setNameError] = useState("");
   const [emailError, setEmailError] = useState("");
   const [messageError, setmessageError] = useState("");
@@ -78,10 +76,7 @@ const Contact = forwardRef<HTMLDivElement>((_, ref) => {
   };
 
   return (
-    <div
-      className="h-full bg-white p-16 flex flex-col items-center justify-center"
-      ref={ref}
-    >
+    <div className="h-full bg-white p-16 flex flex-col items-center justify-center">
       <div className="pb-6">
         <h1 className="text-3xl font-bold">Got any ideas?</h1>
         <h2 className="font-bold mb-6 text-xl">We'd love to hear from you!</h2>
@@ -138,6 +133,6 @@ const Contact = forwardRef<HTMLDivElement>((_, ref) => {
       </div>
     </div>
   );
-});
+};
 
 export default Contact;

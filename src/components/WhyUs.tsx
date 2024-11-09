@@ -1,12 +1,8 @@
-import { forwardRef } from "react";
 import whyUsImage from "../assets/whyohyeah.png";
 
-const WhyUs = forwardRef<HTMLDivElement>((_, ref) => {
+const WhyUs = () => {
   return (
-    <div
-      className="h-auto bg-black p-8 md:p-16 flex flex-col items-center justify-center rounded-bl-custom-br"
-      ref={ref}
-    >
+    <div className="h-full bg-black p-8 md:p-16 flex flex-col items-center justify-center rounded-bl-custom-br">
       <h1 className="text-white text-3xl font-bold mr-5 transition-transform duration-300 hover:scale-105 mb-4">
         WHY US
       </h1>
@@ -33,6 +29,6 @@ const WhyUs = forwardRef<HTMLDivElement>((_, ref) => {
       </div>
     </div>
   );
-});
+};
 
 export default WhyUs;
