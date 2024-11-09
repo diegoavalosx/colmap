@@ -3,6 +3,7 @@ import MainContent from "./MainContent";
 import { Route, Routes } from "react-router-dom";
 import Users from "./Users";
 import ProtectedRoute from "./ProtectedRoute";
+import User from "./User";
 
 const Dashboard = () => {
   return (
@@ -19,6 +20,7 @@ const Dashboard = () => {
               </ProtectedRoute>
             }
           />
+          <Route path="/user/:userId" element={<User />} />
         </Routes>
       </div>
     </div>

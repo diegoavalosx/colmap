@@ -10,7 +10,7 @@ import {
   type User,
   type Auth,
 } from "firebase/auth";
-import { doc, getDoc, setDoc, type Firestore } from "firebase/firestore";
+import { doc, getDoc, updateDoc, type Firestore } from "firebase/firestore";
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -37,7 +37,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             const userDoc = await getDoc(doc(db, "users", user.uid));
             setRole(userDoc.data()?.role || "user");
           } else {
-            await signOut(auth);
             setUser(null);
             setRole(null);
           }
@@ -67,25 +66,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         );
         const user = userCredential.user;
 
-        if (dataBase) {
-          const userRef = doc(dataBase, "users", user.uid);
-          console.log(userRef);
-          const userDoc = await getDoc(userRef);
-          console.log(userDoc);
-
-          if (!userDoc.exists()) {
-            await setDoc(userRef, {
-              email: user.email,
-              createdAt: new Date(),
-              emailVerified: user.emailVerified,
-              role: "user",
-            });
-          }
-        }
-
         if (user.emailVerified) {
           setUser(user);
           setAuthStatus("authenticated");
+          if (dataBase) {
+            const userRef = doc(dataBase, "users", user.uid);
+
+            await updateDoc(userRef, {
+              emailVerified: user.emailVerified,
+            });
+          }
           return "success";
         }
 

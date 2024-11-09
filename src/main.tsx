@@ -6,7 +6,7 @@ import Login from "./components/Login.tsx";
 import Dashboard from "./components/Dashboard.tsx";
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import { AuthProvider } from "./components/AuthProvider.tsx";
-import SignIn from "./components/SignIn.tsx";
+import SignUp from "./components/SignUp.tsx";
 import "./styles/styles.css";
 import EmailVerification from "./components/EmailVerification.tsx";
 
@@ -24,7 +24,7 @@ if (rootElement) {
               <AuthProvider>
                 <Routes>
                   <Route path="/login" element={<Login />} />
-                  <Route path="/signin" element={<SignIn />} />
+                  <Route path="/signup" element={<SignUp />} />
                   <Route
                     path="/dashboard/*"
                     element={
@@ -33,7 +33,10 @@ if (rootElement) {
                       </ProtectedRoute>
                     }
                   />
-                 <Route path="/email-verification" element={<EmailVerification />} />
+                  <Route
+                    path="/email-verification"
+                    element={<EmailVerification />}
+                  />
                 </Routes>
               </AuthProvider>
             }
