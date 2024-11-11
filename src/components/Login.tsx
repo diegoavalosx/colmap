@@ -85,7 +85,7 @@ const Login = () => {
             placeholder="••••••••"
             required
           />
-          {authError && <p className="text-red-500 mb-4">{authError}</p>}
+          {authError && <p className="text-red-500 mb-4 text-center">{authError}</p>}
 
           <button
             type="submit"
