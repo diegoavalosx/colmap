@@ -15,10 +15,10 @@ const Login = () => {
   });
 
   useEffect(() => {
-    if (user) {
+    if (user?.emailVerified) {
       navigate("/dashboard");
     }
-  }, [user, navigate]);
+  }, [user, navigate, authStatus]);
 
   useEffect(() => {
     if (authError) {
@@ -39,6 +39,7 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    console.log(user)
     const result = await login(formData.email, formData.password);
     if (result === "emailNotVerified") {
       navigate("/email-verification");
