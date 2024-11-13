@@ -1,28 +1,29 @@
-import {useState} from 'react';
-import {sendEmailVerification} from 'firebase/auth';
-import authPromise from "../firebase-config";
+import {useEffect, useState} from 'react';
+import { useAuth } from './useAuth';
 
 const EmailVerification: React.FC = () => {
+   const { resendVerificationEmail } = useAuth(); 
+  const [verificationMessage, setVerificationMessage] = useState<string | null>(null);
 
-  const [verificationMessage, setVerificationMessage] = useState("");
-  const resendEmailConfirmation = async () =>{
-    try{
-      //
-      const { auth } = await authPromise;
-      const user = auth.currentUser;
-
-      if(user){
-        console.log(user)
-        await sendEmailVerification(user);
-        setVerificationMessage("Verification email has been resent. Please check your inbox.");
-      } else {
-        setVerificationMessage("No user is currently signed in.")
-      }
-    } catch(error){
-      console.error("Error sendin email verification:", error);
-      setVerificationMessage("An error occurred while resendin the verification email. Please try again later.")
+  const handleResendEmail = async () => {
+    try {
+      await resendVerificationEmail();
+      setVerificationMessage("Verification email has been resent. Please check your inbox.");
+    } catch (error) {
+      console.error("Error resending email verification:", error);
+      setVerificationMessage("An error occurred while resending the verification email. Please try again later.");
     }
   };
+
+  useEffect( () =>{
+    if(verificationMessage){
+      const timer = setTimeout(()=>{
+        setVerificationMessage(null);
+      }, 5000);
+
+      return()=> clearTimeout(timer);
+    }
+  }, [verificationMessage]);
 
   return (
     <div className="flex items-center justify-center h-screen bg-black">
@@ -32,12 +33,12 @@ const EmailVerification: React.FC = () => {
         </h2>
         <p className="mb-6 text-xl">If you still do not receive a confirmation email, click the next button.</p>
         <button 
-          onClick={resendEmailConfirmation}
+          onClick={handleResendEmail}
           className="w-full py-2 mt-4 font-semibold text-white bg-ooh-yeah-pink rounded-lg hover:bg-pink-600 transition-colors">
           Resend Verification Email
         </button>
         {verificationMessage && (
-          <p className={`mt-4 text-center ${verificationMessage.includes("error") ? "text-red-600" : "text-green-600"}`}></p>
+          <p className={`mt-4 text-center text-black ${verificationMessage.includes("Error") ? "text-red-600" : "text-green-600"}`}></p>
         )}
       </div>
     </div>
