@@ -1,4 +1,4 @@
-import Sidebar from "./Sidebard";
+import Sidebar from "./Sidebar";
 import MainContent from "./MainContent";
 import { Route, Routes } from "react-router-dom";
 import Users from "./Users";
