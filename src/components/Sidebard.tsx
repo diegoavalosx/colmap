@@ -17,6 +17,11 @@ const Sidebar: React.FC = () => {
               <Link to="/dashboard/users">Users</Link>
             </li>
           )}
+          {role === "admin" && (
+            <li className="mb-2 hover:bg-gray-700 p-2 rounded">
+              <Link to="/dashboard/campaigns">Campaigns</Link>
+            </li>
+          )}
           <li className="mb-2 hover:bg-gray-700 p-2 rounded">
             <button type="button" onClick={() => logout()}>
               Logout

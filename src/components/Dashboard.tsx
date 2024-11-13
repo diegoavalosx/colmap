@@ -4,6 +4,8 @@ import { Route, Routes } from "react-router-dom";
 import Users from "./Users";
 import ProtectedRoute from "./ProtectedRoute";
 import User from "./User";
+import Campaigns from "./Campaigns";
+import Campaign from "./Campaign";
 
 const Dashboard = () => {
   return (
@@ -20,7 +22,16 @@ const Dashboard = () => {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="campaigns"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <Campaigns />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/user/:userId" element={<User />} />
+          <Route path="/campaign/:campaignId" element={<Campaign />} />
         </Routes>
       </div>
     </div>

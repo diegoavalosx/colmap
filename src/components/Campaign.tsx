@@ -1,57 +1,23 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  addDoc,
-  collection,
-  doc,
-  type Firestore,
-  getDoc,
-} from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import ReactModal from "react-modal";
 import { useAuth } from "./useAuth";
 import Loader from "./Loader";
 
-interface UserType {
-  id: string;
-  email: string;
-  name: string;
-  emailVerified: boolean;
-  role: string;
-}
-
 interface Campaign {
+  id: string;
   name: string;
   description: string;
   status: string;
   createdAt: Date;
+  userId: string;
 }
 
-async function createCampaign(
-  userId: string,
-  campaignData: Campaign,
-  db: Firestore
-) {
-  try {
-    const campaign = {
-      ...campaignData,
-      userId: userId,
-      createdAt: new Date(),
-    };
-
-    const campaignRef = collection(db, "campaigns");
-    const newCampaign = await addDoc(campaignRef, campaign);
-    console.log("Campaign created with ID:", newCampaign.id);
-    return newCampaign.id;
-  } catch (error) {
-    console.error("Error creating campaign:", error);
-    throw error;
-  }
-}
-
-const UserDetail = () => {
+const CampaignDetail = () => {
   const { dataBase } = useAuth();
-  const { userId } = useParams<{ userId: string }>();
-  const [user, setUser] = useState<UserType | null>(null);
+  const { campaignId } = useParams<{ campaignId: string }>();
+  const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [campaignName, setCampaignName] = useState<string>("");
@@ -60,57 +26,39 @@ const UserDetail = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchCampaign = async () => {
       try {
         if (!dataBase) return;
-        const docRef = doc(dataBase, "users", userId as string);
+        const docRef = doc(dataBase, "campaigns", campaignId as string);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-          setUser({ id: docSnap.id, ...docSnap.data() } as unknown as UserType);
+          setCampaign({
+            id: docSnap.id,
+            ...docSnap.data(),
+          } as unknown as Campaign);
         } else {
           console.log("No such document!");
         }
       } catch (error) {
-        console.error("Error fetching user:", error);
+        console.error("Error fetching campaign:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    if (userId) fetchUser();
-  }, [dataBase, userId]);
+    if (campaignId) fetchCampaign();
+  }, [dataBase, campaignId]);
 
-  const handleCreateCampaignClick = () => {
-    setIsModalOpen(true);
-  };
+  const handleCreateCampaignClick = () => {};
 
   const handleFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!user || !dataBase) return;
-
-    const campaignData: Campaign = {
-      name: campaignName,
-      description: campaignDescription,
-      status: campaignStatus,
-      createdAt: new Date(),
-    };
-
-    try {
-      await createCampaign(user.id, campaignData, dataBase);
-      setIsModalOpen(false);
-      setCampaignName("");
-      setCampaignDescription("");
-      setCampaignStatus("active");
-      alert("Campaign created successfully!");
-    } catch (error) {
-      console.error("Failed to create campaign:", error);
-    }
   };
 
   if (loading) return <Loader />;
 
-  if (!user) return <p>User not found</p>;
+  if (!campaign) return <p>Campaign not found</p>;
 
   return (
     <div className="flex flex-col">
@@ -183,40 +131,40 @@ const UserDetail = () => {
         type="button"
         className="font-bold text-left pl-4 w-min whitespace-nowrap"
         onClick={() => {
-          navigate("/dashboard/users");
+          navigate("/dashboard/campaigns");
         }}
       >
         {"< BACK"}
       </button>
       <div className="flex justify-between mt-4">
-        <h1 className="text-left text-2xl font-bold pl-4">Company Name</h1>
+        <h1 className="text-left text-2xl font-bold pl-4">Campaign</h1>
         <button
           className="px-4 py-2 text-white font-bold rounded-md bg-ooh-yeah-pink"
           type="button"
           onClick={handleCreateCampaignClick}
         >
-          New Campaign
+          New Location
         </button>
       </div>
       <div className="p-6 w-full mx-auto bg-white shadow-md rounded-lg mt-4 text-left">
         <p>
-          <strong>ID:</strong> {user.id}
+          <strong>ID:</strong> {campaign.id}
         </p>
         <p>
-          <strong>Email:</strong> {user.email}
+          <strong>Email:</strong> {campaign.name}
         </p>
         <p>
-          <strong>Name:</strong> {user.name}
+          <strong>Name:</strong> {campaign.name}
         </p>
         <p>
-          <strong>Email Verified:</strong> {user.emailVerified ? "Yes" : "No"}
+          <strong>Email Verified:</strong> {campaign.status}
         </p>
         <p>
-          <strong>Role:</strong> {user.role}
+          <strong>Owner:</strong> {campaign.userId}
         </p>
       </div>
     </div>
   );
 };
 
-export default UserDetail;
+export default CampaignDetail;
