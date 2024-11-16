@@ -18,7 +18,7 @@ const Login = () => {
     if (user?.emailVerified) {
       navigate("/dashboard");
     }
-  }, [user, navigate, authStatus]);
+  }, [user, navigate]);
 
   useEffect(() => {
     if (authError) {
@@ -39,7 +39,6 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log(user)
     const result = await login(formData.email, formData.password);
     if (result === "emailNotVerified") {
       navigate("/email-verification");
@@ -86,7 +85,9 @@ const Login = () => {
             placeholder="••••••••"
             required
           />
-          {authError && <p className="text-red-500 mb-4 text-center">{authError}</p>}
+          {authError && (
+            <p className="text-red-500 mb-4 text-center">{authError}</p>
+          )}
 
           <button
             type="submit"
