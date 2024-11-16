@@ -140,12 +140,10 @@ const Users = () => {
                 </td>
                 <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
                   {/* Editar usuario */}
-                  
                   <button
                     type="button">
                     <HiPencilAlt size={30} />
                   </button>
-
                   {/* Eliminar usuario */}
                   <button
                     type="button"
