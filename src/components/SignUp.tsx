@@ -1,13 +1,12 @@
 import { useState } from "react";
-import {
-  createUserWithEmailAndPassword,
-  sendEmailVerification,
-  signOut,
-  type User,
-} from "firebase/auth";
+import { getFunctions, httpsCallable } from "firebase/functions";
+import { useNavigate } from "react-router-dom";
 import authPromise from "../firebase-config";
-import { doc, type Firestore, setDoc } from "firebase/firestore";
-import {useNavigate} from 'react-router-dom'
+import {
+  sendEmailVerification,
+  signInWithEmailAndPassword,
+  signOut,
+} from "firebase/auth";
 
 interface SignUpFormData {
   name: string;
@@ -23,7 +22,7 @@ const SignUp = () => {
   });
   const [verificationMessage, setVerificationMessage] = useState("");
   const navigate = useNavigate();
-  
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({
@@ -34,50 +33,41 @@ const SignUp = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     try {
-      const { auth, db } = await authPromise;
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        formData.email,
-        formData.password
-      );
+      const { auth } = await authPromise;
+      const functions = getFunctions();
+      const createUser = httpsCallable(functions, "createUser");
 
-      const user = userCredential.user;
+      const result = await createUser({
+        email: formData.email,
+        password: formData.password,
+        displayName: formData.name,
+      });
 
-      await addUserToFirestore(user, db, formData.name);
+      await signInWithEmailAndPassword(auth, formData.email, formData.password);
+
+      const user = auth.currentUser;
+      if (user) {
+        await sendEmailVerification(user);
+        setVerificationMessage(
+          "A verification email has been sent. Please check your inbox and verify your email before logging in."
+        );
+      }
 
       await signOut(auth);
 
-      await sendEmailVerification(user);
+      console.log("User created successfully:", result.data);
+
       setVerificationMessage(
         "A verification email has been sent. Please check your inbox and verify your email before logging in."
       );
       setTimeout(() => {
-        navigate('/login')
+        navigate("/login");
       }, 5000);
-
     } catch (error) {
       console.error("Error during sign up:", error);
-      setVerificationMessage("Error, sign up failed")
-    }
-  };
-
-  const addUserToFirestore = async (
-    user: User,
-    db: Firestore,
-    name: string
-  ) => {
-    try {
-      await setDoc(doc(db, "users", user.uid), {
-        email: user.email,
-        name,
-        emailVerified: user.emailVerified,
-        createdAt: new Date(),
-        role: "user",
-      });
-      console.log("User data successfully written to Firestore.");
-    } catch (error) {
-      console.error("Error adding user to Firestore:", error);
+      setVerificationMessage("Error, sign up failed");
     }
   };
 
@@ -147,7 +137,15 @@ const SignUp = () => {
           </button>
         </form>
         {verificationMessage && (
-          <p className={`mb-4 ${verificationMessage.includes("Error") ? "text-red-600" : "text-green-600"}`}> {verificationMessage}</p>
+          <p
+            className={`mb-4 ${
+              verificationMessage.includes("Error")
+                ? "text-red-600"
+                : "text-green-600"
+            }`}
+          >
+            {verificationMessage}
+          </p>
         )}
       </div>
     </div>
