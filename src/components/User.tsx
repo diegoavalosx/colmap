@@ -6,6 +6,9 @@ import {
   doc,
   type Firestore,
   getDoc,
+  getDocs,
+  query,
+  where,
 } from "firebase/firestore";
 import ReactModal from "react-modal";
 import { useAuth } from "./useAuth";
@@ -24,6 +27,7 @@ interface Campaign {
   description: string;
   status: string;
   createdAt: Date;
+  id?: string;
 }
 
 async function createCampaign(
@@ -52,6 +56,7 @@ const UserDetail = () => {
   const { dataBase } = useAuth();
   const { userId } = useParams<{ userId: string }>();
   const [user, setUser] = useState<UserType | null>(null);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [campaignName, setCampaignName] = useState<string>("");
@@ -60,25 +65,43 @@ const UserDetail = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserAndCampaigns = async () => {
       try {
         if (!dataBase) return;
-        const docRef = doc(dataBase, "users", userId as string);
-        const docSnap = await getDoc(docRef);
 
-        if (docSnap.exists()) {
-          setUser({ id: docSnap.id, ...docSnap.data() } as unknown as UserType);
+        const userRef = doc(dataBase, "users", userId as string);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+          setUser({
+            id: userSnap.id,
+            ...userSnap.data(),
+          } as unknown as UserType);
         } else {
-          console.log("No such document!");
+          console.log("No such user!");
+          setUser(null);
+          setLoading(false);
+          return;
         }
+
+        const campaignRef = collection(dataBase, "campaigns");
+        const q = query(campaignRef, where("userId", "==", userId));
+        const querySnapshot = await getDocs(q);
+
+        const campaignsData: Campaign[] = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as unknown as Campaign[];
+
+        setCampaigns(campaignsData);
       } catch (error) {
-        console.error("Error fetching user:", error);
+        console.error("Error fetching user or campaigns:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    if (userId) fetchUser();
+    if (userId) fetchUserAndCampaigns();
   }, [dataBase, userId]);
 
   const handleCreateCampaignClick = () => {
@@ -103,6 +126,14 @@ const UserDetail = () => {
       setCampaignDescription("");
       setCampaignStatus("active");
       alert("Campaign created successfully!");
+      const campaignRef = collection(dataBase, "campaigns");
+      const q = query(campaignRef, where("userId", "==", user.id));
+      const querySnapshot = await getDocs(q);
+      const updatedCampaigns = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as unknown as Campaign[];
+      setCampaigns(updatedCampaigns);
     } catch (error) {
       console.error("Failed to create campaign:", error);
     }
@@ -214,6 +245,32 @@ const UserDetail = () => {
         <p>
           <strong>Role:</strong> {user.role}
         </p>
+      </div>
+      <div className="p-6 w-full mx-auto bg-white shadow-md rounded-lg mt-4 text-left">
+        <h2 className="text-xl font-bold mb-4">Campaigns</h2>
+        {campaigns.length > 0 ? (
+          <ul className="space-y-2">
+            {campaigns.map((campaign) => (
+              <li key={campaign.id} className="border p-4 rounded-md">
+                <p>
+                  <strong>Name:</strong> {campaign.name}
+                </p>
+                <p>
+                  <strong>Description:</strong> {campaign.description}
+                </p>
+                <p>
+                  <strong>Status:</strong> {campaign.status}
+                </p>
+                <p>
+                  <strong>Created At:</strong>{" "}
+                  {new Date(campaign.createdAt).toLocaleString()}
+                </p>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No campaigns linked to this user.</p>
+        )}
       </div>
     </div>
   );
