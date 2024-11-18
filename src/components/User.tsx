@@ -125,7 +125,8 @@ const UserDetail = () => {
       setCampaignName("");
       setCampaignDescription("");
       setCampaignStatus("active");
-      alert("Campaign created successfully!");
+      alert("Campaign create successfully!");
+      // I Could create a toast here
       const campaignRef = collection(dataBase, "campaigns");
       const q = query(campaignRef, where("userId", "==", user.id));
       const querySnapshot = await getDocs(q);
