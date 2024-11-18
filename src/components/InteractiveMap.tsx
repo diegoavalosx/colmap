@@ -7,12 +7,60 @@ import {
   Pin,
   InfoWindow,
 } from "@vis.gl/react-google-maps";
+import {
+  collection,
+  getDocs,
+  query,
+  where,
+  type Firestore,
+} from "firebase/firestore";
 import { useEffect, useState } from "react";
+import { useAuth } from "./useAuth";
+
+interface Location {
+  id: string;
+  name: string;
+  description: string;
+  latitude: number;
+  longitude: number;
+}
+
+const fetchUserLocations = async (userId: string, db: Firestore) => {
+  const locations: Location[] = [];
+  try {
+    const campaignsRef = collection(db, "campaigns");
+    const campaignsQuery = query(campaignsRef, where("userId", "==", userId));
+    const campaignsSnapshot = await getDocs(campaignsQuery);
+
+    const campaignIds = campaignsSnapshot.docs.map((doc) => doc.id);
+
+    for (const campaignId of campaignIds) {
+      const locationsRef = collection(db, `campaigns/${campaignId}/locations`);
+      const locationsSnapshot = await getDocs(locationsRef);
+
+      for (const locationDoc of locationsSnapshot.docs) {
+        const data = locationDoc.data();
+        locations.push({
+          id: locationDoc.id,
+          name: data.name,
+          description: data.description,
+          latitude: Number.parseFloat(data.latitude),
+          longitude: Number.parseFloat(data.longitude),
+        });
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching locations:", error);
+  }
+  return locations;
+};
 
 const InteractiveMap = () => {
   const [openInfoWindowId, setOpenInfoWindowId] = useState<string | null>(null);
   const [googleMapsApiKey, setGoogleMapsApiKey] = useState<string | null>(null);
+  const [locations, setLocations] = useState<Location[]>([]);
   const position = { lat: 19.256616017981763, lng: -103.71668343037342 };
+  const { user, dataBase } = useAuth();
 
   useEffect(() => {
     const getGoogleMapsApiKey = async () => {
@@ -24,8 +72,16 @@ const InteractiveMap = () => {
       );
     };
 
+    const fetchLocations = async () => {
+      if (user && dataBase) {
+        const userLocations = await fetchUserLocations(user.uid, dataBase);
+        setLocations(userLocations);
+      }
+    };
+
     getGoogleMapsApiKey();
-  }, []);
+    fetchLocations();
+  }, [user, dataBase]);
 
   const markers = [
     {
@@ -55,6 +111,8 @@ const InteractiveMap = () => {
     },
   ];
 
+  console.log(markers);
+
   return (
     <>
       {googleMapsApiKey ? (
@@ -67,19 +125,25 @@ const InteractiveMap = () => {
               gestureHandling={"greedy"}
               disableDefaultUI={true}
             >
-              {markers.map((marker) => (
+              {locations.map((location) => (
                 <AdvancedMarker
-                  key={marker.id}
-                  position={marker.position}
-                  onClick={() => setOpenInfoWindowId(marker.id)}
+                  key={location.id}
+                  position={{
+                    lat: location.latitude,
+                    lng: location.longitude,
+                  }}
+                  onClick={() => setOpenInfoWindowId(location.id)}
                 >
                   <Pin background="white" />
-                  {openInfoWindowId === marker.id && (
+                  {openInfoWindowId === location.id && (
                     <InfoWindow
-                      position={marker.position}
+                      position={{
+                        lat: location.latitude,
+                        lng: location.longitude,
+                      }}
                       onCloseClick={() => setOpenInfoWindowId(null)}
                     >
-                      <p>Aquí está {marker.label}</p>
+                      {location.description}
                     </InfoWindow>
                   )}
                 </AdvancedMarker>

@@ -18,7 +18,7 @@ interface User {
   email: string;
 }
 
-const Users = () => {
+const Campaigns = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [userEmails, setUserEmails] = useState<{ [userId: string]: string }>(
     {}
@@ -146,4 +146,4 @@ const Users = () => {
   );
 };
 
-export default Users;
+export default Campaigns;
