@@ -138,8 +138,9 @@ const Users = () => {
         </div>
       </ReactModal>
       <ToastContainer />
-      <h1 className="text-left text-2xl font-bold pl-4">Users</h1>
+      <h1 className="text-center lg:text-left text-2xl font-bold pl-4">Users</h1>
       <div className="flex justify-center mt-6">
+        <div className="overflow-x-auto w-full">
         <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
           <thead className="bg-gray-50">
             <tr>
@@ -203,9 +204,10 @@ const Users = () => {
                   </button>
                 </td>
               </tr>
-            ))}
-          </tbody>
-        </table>
+             ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </>
   );
