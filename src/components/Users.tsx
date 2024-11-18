@@ -34,7 +34,7 @@ const Users = () => {
   };
 
   const handleDeleteUsers = async (id: string) => {
-    console.log("Deleting user and their campaigns...", id);
+    console.log("Deleting user, their campaigns, and locations...", id);
     if (!dataBase) return;
 
     try {
@@ -42,42 +42,74 @@ const Users = () => {
       const campaignsQuery = query(campaignsRef, where("userId", "==", id));
       const campaignsSnapshot = await getDocs(campaignsQuery);
 
-      const deleteCampaignsPromises = campaignsSnapshot.docs.map(
-        (campaignDoc) => deleteDoc(doc(dataBase, "campaigns", campaignDoc.id))
+      const deleteCampaignsAndLocationsPromises = campaignsSnapshot.docs.map(
+        async (campaignDoc) => {
+          const campaignId = campaignDoc.id;
+
+          const locationsRef = collection(
+            dataBase,
+            `campaigns/${campaignId}/locations`
+          );
+          const locationsSnapshot = await getDocs(locationsRef);
+
+          const deleteLocationsPromises = locationsSnapshot.docs.map(
+            (locationDoc) =>
+              deleteDoc(
+                doc(
+                  dataBase,
+                  `campaigns/${campaignId}/locations/${locationDoc.id}`
+                )
+              )
+          );
+          await Promise.all(deleteLocationsPromises);
+
+          console.log(
+            `Deleted ${locationsSnapshot.size} locations for campaign ID: ${campaignId}`
+          );
+
+          await deleteDoc(doc(dataBase, "campaigns", campaignId));
+        }
       );
-      await Promise.all(deleteCampaignsPromises);
+
+      await Promise.all(deleteCampaignsAndLocationsPromises);
 
       console.log(
-        `Deleted ${campaignsSnapshot.size} campaigns for user ID: ${id}`
+        `Deleted ${campaignsSnapshot.size} campaigns and their locations for user ID: ${id}`
       );
 
       await deleteDoc(doc(dataBase, "users", id));
 
-      toast.success("User and their campaigns successfully deleted", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "colored",
-      });
+      toast.success(
+        "User, their campaigns, and locations successfully deleted",
+        {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        }
+      );
 
       setUsers((prevUsers) => prevUsers.filter((user) => user.id !== id));
       setIsModalOpen(false);
     } catch (error) {
-      console.error("Error deleting user and their campaigns:", error);
-      toast.error("Failed to delete user and campaigns. Try again.", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "colored",
-      });
+      console.error("Error deleting user, campaigns, and locations:", error);
+      toast.error(
+        "Failed to delete user, campaigns, and locations. Try again.",
+        {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        }
+      );
     }
   };
 

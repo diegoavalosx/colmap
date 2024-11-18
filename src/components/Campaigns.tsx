@@ -25,16 +25,34 @@ const Users = () => {
   );
   const { dataBase } = useAuth();
 
-  const deleteUsers = async (id: string) => {
+  async function deleteCampaign(campaignId: string) {
     if (!dataBase) return;
-    await deleteDoc(doc(dataBase, "campaigns", id));
-  };
+
+    try {
+      const locationsRef = collection(
+        dataBase,
+        `campaigns/${campaignId}/locations`
+      );
+      const locationDocs = await getDocs(locationsRef);
+
+      const deleteLocationsPromises = locationDocs.docs.map((locationDoc) =>
+        deleteDoc(
+          doc(dataBase, `campaigns/${campaignId}/locations/${locationDoc.id}`)
+        )
+      );
+      await Promise.all(deleteLocationsPromises);
+
+      await deleteDoc(doc(dataBase, `campaigns/${campaignId}`));
+      console.log(`Campaign ${campaignId} and all locations deleted`);
+    } catch (error) {
+      console.error("Error deleting campaign and locations:", error);
+    }
+  }
 
   useEffect(() => {
     const fetchCampaignsAndUsers = async () => {
       if (!dataBase) return;
       try {
-        // Fetch campaigns
         const campaignSnapshot = await getDocs(
           collection(dataBase, "campaigns")
         );
@@ -44,12 +62,11 @@ const Users = () => {
         })) as Campaign[];
         setCampaigns(campaignList);
 
-        // Fetch users
         const userSnapshot = await getDocs(collection(dataBase, "users"));
         const userMap: { [userId: string]: string } = {};
         for (const userDoc of userSnapshot.docs) {
           const userData = userDoc.data() as User;
-          userMap[userDoc.id] = userData.email; // Map userId to email
+          userMap[userDoc.id] = userData.email;
         }
         setUserEmails(userMap);
       } catch (error) {
@@ -114,7 +131,7 @@ const Users = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      deleteUsers(campaign.id);
+                      deleteCampaign(campaign.id);
                     }}
                   >
                     <HiXCircle size={30} />

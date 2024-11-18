@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { doc, getDoc } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc, getDocs } from "firebase/firestore";
 import ReactModal from "react-modal";
 import { useAuth } from "./useAuth";
 import Loader from "./Loader";
@@ -14,46 +14,99 @@ interface Campaign {
   userId: string;
 }
 
+interface Location {
+  id?: string;
+  name: string;
+  description: string;
+  latitude: string;
+  longitude: string;
+  createdAt: Date;
+}
+
 const CampaignDetail = () => {
   const { dataBase } = useAuth();
   const { campaignId } = useParams<{ campaignId: string }>();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
+  const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [campaignName, setCampaignName] = useState<string>("");
-  const [campaignDescription, setCampaignDescription] = useState<string>("");
-  const [campaignStatus, setCampaignStatus] = useState<string>("active");
+  const [locationName, setLocationName] = useState<string>("");
+  const [locationDescription, setLocationDescription] = useState<string>("");
+  const [locationLatitude, setLocationLatitude] = useState<string>("");
+  const [locationLongitude, setLocationLongitude] = useState<string>("");
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchCampaign = async () => {
+    const fetchCampaignAndLocations = async () => {
       try {
-        if (!dataBase) return;
-        const docRef = doc(dataBase, "campaigns", campaignId as string);
-        const docSnap = await getDoc(docRef);
+        if (!dataBase || !campaignId) return;
 
-        if (docSnap.exists()) {
+        const campaignRef = doc(dataBase, "campaigns", campaignId);
+        const campaignSnap = await getDoc(campaignRef);
+        if (campaignSnap.exists()) {
           setCampaign({
-            id: docSnap.id,
-            ...docSnap.data(),
-          } as unknown as Campaign);
+            id: campaignSnap.id,
+            ...campaignSnap.data(),
+          } as Campaign);
         } else {
-          console.log("No such document!");
+          console.error("Campaign not found");
+          setCampaign(null);
+          setLoading(false);
+          return;
         }
+
+        const locationsRef = collection(
+          dataBase,
+          `campaigns/${campaignId}/locations`
+        );
+        const locationsSnapshot = await getDocs(locationsRef);
+
+        const locationsData: Location[] = locationsSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Location[];
+
+        setLocations(locationsData);
       } catch (error) {
-        console.error("Error fetching campaign:", error);
+        console.error("Error fetching campaign or locations:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    if (campaignId) fetchCampaign();
+    fetchCampaignAndLocations();
   }, [dataBase, campaignId]);
 
-  const handleCreateCampaignClick = () => {};
+  const handleAddLocationClick = () => {
+    setIsModalOpen(true);
+  };
 
   const handleFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+
+    if (!dataBase) return;
+
+    const locationData: Location = {
+      name: locationName,
+      description: locationDescription,
+      latitude: locationLatitude,
+      longitude: locationLongitude,
+      createdAt: new Date(),
+    };
+
+    try {
+      const locationRef = collection(
+        dataBase,
+        `campaigns/${campaignId}/locations`
+      );
+      const newLocation = await addDoc(locationRef, {
+        ...locationData,
+        createdAt: new Date(),
+      });
+      console.log("Location added with ID:", newLocation.id);
+    } catch (error) {
+      console.error("Error adding location:", error);
+    }
   };
 
   if (loading) return <Loader />;
@@ -70,7 +123,7 @@ const CampaignDetail = () => {
         shouldCloseOnOverlayClick={true}
       >
         <div className="p-6 bg-white rounded-lg w-full">
-          <h2 className="text-xl font-bold mb-4">Create New Campaign</h2>
+          <h2 className="text-xl font-bold mb-4">Add new location</h2>
           <form onSubmit={handleFormSubmit} className="flex flex-col gap-4">
             <div>
               <label htmlFor="name" className="block text-sm font-medium mb-1">
@@ -80,8 +133,8 @@ const CampaignDetail = () => {
                 type="text"
                 id="name"
                 className="w-full p-2 border rounded-md focus:outline-none focus:ring focus:ring-opacity-50"
-                value={campaignName}
-                onChange={(e) => setCampaignName(e.target.value)}
+                value={locationName}
+                onChange={(e) => setLocationName(e.target.value)}
                 required
               />
             </div>
@@ -95,34 +148,48 @@ const CampaignDetail = () => {
               <textarea
                 id="description"
                 className="w-full p-2 border rounded-md focus:outline-none focus:ring focus:ring-opacity-50"
-                value={campaignDescription}
-                onChange={(e) => setCampaignDescription(e.target.value)}
+                value={locationDescription}
+                onChange={(e) => setLocationDescription(e.target.value)}
                 required
               />
             </div>
             <div>
               <label
-                htmlFor="status"
+                htmlFor="latitude"
                 className="block text-sm font-medium mb-1"
               >
-                Status
+                Latitude
               </label>
-              <select
-                id="status"
+              <input
+                type="text"
+                id="latitude"
                 className="w-full p-2 border rounded-md focus:outline-none focus:ring focus:ring-opacity-50"
-                value={campaignStatus}
-                onChange={(e) => setCampaignStatus(e.target.value)}
+                value={locationLatitude}
+                onChange={(e) => setLocationLatitude(e.target.value)}
                 required
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="longitude"
+                className="block text-sm font-medium mb-1"
               >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
+                Longitude
+              </label>
+              <input
+                type="text"
+                id="longitude"
+                className="w-full p-2 border rounded-md focus:outline-none focus:ring focus:ring-opacity-50"
+                value={locationLongitude}
+                onChange={(e) => setLocationLongitude(e.target.value)}
+                required
+              />
             </div>
             <button
               type="submit"
-              className="mt-4 px-4 py-2 font-bold text-white bg-blue-500 rounded-md focus:outline-none focus:ring focus:ring-opacity-50"
+              className="mt-4 px-4 py-2 font-bold text-white bg-ooh-yeah-pink rounded-md focus:outline-none focus:ring focus:ring-opacity-50"
             >
-              Create Campaign
+              Add location
             </button>
           </form>
         </div>
@@ -141,7 +208,7 @@ const CampaignDetail = () => {
         <button
           className="px-4 py-2 text-white font-bold rounded-md bg-ooh-yeah-pink"
           type="button"
-          onClick={handleCreateCampaignClick}
+          onClick={handleAddLocationClick}
         >
           New Location
         </button>
@@ -162,6 +229,35 @@ const CampaignDetail = () => {
         <p>
           <strong>Owner:</strong> {campaign.userId}
         </p>
+      </div>
+      <div className="p-6 w-full mx-auto bg-white shadow-md rounded-lg mt-4">
+        <h2 className="text-xl font-bold mb-4">Locations</h2>
+        {locations.length > 0 ? (
+          <ul className="space-y-2">
+            {locations.map((location) => (
+              <li key={location.id} className="border p-4 rounded-md">
+                <p>
+                  <strong>Name:</strong> {location.name}
+                </p>
+                <p>
+                  <strong>Latitude:</strong> {location.latitude}
+                </p>
+                <p>
+                  <strong>Longitude:</strong> {location.longitude}
+                </p>
+                <p>
+                  <strong>Description:</strong> {location.description}
+                </p>
+                <p>
+                  <strong>Created At:</strong>{" "}
+                  {new Date(location.createdAt).toLocaleString()}
+                </p>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No locations linked to this campaign.</p>
+        )}
       </div>
     </div>
   );
