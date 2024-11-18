@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useAuth } from "./useAuth";
 import { useNavigate } from "react-router-dom";
 
-
 const EmailVerification: React.FC = () => {
   const { resendVerificationEmail } = useAuth();
   const navigate = useNavigate();
