@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "./useAuth";
+import { useNavigate } from "react-router-dom";
 
 const EmailVerification: React.FC = () => {
   const { resendVerificationEmail } = useAuth();
+  const navigate = useNavigate();
   const [verificationMessage, setVerificationMessage] = useState<string | null>(
     null
   );
@@ -47,6 +49,15 @@ const EmailVerification: React.FC = () => {
           className="w-full py-2 mt-4 font-semibold text-white bg-ooh-yeah-pink rounded-lg hover:bg-pink-600 transition-colors"
         >
           Resend Verification Email
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            navigate("/login")
+          }}
+          className="w-full py-2 mt-4 font-semibold text-white bg-ooh-yeah-pink rounded-lg hover:bg-pink-600 transition-colors"
+        >
+          Return to Login
         </button>
         {verificationMessage && (
           <p
