@@ -5,14 +5,30 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        "hover-purple": "#7024e4",
-        "ooh-yeah-pink": "#ff7ccc",
+        "ooh-yeah-pink": "#E91E63",
+        "deluxe-gray": "#f9f9f9",
+        "deluxe-black": "#121212",
       },
       fontFamily: {
         sans: ['"Helvetica Neue"', "Helvetica", "Arial", "sans-serif"],
       },
       borderRadius: {
         "custom-br": "9.5rem",
+      },
+
+      animation: {
+        fadeIn: "fadeIn 1.5s ease-in-out",
+        slideUp: "slideUp 1s ease-in-out",
+      },
+      keyframes: {
+        fadeIn: {
+          "0%": { opacity: 0 },
+          "100%": { opacity: 1 },
+        },
+        slideUp: {
+          "0%": { transform: "translateY(20px)", opacity: 0 },
+          "100%": { transform: "translateY(0)", opacity: 1 },
+        },
       },
     },
   },
