@@ -1,8 +1,12 @@
 import type React from "react";
-import { useRef, useState } from "react";
+import { forwardRef, useRef, useState } from "react";
 import emailjs from "@emailjs/browser";
 
-const Contact = () => {
+interface ContactProps {
+  id: string;
+}
+
+const Contact = forwardRef<HTMLDivElement, ContactProps>(({ id }, ref) => {
   const form = useRef<HTMLFormElement | null>(null);
   const [nameError, setNameError] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -76,63 +80,85 @@ const Contact = () => {
   };
 
   return (
-    <div className="h-full bg-white p-16 flex flex-col items-center justify-center">
-      <div className="pb-6">
+    <div
+      id={id}
+      ref={ref}
+      className="h-full bg-white text-deluxe-black p-8 md:p-16 flex flex-col items-center justify-center space-y-8 animate-fadeIn"
+    >
+      <div className="text-center space-y-2">
         <h1 className="text-3xl font-bold">Got any ideas?</h1>
-        <h2 className="font-bold mb-6 text-xl">We'd love to hear from you!</h2>
+        <h2 className="text-xl font-light">We'd love to hear from you!</h2>
       </div>
-      <div className="">
-        <form
-          className="flex flex-col font-bold space-y-4"
-          action=""
-          method="post"
-          ref={form}
-          onSubmit={sendEmail}
-        >
-          <label htmlFor="POST-name">Name</label>
+
+      <form
+        ref={form}
+        onSubmit={sendEmail}
+        className="flex flex-col items-center w-full max-w-md space-y-6"
+      >
+        <div className="w-full">
+          <label htmlFor="POST-name" className="block text-sm font-medium">
+            Name
+          </label>
           <input
-            className="border-solid border-2 rounded h-10 w-56"
             id="POST-name"
             type="text"
             name="user_name"
+            className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 mt-1 focus:border-ooh-yeah-pink focus:outline-none transition-colors"
           />
-          {nameError && <p className="text-red-500">{nameError}</p>}
-          <label htmlFor="POST-email">Email</label>
-          <input
-            className="border-solid border-2 rounded h-10 w-56"
-            id="POST-email"
-            type="text"
-            name="user_email"
-          />
-          {emailError && <p className="text-red-500">{emailError}</p>}
-
-          <label htmlFor="POST-message">Message</label>
-          <input
-            className="border-solid border-2 rounded h-10 w-56"
-            id="POST-message"
-            type="text"
-            name="message"
-          />
-          {messageError && <p className="text-red-500">{messageError}</p>}
-
-          <button className="hover:text-ooh-yeah-pink" type="submit">
-            SEND
-          </button>
-          {formSuccess && (
-            <p
-              className={
-                formSuccess.startsWith("Form")
-                  ? "text-green-500"
-                  : "text-red-500"
-              }
-            >
-              {formSuccess}
-            </p>
+          {nameError && (
+            <p className="text-red-500 text-sm mt-1">{nameError}</p>
           )}
-        </form>
-      </div>
+        </div>
+        <div className="w-full">
+          <label htmlFor="POST-email" className="block text-sm font-medium">
+            Email
+          </label>
+          <input
+            id="POST-email"
+            type="email"
+            name="user_email"
+            className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 mt-1 focus:border-ooh-yeah-pink focus:outline-none transition-colors"
+          />
+          {emailError && (
+            <p className="text-red-500 text-sm mt-1">{emailError}</p>
+          )}
+        </div>
+        <div className="w-full">
+          <label htmlFor="POST-message" className="block text-sm font-medium">
+            Message
+          </label>
+          <textarea
+            id="POST-message"
+            name="message"
+            rows={4}
+            className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 mt-1 focus:border-ooh-yeah-pink focus:outline-none transition-colors"
+          />
+          {messageError && (
+            <p className="text-red-500 text-sm mt-1">{messageError}</p>
+          )}
+        </div>
+
+        <button
+          type="submit"
+          className="px-6 py-2 bg-ooh-yeah-pink text-white rounded-lg font-medium shadow-md hover:bg-opacity-90 transition-colors"
+        >
+          SEND
+        </button>
+
+        {formSuccess && (
+          <p
+            className={`text-sm mt-2 ${
+              formSuccess.startsWith("Form") ? "text-green-500" : "text-red-500"
+            }`}
+          >
+            {formSuccess}
+          </p>
+        )}
+      </form>
     </div>
   );
-};
+});
+
+Contact.displayName = "Contact";
 
 export default Contact;

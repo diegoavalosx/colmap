@@ -1,49 +1,63 @@
-import bgImage from "../assets/bg-image.png";
+import { forwardRef } from "react";
 
-const WhoWeAre = () => {
+interface WhoWeAreProps {
+  id: string;
+}
+
+const features = [
+  {
+    id: 1,
+    title: "Expert Management",
+    text: "Lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum.",
+  },
+  {
+    id: 2,
+    title: "Tailored Campaigns",
+    text: "Lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum.",
+  },
+  {
+    id: 3,
+    title: "High Visibility",
+    text: "Lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum.",
+  },
+];
+
+const WhoWeAre = forwardRef<HTMLDivElement, WhoWeAreProps>(({ id }, ref) => {
   return (
-    <div className="h-auto bg-black p-8 md:p-16 flex flex-col items-center">
-      <h1 className="text-white text-3xl font-bold mr-5 transition-transform duration-300 hover:scale-105 mb-4">
-        WHO WE ARE
-      </h1>
-      <h2 className="text-white w-full md:w-2/3 font-bold mb-6 text-xl text-center md:text-left">
-        Oohyeah is a boutique outdoor media agency specializing in{" "}
-        <span className="text-ooh-yeah-pink">distinctive</span> guerrilla
-        marketing. We offer <span className="text-ooh-yeah-pink">wild</span>{" "}
-        posting, and chalk stencils, managing the entire process from design to
-        installation.
-      </h2>
-      <div className="flex flex-col md:flex-row text-base text-white font-bold space-y-4 md:space-y-0 md:space-x-4">
-        <div className="flex-1">
-          <img className="pb-6" src={bgImage} alt="first" />
-          <p>
-            Oohyeah is a boutique outdoor media agency specializing in
-            distinctive guerrilla marketing. We offer wild posting, and chalk
-            stencils, managing the entire process from design to installation.
-          </p>
-        </div>
-        <div className="flex-1">
-          <img className="pb-6" src={bgImage} alt="first" />
-          <p>
-            Our skilled team provides personalized service and frequent campaign
-            refreshes, ensuring your message remains impactful. With Oohyeah,
-            expect innovative, conversation-starting outdoor advertising
-            tailored to your needs.
-          </p>
-        </div>
-        <div className="flex-1">
-          <img className="pb-6" src={bgImage} alt="first" />
-          <ul className="list-disc list-inside">
-            <li>Daily inspections</li>
-            <li>Industry-leading refresh frequency</li>
-            <li>High quality marketing collateral</li>
-            <li>State-of-the-art campaign completion videos</li>
-            <li>Weekly updates including posting lists and site maps</li>
-          </ul>
-        </div>
+    <div
+      ref={ref}
+      id={id}
+      className="h-full bg-deluxe-black text-white p-12 md:p-20 grid grid-cols-1 md:grid-cols-2 gap-12 animate-fadeIn"
+    >
+      <div className="space-y-6 flex flex-col justify-center">
+        <h1 className="text-4xl font-bold mb-4">WHO WE ARE</h1>
+        <p className="text-lg font-light leading-relaxed">
+          Oohyeah is a boutique outdoor media agency specializing in{" "}
+          <span className="text-ooh-yeah-pink font-medium">distinctive</span>{" "}
+          guerrilla marketing. We manage the entire process from design to
+          installation.
+        </p>
+        <p className="text-lg font-light leading-relaxed">
+          Our skilled team provides personalized service and frequent campaign
+          refreshes to ensure your message remains impactful. Expect innovative
+          outdoor advertising tailored to your needs.
+        </p>
+      </div>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        {features.map((feature) => (
+          <div
+            key={feature.id}
+            className="p-6 bg-gray-800 rounded-lg shadow-lg hover:scale-105 transition-transform"
+          >
+            <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+            <p className="text-sm font-light">{feature.text}</p>
+          </div>
+        ))}
       </div>
     </div>
   );
-};
+});
+
+WhoWeAre.displayName = "WhoWeAre";
 
 export default WhoWeAre;
