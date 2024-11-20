@@ -12,7 +12,7 @@ function App2() {
   };
 
   return (
-    <div className="h-screen bg-deluxe-gray text-deluxe-black font-sans">
+    <div className="h-screen bg-deluxe-black text-deluxe-black font-sans">
       {currentSection === "home" && (
         <Home navigateToSection={navigateToSection} />
       )}
