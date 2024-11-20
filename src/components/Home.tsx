@@ -24,7 +24,7 @@ const Home: React.FC<HomeProps> = ({ scrollToSection, navigateToSection }) => {
           alt="logo"
           className="h-20 object-contain transition-transform duration-300 hover:scale-110"
         />
-        <ul className="font-bold space-y-4">
+        <ul className="font-bold space-y-4 w-full">
           {[
             { label: "DOMINATE THE STREETS", section: "whoWeAre" },
             { label: "ABOUT US", section: "whyUs" },
@@ -32,9 +32,13 @@ const Home: React.FC<HomeProps> = ({ scrollToSection, navigateToSection }) => {
           ].map((item) => (
             <li
               key={item.section}
-              className="text-2xl hover:text-ooh-yeah-pink transition-colors duration-200"
+              className="w-full text-2xl hover:scale-110 hover:text-ooh-yeah-pink transition-colors duration-300"
             >
-              <button type="button" onClick={() => handleClick(item.section)}>
+              <button
+                type="button"
+                className="w-full"
+                onClick={() => handleClick(item.section)}
+              >
                 {item.label}
               </button>
             </li>

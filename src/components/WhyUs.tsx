@@ -16,7 +16,7 @@ const WhyUs = forwardRef<HTMLDivElement, WhyUsProps>(
         {goBackToHome ? (
           <button
             type="button"
-            className="text-2xl font-bold mb-4 absolute top-20 left-20"
+            className="text-2xl font-bold mb-4 absolute top-20 left-20 hover:scale-110 hover:text-ooh-yeah-pink transition-colors duration-300"
             onClick={() => goBackToHome()}
           >
             GO BACK TO HOME

@@ -59,7 +59,11 @@ const InteractiveMap = () => {
   const [openInfoWindowId, setOpenInfoWindowId] = useState<string | null>(null);
   const [googleMapsApiKey, setGoogleMapsApiKey] = useState<string | null>(null);
   const [locations, setLocations] = useState<Location[]>([]);
-  const position = { lat: 19.256616017981763, lng: -103.71668343037342 };
+  const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral>({
+    lat: 0,
+    lng: 0,
+  });
+  const [mapZoom, setMapZoom] = useState<number>(14);
   const { user, dataBase } = useAuth();
 
   useEffect(() => {
@@ -76,6 +80,38 @@ const InteractiveMap = () => {
       if (user && dataBase) {
         const userLocations = await fetchUserLocations(user.uid, dataBase);
         setLocations(userLocations);
+        calculateCenterAndZoom(userLocations);
+      }
+    };
+
+    const calculateCenterAndZoom = (locations: Location[]) => {
+      if (locations.length === 1) {
+        setMapCenter({
+          lat: locations[0].latitude,
+          lng: locations[0].longitude,
+        });
+        setMapZoom(14);
+      } else if (locations.length > 1) {
+        const bounds = new window.google.maps.LatLngBounds();
+        for (const location of locations) {
+          bounds.extend({
+            lat: location.latitude,
+            lng: location.longitude,
+          });
+        }
+        setMapCenter(bounds.getCenter().toJSON());
+
+        const MAX_ZOOM = 21;
+
+        const ne = bounds.getNorthEast();
+        const sw = bounds.getSouthWest();
+        const latDiff = Math.abs(ne.lat() - sw.lat());
+        const lngDiff = Math.abs(ne.lng() - sw.lng());
+        const latZoom = Math.floor(Math.log2(360 / latDiff) + 1);
+        const lngZoom = Math.floor(Math.log2(360 / lngDiff) + 1);
+        const calculatedZoom = Math.min(latZoom, lngZoom, MAX_ZOOM);
+
+        setMapZoom(calculatedZoom);
       }
     };
 
@@ -83,44 +119,14 @@ const InteractiveMap = () => {
     fetchLocations();
   }, [user, dataBase]);
 
-  const markers = [
-    {
-      id: "daisushiVilla",
-      position: { lat: 19.26557965830582, lng: -103.73563838204402 },
-      label: "Daisushii Villa de Álvarez",
-    },
-    {
-      id: "daisushiPino",
-      position: { lat: 19.253197611245835, lng: -103.73058652759573 },
-      label: "Daisushii Pinosuarez",
-    },
-    {
-      id: "daisushiSendera",
-      position: { lat: 19.276378120037304, lng: -103.71827244297553 },
-      label: "Daisushii Sendera",
-    },
-    {
-      id: "daisushiConsti",
-      position: { lat: 19.26257150759906, lng: -103.71212367537348 },
-      label: "Daisushii Constitución",
-    },
-    {
-      id: "elpechugon",
-      position: { lat: 19.2487024491823, lng: -103.75667438373682 },
-      label: "El pechugón",
-    },
-  ];
-
-  console.log(markers);
-
   return (
     <>
       {googleMapsApiKey ? (
         <APIProvider apiKey={googleMapsApiKey}>
           <div className="h-full p-12">
             <Map
-              zoom={14}
-              center={position}
+              zoom={mapZoom}
+              center={mapCenter}
               mapId="80b9549366c22aeb"
               gestureHandling={"greedy"}
               disableDefaultUI={true}
