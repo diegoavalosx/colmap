@@ -9,7 +9,7 @@ import Campaign from "./Campaign";
 
 const Dashboard = () => {
   return (
-    <div className="flex h-full">
+    <div className="flex h-screen">
       <Sidebar />
       <div className="flex-1 p-6 bg-gray-100 overflow-y-auto">
         <Routes>
