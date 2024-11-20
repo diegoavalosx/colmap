@@ -1,10 +1,21 @@
 import logo from "../assets/oohyeah-logo-black.png";
 
 interface HomeProps {
-  scrollToSection: (sectionId: string) => void;
+  scrollToSection?: (sectionId: string) => void;
+  navigateToSection?: (sectionId: string) => void;
 }
 
-const Home: React.FC<HomeProps> = ({ scrollToSection }) => {
+const Home: React.FC<HomeProps> = ({ scrollToSection, navigateToSection }) => {
+  const handleClick = (section: string) => {
+    if (scrollToSection) {
+      scrollToSection(section);
+    }
+
+    if (navigateToSection) {
+      navigateToSection(section);
+    }
+  };
+
   return (
     <div className="h-full flex w-full bg-white rounded-br-custom-br justify-center items-center">
       <div className="flex flex-col items-center space-y-6 animate-fadeIn">
@@ -23,10 +34,7 @@ const Home: React.FC<HomeProps> = ({ scrollToSection }) => {
               key={item.section}
               className="text-2xl hover:text-ooh-yeah-pink transition-colors duration-200"
             >
-              <button
-                type="button"
-                onClick={() => scrollToSection(item.section)}
-              >
+              <button type="button" onClick={() => handleClick(item.section)}>
                 {item.label}
               </button>
             </li>
