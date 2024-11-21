@@ -92,7 +92,6 @@ const Users = () => {
           theme: "colored",
         }
       );
-
       setUsers((prevUsers) => prevUsers.filter((user) => user.id !== id));
       setIsModalOpen(false);
     } catch (error) {

@@ -3,6 +3,8 @@ import { useAuth } from "./useAuth";
 import { collection, getDocs, doc, deleteDoc } from "firebase/firestore";
 import { HiXCircle, HiPencilAlt } from "react-icons/hi";
 import { Link } from "react-router-dom";
+import ReactModal from "react-modal";
+import { ToastContainer, toast } from "react-toastify";
 
 interface Campaign {
   id: string;
@@ -24,8 +26,16 @@ const Campaigns = () => {
     {}
   );
   const { dataBase } = useAuth();
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null)
 
-  async function deleteCampaign(campaignId: string) {
+  const handleOpenModal = (campaign: Campaign) => {
+    setSelectedCampaign(campaign);
+    setIsModalOpen(true);
+  }
+
+  const handleDeleteCampaign = async (campaignId: string) => {
+    console.log("Deleting Campaign")
     if (!dataBase) return;
 
     try {
@@ -43,10 +53,45 @@ const Campaigns = () => {
       await Promise.all(deleteLocationsPromises);
 
       await deleteDoc(doc(dataBase, `campaigns/${campaignId}`));
+
+      toast.success(
+        "Campaigns and locations successfully deleted",
+        {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        }
+      );
+      setCampaigns((prevCampaign) => prevCampaign.filter((campaign) => campaign.id !== campaignId))
+      setIsModalOpen(false);
       console.log(`Campaign ${campaignId} and all locations deleted`);
     } catch (error) {
       console.error("Error deleting campaign and locations:", error);
+      toast.error(
+        "Failed to delete campaigns and locations. Try again.",
+        {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        }
+      );
     }
+  }
+
+  const closeModal = () => {
+    console.log("Cancelado");
+    setIsModalOpen(false);
+    setSelectedCampaign(null);
   }
 
   useEffect(() => {
@@ -79,6 +124,37 @@ const Campaigns = () => {
 
   return (
     <>
+    <ReactModal
+        isOpen={isModalOpen}
+        onRequestClose={() => setIsModalOpen(false)}
+        overlayClassName="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center p-4"
+        className="relative bg-white rounded-lg shadow-lg p-4 md:p-6 w-11/12 max-w-md mx-auto"
+        shouldCloseOnOverlayClick={true}
+      >
+        <h1 className="text-lg md:text-xl font-semibold mb-3 md:mb-4 text-center">{`Are you sure you want to delete ${selectedCampaign?.name}?`}</h1>
+        <p className="mb-5 md:mb-6 text-center">This action cannot be undone</p>
+        <div className="flex justify-center space-x-4">
+          <button
+            type="button"
+            className="bg-red-600 text-white px-3 py-2 md:px-4 rounded-md hover:bg-red-700 transition"
+            onClick={() =>
+              selectedCampaign
+                ? handleDeleteCampaign(selectedCampaign.id)
+                : console.error("No user selected")
+            }
+          >
+            Yes, delete
+          </button>
+          <button
+            type="button"
+            className="bg-gray-200 text-black px-3 py-2 md:px-4 rounded-md hover:bg-gray-300 transition"
+            onClick={closeModal}
+          >
+            No, cancel
+          </button>
+        </div>
+      </ReactModal>
+      <ToastContainer />
       <h1 className="text-center lg:text-left text-2xl font-bold pl-4">Campaigns</h1>
       <div className="flex mt-6 overflow-x-auto">
         <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
@@ -131,7 +207,8 @@ const Campaigns = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      deleteCampaign(campaign.id);
+                      // deleteCampaign(campaign.id);
+                      handleOpenModal(campaign)
                     }}
                   >
                     <HiXCircle size={30} />
