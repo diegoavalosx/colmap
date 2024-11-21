@@ -13,7 +13,7 @@ module.exports = {
         sans: ['"Helvetica Neue"', "Helvetica", "Arial", "sans-serif"],
       },
       borderRadius: {
-        "custom-br": "9.5rem",
+        "custom-br": "30rem",
       },
 
       animation: {

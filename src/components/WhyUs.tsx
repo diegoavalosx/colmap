@@ -1,9 +1,36 @@
 import { forwardRef } from "react";
-import whyUsImage from "../assets/whyohyeah.png";
 interface WhyUsProps {
   id?: string;
   goBackToHome?: () => void;
 }
+
+const features = [
+  {
+    id: 1,
+    title: "Daily inspections to ensure visibility",
+    text: "Lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum.",
+  },
+  {
+    id: 2,
+    title: "Industry-leading refresh frequency",
+    text: "Lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum.",
+  },
+  {
+    id: 3,
+    title: "High-quality marketing materials",
+    text: "Lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum.",
+  },
+  {
+    id: 4,
+    title: "State-of-the-art campaign tracking",
+    text: "Lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum.",
+  },
+  {
+    id: 5,
+    title: "Weekly updates with detailed reports",
+    text: "Lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum.",
+  },
+];
 
 const WhyUs = forwardRef<HTMLDivElement, WhyUsProps>(
   ({ id, goBackToHome }, ref) => {
@@ -22,14 +49,7 @@ const WhyUs = forwardRef<HTMLDivElement, WhyUsProps>(
             GO BACK TO HOME
           </button>
         ) : null}
-        <div className="flex justify-center">
-          <img
-            src={whyUsImage}
-            alt="Why Us"
-            className="w-full max-w-[400px] object-cover rounded-lg shadow-lg transition-transform duration-300 hover:scale-105"
-          />
-        </div>
-        <div className="space-y-8">
+        <div className="space-y-6 flex flex-col justify-center w-full h-full">
           <h1 className="text-3xl md:text-4xl font-bold">WHY US</h1>
           <div className="space-y-4">
             <p className="text-lg font-light leading-relaxed">
@@ -43,22 +63,19 @@ const WhyUs = forwardRef<HTMLDivElement, WhyUsProps>(
               authentic, impactful way.
             </p>
           </div>
-          <ul className="space-y-3 text-lg font-light leading-relaxed">
-            {[
-              "Daily inspections to ensure visibility",
-              "Industry-leading refresh frequency",
-              "High-quality marketing materials",
-              "State-of-the-art campaign tracking",
-              "Weekly updates with detailed reports",
-            ].map((feature) => (
-              <li
-                key={feature}
-                className="flex items-start space-x-3 before:content-['✓'] before:text-ooh-yeah-pink before:text-xl"
-              >
-                <span>{feature}</span>
-              </li>
-            ))}
-          </ul>
+        </div>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          {features.map((feature) => (
+            <div
+              key={feature.id}
+              className="p-6 bg-gray-800 rounded-lg shadow-lg hover:scale-105 transition-transform"
+            >
+              <h3 className="text-xl font-semibold mb-2 flex items-start space-x-3">
+                {feature.title}
+              </h3>
+              <p className="text-sm font-light">{feature.text}</p>
+            </div>
+          ))}
         </div>
       </div>
     );
