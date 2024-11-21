@@ -146,11 +146,11 @@ const Users = () => {
         shouldCloseOnOverlayClick={true}
       >
         <h1 className="text-lg md:text-xl font-semibold mb-3 md:mb-4 text-center">{`Are you sure you want to delete ${selectedUser?.name}?`}</h1>
-        <p className="mb-5 md:mb-6 text-center">This action cannot be undone</p>
+        <p className="mb-5 md:mb-6 text-center">All campaigns and locations linked to this user will be deleted. This action cannot be undone</p>
         <div className="flex justify-center space-x-4">
           <button
             type="button"
-            className="bg-red-600 text-white px-3 py-2 md:px-4 rounded-md hover:bg-red-700 transition"
+            className="bg-ooh-yeah-pink text-white px-3 py-2 md:px-4 rounded-md hover:bg-ooh-yeah-pink-700 transition"
             onClick={() =>
               selectedUser
                 ? handleDeleteUsers(selectedUser.id)

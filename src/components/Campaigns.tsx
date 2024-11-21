@@ -136,7 +136,7 @@ const Campaigns = () => {
         <div className="flex justify-center space-x-4">
           <button
             type="button"
-            className="bg-red-600 text-white px-3 py-2 md:px-4 rounded-md hover:bg-red-700 transition"
+            className="bg-ooh-yeah-pink text-white px-3 py-2 md:px-4 rounded-md hover:bg-ooh-yeah-pink-700 transition"
             onClick={() =>
               selectedCampaign
                 ? handleDeleteCampaign(selectedCampaign.id)
