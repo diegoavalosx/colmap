@@ -38,7 +38,7 @@ const WhyUs = forwardRef<HTMLDivElement, WhyUsProps>(
       <div
         id={id}
         ref={ref}
-        className="h-full bg-deluxe-black text-white p-8 md:p-16 grid grid-cols-1 md:grid-cols-2 gap-12 items-center animate-fadeIn"
+        className="h-full bg-deluxe-black text-white p-8 md:p-16 grid grid-cols-1 md:grid-cols-2 gap-12 items-center animate-fadeIn rounded-bl-custom-br "
       >
         {goBackToHome ? (
           <button

@@ -13,6 +13,7 @@ import {
 import ReactModal from "react-modal";
 import { useAuth } from "./useAuth";
 import Loader from "./Loader";
+import { ToastContainer,toast } from "react-toastify";
 
 interface UserType {
   id: string;
@@ -125,8 +126,19 @@ const UserDetail = () => {
       setCampaignName("");
       setCampaignDescription("");
       setCampaignStatus("active");
-      alert("Campaign create successfully!");
-      // I Could create a toast here
+      toast.success(
+        "Campaign create successfully!",
+        {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        }
+      );
       const campaignRef = collection(dataBase, "campaigns");
       const q = query(campaignRef, where("userId", "==", user.id));
       const querySnapshot = await getDocs(q);
@@ -136,6 +148,19 @@ const UserDetail = () => {
       })) as unknown as Campaign[];
       setCampaigns(updatedCampaigns);
     } catch (error) {
+      toast.error(
+        "Failed to create campaign",
+        {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        }
+      );
       console.error("Failed to create campaign:", error);
     }
   };
@@ -211,6 +236,7 @@ const UserDetail = () => {
           </form>
         </div>
       </ReactModal>
+      <ToastContainer />
       <button
         type="button"
         className="font-bold text-left pl-4 w-min whitespace-nowrap"
