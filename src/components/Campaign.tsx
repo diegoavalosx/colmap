@@ -4,6 +4,7 @@ import { addDoc, collection, doc, getDoc, getDocs } from "firebase/firestore";
 import ReactModal from "react-modal";
 import { useAuth } from "./useAuth";
 import Loader from "./Loader";
+import { toast, ToastContainer } from "react-toastify";
 
 interface Campaign {
   id: string;
@@ -103,8 +104,36 @@ const CampaignDetail = () => {
         ...locationData,
         createdAt: new Date(),
       });
+
+      toast.success(
+        "¡Location added succesfully!",
+        {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        }
+      );
+      setIsModalOpen(false);
       console.log("Location added with ID:", newLocation.id);
     } catch (error) {
+      toast.error(
+        "Failed to add Location. Try again.",
+        {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        }
+      );
       console.error("Error adding location:", error);
     }
   };
@@ -194,6 +223,7 @@ const CampaignDetail = () => {
           </form>
         </div>
       </ReactModal>
+      <ToastContainer />
       <button
         type="button"
         className="font-bold text-left pl-4 w-min whitespace-nowrap"
