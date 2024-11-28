@@ -17,7 +17,7 @@ const Home: React.FC<HomeProps> = ({ scrollToSection, navigateToSection }) => {
   };
 
   return (
-    <div className="h-full flex w-full bg-deluxe-gray rounded-br-custom-br justify-center items-center">
+    <div className="h-screen flex w-full bg-deluxe-gray rounded-br-custom-br justify-center items-center">
       <div className="flex flex-col items-center space-y-6 animate-fadeIn">
         <img
           src={logo}

@@ -12,7 +12,7 @@ const WhoWeAre = forwardRef<HTMLDivElement, WhoWeAreProps>(
       <div
         id={id}
         ref={ref}
-        className="h-full bg-deluxe-black text-white md:p-16 grid grid-cols-1 md:grid-cols-2 gap-12 animate-fadeIn"
+        className="h-screen bg-deluxe-black text-white md:p-16 grid grid-cols-1 md:grid-cols-2 gap-12 animate-fadeIn"
       >
         {goBackToHome ? (
           <button
