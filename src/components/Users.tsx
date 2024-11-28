@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, FormEvent } from "react";
 import { useAuth } from "./useAuth";
 import {
   collection,
@@ -7,6 +7,7 @@ import {
   deleteDoc,
   query,
   where,
+  updateDoc,
 } from "firebase/firestore";
 import { HiXCircle, HiPencilAlt } from "react-icons/hi";
 import { Link } from "react-router-dom";
@@ -27,12 +28,75 @@ const Users = () => {
   const { dataBase } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
+  const [originalUser, setOriginalUser] = useState<User | null>(null);
 
   const handleOpenModal = (user: User) => {
     setSelectedUser(user);
     setIsModalOpen(true);
   };
 
+  const closeModal = () => {
+    console.log("Cancelado");
+    setIsModalOpen(false);
+    setSelectedUser(null);
+  };
+
+  const handleOpenEditModal = (user: User) => {
+    setSelectedUser(user);
+    setOriginalUser({...user})
+    setIsEditModalOpen(true);
+  }
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setSelectedUser(null);
+  }
+
+  const handleEditUserSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!dataBase) return;
+    if(selectedUser) {
+        try {
+          const userDocRef = doc(dataBase, "users", selectedUser.id);
+          await updateDoc(userDocRef, {
+            name: selectedUser.name
+          });
+          setUsers((prevUsers) => 
+            prevUsers.map((user) => (user.id === selectedUser.id ? selectedUser : user))
+          );
+          toast.success(
+            "¡Location added succesfully!",
+            {
+              position: "top-right",
+              autoClose: 3000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+              theme: "colored",
+            }  
+          );
+          setIsEditModalOpen(false);
+        } catch(error){
+          toast.error(
+          "Failed to add Location. Try again.",
+          {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "colored",
+          }
+        );
+        console.error("Error adding location:", error);
+        }
+      }
+  };
   const handleDeleteUsers = async (id: string) => {
     console.log("Deleting user, their campaigns, and locations...", id);
     if (!dataBase) return;
@@ -112,12 +176,6 @@ const Users = () => {
     }
   };
 
-  const closeModal = () => {
-    console.log("Cancelado");
-    setIsModalOpen(false);
-    setSelectedUser(null);
-  };
-
   useEffect(() => {
     const fetchUsers = async () => {
       if (!dataBase) return;
@@ -138,6 +196,7 @@ const Users = () => {
 
   return (
     <>
+      <ToastContainer />
       <ReactModal
         isOpen={isModalOpen}
         onRequestClose={() => setIsModalOpen(false)}
@@ -168,7 +227,67 @@ const Users = () => {
           </button>
         </div>
       </ReactModal>
-      <ToastContainer />
+      <ReactModal
+        isOpen={isEditModalOpen}
+        onRequestClose={() => setIsEditModalOpen(false)}
+        overlayClassName="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center p-4"
+        className="relative bg-white rounded-lg shadow-lg p-4 md:p-6 w-11/12 max-w-md mx-auto"
+        shouldCloseOnOverlayClick={true}
+      >
+        <h1 className="text-lg md:text-xl font-semibold mb-3 md:mb-4 text-center">{`Updating ${originalUser?.name}`}</h1>
+        <p className="mb-5 md:mb-6 text-center">This action cannot be undone</p>
+        {selectedUser && (
+          <div className="p-4 bg-white rounded-lg w-full">
+              <form onSubmit={handleEditUserSubmit} className="flex flex-col gap-4">
+                <div>
+                  <label htmlFor="ID" className="block text-sm font-medium mb-1">
+                    ID
+                  </label>
+                  <input
+                    type="text"
+                    id="id"
+                    className="w-full p-2 border rounded-md bg-gray-100 text-gray-500 focus:outline-none focus:ring focus:ring-opacity-50"
+                    value={selectedUser.id}
+                    disabled
+                    required
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-medium mb-1"
+                  >
+                    Name
+                  </label>
+                  <input
+                    id="description"
+                    className="w-full p-2 border rounded-md focus:outline-none focus:ring focus:ring-opacity-50"
+                    value={selectedUser.name}
+                    onChange={(e) => 
+                      setSelectedUser((prev) => (prev ? {...prev, name: e.target.value } : prev))
+                    }
+                    required
+                  />
+                </div>
+                <div className="flex justify-center space-x-4">
+                  <button
+                    type="submit"
+                    className="mt-4 px-4 py-2 font-bold text-white bg-ooh-yeah-pink rounded-md focus:outline-none focus:ring focus:ring-opacity-50"
+                  >
+                    Guardar
+                  </button>
+                  <button
+                    type="submit"
+                    className="mt-4 bg-gray-200 text-black px-4 py-2 md:px-4 rounded-md hover:bg-gray-300 transition"
+                    onClick={handleCloseEditModal}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </form>
+        </div>
+        )}
+      </ReactModal>
       <h1 className="text-center lg:text-left text-2xl font-bold pl-4">Users</h1>
       <div className="flex mt-6 overflow-x-auto">
         <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
@@ -219,7 +338,10 @@ const Users = () => {
                 </td>
                 <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
                   {/* Editar usuario */}
-                  <button type="button">
+                  <button 
+                    type="button"
+                    onClick={()=> handleOpenEditModal(user)}
+                    >
                     <HiPencilAlt size={30} />
                   </button>
                   {/* Eliminar usuario */}
