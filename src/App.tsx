@@ -27,7 +27,7 @@ function App() {
   };
 
   return (
-    <div className="h-screen bg-deluxe-black text-deluxe-black font-sans">
+    <div className="h-auto bg-deluxe-black text-deluxe-black font-sans">
       <Home scrollToSection={scrollToSection} />
       <WhoWeAre id="whoWeAre" ref={whoWeAreRef} />
       <WhyUs id="whyUs" ref={whyUsRef} />
