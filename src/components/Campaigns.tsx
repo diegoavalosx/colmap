@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, FormEvent } from "react";
 import { useAuth } from "./useAuth";
-import { collection, getDocs, doc, deleteDoc } from "firebase/firestore";
+import { collection, getDocs, doc, deleteDoc, updateDoc } from "firebase/firestore";
 import { HiXCircle, HiPencilAlt } from "react-icons/hi";
 import { Link } from "react-router-dom";
 import ReactModal from "react-modal";
@@ -27,11 +27,77 @@ const Campaigns = () => {
   );
   const { dataBase } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null)
+  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
+  const [originalCampaign, setOriginalCampaign] = useState<Campaign | null>(null);
 
   const handleOpenModal = (campaign: Campaign) => {
     setSelectedCampaign(campaign);
     setIsModalOpen(true);
+  }
+
+  const closeModal = () => {
+    console.log("Cancelado");
+    setIsModalOpen(false);
+    setSelectedCampaign(null);
+  }
+
+  const handleOpenEditModal = (campaign: Campaign) => {
+    setSelectedCampaign(campaign);
+    setOriginalCampaign({...campaign})
+    setIsEditModalOpen(true)
+  }
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setSelectedCampaign(null)
+  }
+
+  const handleEditCampaignSubmit = async(e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if(!dataBase) return;
+    if(selectedCampaign){
+      try{
+        const campaignDocRef = doc(dataBase, "campaigns", selectedCampaign.id);
+        await updateDoc(campaignDocRef, {
+          name: selectedCampaign.name,
+        });
+        setCampaigns((prevCampaigns) => 
+          prevCampaigns.map((campaign) =>
+          campaign.id === selectedCampaign.id ? selectedCampaign : campaign
+        )
+      );
+      toast.success("¡Campaign update successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
+      setIsEditModalOpen(false);
+      } catch(error){
+        toast.error("Failed to update. Try again.", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        });
+        console.log("Error de algo", error)
+      }
+    }
+  }
+
+  const isSaveDisabled = () => {
+    return (
+      !selectedCampaign || !selectedCampaign.name.trim() || selectedCampaign.name === originalCampaign?.name
+    )
   }
 
   const handleDeleteCampaign = async (campaignId: string) => {
@@ -88,12 +154,6 @@ const Campaigns = () => {
     }
   }
 
-  const closeModal = () => {
-    console.log("Cancelado");
-    setIsModalOpen(false);
-    setSelectedCampaign(null);
-  }
-
   useEffect(() => {
     const fetchCampaignsAndUsers = async () => {
       if (!dataBase) return;
@@ -124,7 +184,8 @@ const Campaigns = () => {
 
   return (
     <>
-    <ReactModal
+      <ToastContainer />
+      <ReactModal
         isOpen={isModalOpen}
         onRequestClose={() => setIsModalOpen(false)}
         overlayClassName="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center p-4"
@@ -154,7 +215,77 @@ const Campaigns = () => {
           </button>
         </div>
       </ReactModal>
-      <ToastContainer />
+      <ReactModal
+        isOpen={isEditModalOpen}
+        onRequestClose={() => setIsEditModalOpen(false)}
+        overlayClassName="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center p-4"
+        className="relative bg-white rounded-lg shadow-lg p-4 md:p-6 w-11/12 max-w-md mx-auto"
+        shouldCloseOnOverlayClick={true}
+      >
+        <h1 className="text-lg md:text-xl font-semibold mb-3 md:mb-4 text-center">{`Updating ${originalCampaign?.name}`}</h1>
+        <p className="mb-5 md:mb-6 text-center">This action cannot be undone</p>
+        {selectedCampaign && (
+          <div className="p-4 bg-white rounded-lg w-full">
+            <form
+              onSubmit={handleEditCampaignSubmit}
+              className="flex flex-col gap-4"
+            >
+              <div>
+                <label htmlFor="ID" className="block text-sm font-medium mb-1">
+                  ID
+                </label>
+                <input
+                  type="text"
+                  id="id"
+                  className="w-full p-2 border rounded-md bg-gray-100 text-gray-500 focus:outline-none focus:ring focus:ring-opacity-50"
+                  value={selectedCampaign.id}
+                  disabled
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-medium mb-1"
+                >
+                  Name
+                </label>
+                <input
+                  id="name"
+                  className="w-full p-2 border rounded-md focus:outline-none focus:ring focus:ring-opacity-50"
+                  value={selectedCampaign.name}
+                  onChange={(e) =>
+                    setSelectedCampaign((prev) =>
+                      prev ? { ...prev, name: e.target.value } : prev
+                    )
+                  }
+                  required
+                />
+              </div>
+              <div className="flex justify-center space-x-4">
+                <button
+                  type="submit"
+                  disabled={isSaveDisabled()}
+                  className={`mt-4 px-4 py-2 font-bold text-white rounded-md focus:outline-none focus:ring focus:ring-opacity-50 
+                    ${isSaveDisabled()
+                      ? "bg-ooh-yeah-pink cursor-not-allowed opacity-40"
+                      : "bg-ooh-yeah-pink hover:bg-ooh-yeah-pink-700"
+                    }`}
+                >
+                  Save
+                </button>
+                <button
+                  type="submit"
+                  className="mt-4 bg-gray-200 text-black px-4 py-2 md:px-4 rounded-md hover:bg-gray-300 transition"
+                  onClick={handleCloseEditModal}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+      </ReactModal>
       <h1 className="text-center lg:text-left text-2xl font-bold pl-4">Campaigns</h1>
       <div className="flex mt-6 overflow-x-auto">
         <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
@@ -201,7 +332,10 @@ const Campaigns = () => {
                   {userEmails[campaign.userId] || "No email available"}
                 </td>
                 <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
-                  <button type="button">
+                  <button 
+                    type="button"
+                    onClick={() => handleOpenEditModal(campaign)}
+                    >
                     <HiPencilAlt size={30} />
                   </button>
                   <button
