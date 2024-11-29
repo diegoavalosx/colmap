@@ -90,10 +90,10 @@ const Contact = forwardRef<HTMLDivElement, ContactProps>(
         {goBackToHome ? (
           <button
             type="button"
-            className="text-2xl font-bold mb-4 absolute top-20 left-20 hover:scale-110 hover:text-ooh-yeah-pink transition-colors duration-300"
+            className="text-lg md:text-2xl font-bold mb-4 absolute top-7 left-7 md:top-20 md:left-20 hover:scale-110 hover:text-ooh-yeah-pink transition-colors duration-300"
             onClick={() => goBackToHome()}
           >
-            GO BACK TO HOME
+            BACK
           </button>
         ) : null}
         <div className="text-center space-y-2">
