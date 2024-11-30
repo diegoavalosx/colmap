@@ -67,7 +67,7 @@ const Users = () => {
             user.id === selectedUser.id ? selectedUser : user
           )
         );
-        toast.success("¡Location added succesfully!", {
+        toast.success("¡User successfully updated!", {
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,
@@ -79,7 +79,7 @@ const Users = () => {
         });
         setIsEditModalOpen(false);
       } catch (error) {
-        toast.error("Failed to add Location. Try again.", {
+        toast.error("Failed to update user. Try again.", {
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,
@@ -89,10 +89,17 @@ const Users = () => {
           progress: undefined,
           theme: "colored",
         });
-        console.error("Error adding location:", error);
+        console.error("Failed to update user:", error);
       }
     }
   };
+
+  const isSaveDisabled = () => {
+    return (
+      !selectedUser || !selectedUser.name.trim() || selectedUser.name === originalUser?.name
+    )
+  };
+
   const handleDeleteUsers = async (id: string) => {
     console.log("Deleting user, their campaigns, and locations...", id);
     if (!dataBase) return;
@@ -262,7 +269,7 @@ const Users = () => {
                   Name
                 </label>
                 <input
-                  id="description"
+                  id="name"
                   className="w-full p-2 border rounded-md focus:outline-none focus:ring focus:ring-opacity-50"
                   value={selectedUser.name}
                   onChange={(e) =>
@@ -276,16 +283,21 @@ const Users = () => {
               <div className="flex justify-center space-x-4">
                 <button
                   type="submit"
-                  className="mt-4 px-4 py-2 font-bold text-white bg-ooh-yeah-pink rounded-md focus:outline-none focus:ring focus:ring-opacity-50"
+                  disabled={isSaveDisabled()}
+                  className={`mt-4 px-4 py-2 font-bold text-white rounded-md focus:outline-none focus:ring focus:ring-opacity-50
+                    ${isSaveDisabled()
+                      ? "bg-ooh-yeah-pink cursor-not-allowed opacity-40"
+                      : "bg-ooh-yeah-pink hover:bg-ooh-yeah-pink-700"
+                    }`}
                 >
-                  Guardar
+                  Save
                 </button>
                 <button
                   type="submit"
                   className="mt-4 bg-gray-200 text-black px-4 py-2 md:px-4 rounded-md hover:bg-gray-300 transition"
                   onClick={handleCloseEditModal}
                 >
-                  Cancelar
+                  Cancel
                 </button>
               </div>
             </form>
