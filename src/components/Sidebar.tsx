@@ -7,6 +7,7 @@ import { Menu, X } from "lucide-react";
 const Sidebar: React.FC = () => {
   const { logout, role } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   return (
     <>
       <div
@@ -15,8 +16,15 @@ const Sidebar: React.FC = () => {
         }
           transition-transform duration-300 lg:relative lg:translate-x-0`}
       >
-        <img src={logo} alt="logo" className="mb-6 px-7" />
-        <nav className="text-center">
+        <div className="relative w-full">
+          <img src={logo} alt="logo" className="mb-2 px-7" />
+          {role === "admin" && (
+            <p className="absolute right-0 top-9 text-xs font-semibold font-sans text-center white">
+              Admin
+            </p>
+          )}
+        </div>
+        <nav className="text-center font-semibold">
           <ul>
             <li className="mb-2 hover:bg-gray-700 p-2 rounded">
               <Link to="/dashboard">Home</Link>

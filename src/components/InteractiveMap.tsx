@@ -93,6 +93,8 @@ const InteractiveMap = () => {
     };
 
     const calculateCenterAndZoom = (locations: Location[]) => {
+      if (!locations.length) return;
+
       if (locations.length === 1) {
         setCameraProps({
           center: {
