@@ -6,6 +6,8 @@ import {
   AdvancedMarker,
   Pin,
   InfoWindow,
+  type MapCameraProps,
+  type MapCameraChangedEvent,
 } from "@vis.gl/react-google-maps";
 import {
   collection,
@@ -14,8 +16,13 @@ import {
   where,
   type Firestore,
 } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "./useAuth";
+
+const INITIAL_CAMERA = {
+  center: { lat: 40.7128, lng: -74.006 },
+  zoom: 14,
+};
 
 interface Location {
   id: string;
@@ -56,14 +63,15 @@ const fetchUserLocations = async (userId: string, db: Firestore) => {
 };
 
 const InteractiveMap = () => {
+  const [cameraProps, setCameraProps] =
+    useState<MapCameraProps>(INITIAL_CAMERA);
+  const handleCameraChange = useCallback(
+    (ev: MapCameraChangedEvent) => setCameraProps(ev.detail),
+    []
+  );
   const [openInfoWindowId, setOpenInfoWindowId] = useState<string | null>(null);
   const [googleMapsApiKey, setGoogleMapsApiKey] = useState<string | null>(null);
   const [locations, setLocations] = useState<Location[]>([]);
-  const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral>({
-    lat: 0,
-    lng: 0,
-  });
-  const [mapZoom, setMapZoom] = useState<number>(14);
   const { user, dataBase } = useAuth();
 
   useEffect(() => {
@@ -86,12 +94,14 @@ const InteractiveMap = () => {
 
     const calculateCenterAndZoom = (locations: Location[]) => {
       if (locations.length === 1) {
-        setMapCenter({
-          lat: locations[0].latitude,
-          lng: locations[0].longitude,
+        setCameraProps({
+          center: {
+            lat: locations[0].latitude,
+            lng: locations[0].longitude,
+          },
+          zoom: 14,
         });
-        setMapZoom(14);
-      } else if (locations.length > 1) {
+      } else {
         const bounds = new window.google.maps.LatLngBounds();
         for (const location of locations) {
           bounds.extend({
@@ -99,7 +109,6 @@ const InteractiveMap = () => {
             lng: location.longitude,
           });
         }
-        setMapCenter(bounds.getCenter().toJSON());
 
         const MAX_ZOOM = 21;
 
@@ -111,7 +120,10 @@ const InteractiveMap = () => {
         const lngZoom = Math.floor(Math.log2(360 / lngDiff) + 1);
         const calculatedZoom = Math.min(latZoom, lngZoom, MAX_ZOOM);
 
-        setMapZoom(calculatedZoom);
+        setCameraProps({
+          center: bounds.getCenter().toJSON(),
+          zoom: calculatedZoom,
+        });
       }
     };
 
@@ -125,11 +137,12 @@ const InteractiveMap = () => {
         <APIProvider apiKey={googleMapsApiKey}>
           <div className="h-full p-12">
             <Map
-              zoom={mapZoom}
-              center={mapCenter}
+              {...cameraProps}
+              onCameraChanged={handleCameraChange}
               mapId="80b9549366c22aeb"
-              gestureHandling={"greedy"}
-              disableDefaultUI={true}
+              gestureHandling="auto"
+              disableDefaultUI={false}
+              zoomControl={true}
             >
               {locations.map((location) => (
                 <AdvancedMarker
