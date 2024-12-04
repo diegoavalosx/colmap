@@ -96,8 +96,10 @@ const Users = () => {
 
   const isSaveDisabled = () => {
     return (
-      !selectedUser || !selectedUser.name.trim() || selectedUser.name === originalUser?.name
-    )
+      !selectedUser ||
+      !selectedUser.name.trim() ||
+      selectedUser.name === originalUser?.name
+    );
   };
 
   const handleDeleteUsers = async (id: string) => {
@@ -285,9 +287,10 @@ const Users = () => {
                   type="submit"
                   disabled={isSaveDisabled()}
                   className={`mt-4 px-4 py-2 font-bold text-white rounded-md focus:outline-none focus:ring focus:ring-opacity-50
-                    ${isSaveDisabled()
-                      ? "bg-ooh-yeah-pink cursor-not-allowed opacity-40"
-                      : "bg-ooh-yeah-pink hover:bg-ooh-yeah-pink-700"
+                    ${
+                      isSaveDisabled()
+                        ? "bg-ooh-yeah-pink cursor-not-allowed opacity-40"
+                        : "bg-ooh-yeah-pink hover:bg-ooh-yeah-pink-700"
                     }`}
                 >
                   Save
@@ -355,14 +358,12 @@ const Users = () => {
                   {user.role}
                 </td>
                 <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
-                  {/* Editar usuario */}
                   <button
                     type="button"
                     onClick={() => handleOpenEditModal(user)}
                   >
-                    <HiPencilAlt size={30} />
+                    <HiPencilAlt size={25} />
                   </button>
-                  {/* Eliminar usuario */}
                   <button
                     type="button"
                     onClick={() =>
@@ -370,7 +371,7 @@ const Users = () => {
                       handleOpenModal(user)
                     }
                   >
-                    <HiXCircle size={30} />
+                    <HiXCircle size={25} />
                   </button>
                 </td>
               </tr>
