@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { getFunctions, httpsCallable } from "firebase/functions";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import authPromise from "../firebase-config";
 import {
   sendEmailVerification,
@@ -136,6 +136,12 @@ const SignUp = () => {
             Sign Up
           </button>
         </form>
+        <p className="text-sm text-center text-gray-500">
+        Already have an account?{" "}
+          <Link to="/login" className="font-medium text-pink hover:underline">
+            Sign in here
+          </Link>
+        </p>
         {verificationMessage && (
           <p
             className={`mb-4 ${
