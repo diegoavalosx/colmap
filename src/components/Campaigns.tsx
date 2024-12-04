@@ -231,7 +231,6 @@ const Campaigns = () => {
         shouldCloseOnOverlayClick={true}
       >
         <h1 className="text-lg md:text-xl font-semibold mb-3 md:mb-4 text-center">{`Updating ${originalCampaign?.name}`}</h1>
-        <p className="mb-5 md:mb-6 text-center">This action cannot be undone</p>
         {selectedCampaign && (
           <div className="p-4 bg-white rounded-lg w-full">
             <form
@@ -239,7 +238,10 @@ const Campaigns = () => {
               className="flex flex-col gap-4"
             >
               <div>
-                <label htmlFor="ID" className="block text-sm font-medium mb-1">
+                <label
+                  htmlFor="ID"
+                  className="block text-sm font-semibold mb-1"
+                >
                   ID
                 </label>
                 <input
@@ -254,7 +256,7 @@ const Campaigns = () => {
               <div>
                 <label
                   htmlFor="name"
-                  className="block text-sm font-medium mb-1"
+                  className="block text-sm font-semibold mb-1"
                 >
                   Name
                 </label>
