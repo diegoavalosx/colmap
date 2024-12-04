@@ -39,7 +39,7 @@ const WhyUs = forwardRef<HTMLDivElement, WhyUsProps>(
         <div
           id={id}
           ref={ref}
-          className="h-full flex-grow bg-deluxe-black text-white p-6 md:p-16 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 items-center animate-fadeIn rounded-none md:rounded-bl-custom-br "
+          className="h-full flex-grow bg-deluxe-black text-white p-6 md:p-16 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 items-center animate-fadeIn rounded-none"
         >
           {goBackToHome ? (
             <button
@@ -51,7 +51,7 @@ const WhyUs = forwardRef<HTMLDivElement, WhyUsProps>(
             </button>
           ) : null}
           <div className="space-y-6 flex flex-col justify-center w-full h-full">
-            <h1 className="text-2xl md:text-4xl font-bold mb-0 md:mb-4 text-center md:text-left">
+            <h1 className="text-2xl md:text-4xl font-bold mb-0 md:mb-4 text-center md:text-left ">
               WHY US
             </h1>
             <div className="space-y-4">

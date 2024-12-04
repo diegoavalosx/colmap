@@ -97,7 +97,7 @@ const Contact = forwardRef<HTMLDivElement, ContactProps>(
           </button>
         ) : null}
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold">Got any ideas?</h1>
+          <h1 className="text-3xl font-bold">Send us a message</h1>
           <h2 className="text-xl font-light">We'd love to hear from you!</h2>
         </div>
 
@@ -151,7 +151,7 @@ const Contact = forwardRef<HTMLDivElement, ContactProps>(
 
           <button
             type="submit"
-            className="px-6 py-2 bg-ooh-yeah-pink text-white rounded-lg font-medium shadow-md hover:bg-opacity-90 transition-colors"
+            className="px-6 py-2 bg-ooh-yeah-pink text-white rounded-lg font-medium shadow-md hover:bg-ooh-yeah-pink-700 transition-colors"
           >
             SEND
           </button>
