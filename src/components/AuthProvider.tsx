@@ -12,6 +12,7 @@ import {
   type Auth,
 } from "firebase/auth";
 import { doc, getDoc, updateDoc, type Firestore } from "firebase/firestore";
+import type { FirebaseStorage } from "firebase/storage";
 interface AuthProviderProps {
   children: ReactNode;
 }
@@ -21,15 +22,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [auth, setAuth] = useState<Auth | null>();
   const [authError, setAuthError] = useState<string | null>(null);
-  const [authStatus, setAuthStatus] = useState<AuthContextType["authStatus"]>("idle");
+  const [authStatus, setAuthStatus] =
+    useState<AuthContextType["authStatus"]>("idle");
   const [dataBase, setDatabase] = useState<Firestore | null>(null);
   const [role, setRole] = useState<string | null>(null);
+  const [storage, setStorage] = useState<FirebaseStorage | null>();
 
   useEffect(() => {
     authPromise
-      .then(({ auth, db }) => {
+      .then(({ auth, db, storage }) => {
         setDatabase(db);
         setAuth(auth);
+        setStorage(storage);
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
           if (user?.emailVerified) {
             setUser(user);
@@ -54,7 +58,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   ): Promise<"success" | "emailNotVerified" | "error"> => {
     setAuthStatus("loading");
     setAuthError(null);
-  
+
     try {
       if (auth) {
         const userCredential = await signInWithEmailAndPassword(
@@ -75,7 +79,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
           return "success";
         }
-      
+
         await auth.signOut();
         setAuthError("Please verify your email before logging in.");
         setAuthStatus("error");
@@ -114,7 +118,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const resendVerificationEmail = async () => {
-    console.log("Hola desde AuthProvider", user)
     if (auth && user && !user.emailVerified) {
       await sendEmailVerification(user);
       setAuthStatus("verificationEmailSent");
@@ -125,7 +128,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setAuthError(null);
   };
 
-  if (loading) {
+  if (loading || !storage) {
     return <Loader />;
   }
 
@@ -140,7 +143,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         authError,
         authStatus,
         clearAuthError,
-        resendVerificationEmail
+        resendVerificationEmail,
+        storage,
       }}
     >
       {children}

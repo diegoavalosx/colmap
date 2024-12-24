@@ -30,6 +30,7 @@ interface Location {
   description: string;
   latitude: number;
   longitude: number;
+  imageUrl: string;
 }
 
 const fetchUserLocations = async (userId: string, db: Firestore) => {
@@ -53,6 +54,7 @@ const fetchUserLocations = async (userId: string, db: Firestore) => {
           description: data.description,
           latitude: Number.parseFloat(data.latitude),
           longitude: Number.parseFloat(data.longitude),
+          imageUrl: data.imageUrl,
         });
       }
     }
@@ -164,7 +166,21 @@ const InteractiveMap = () => {
                       }}
                       onCloseClick={() => setOpenInfoWindowId(null)}
                     >
-                      {location.description}
+                      <div className="w-64 p-4 bg-white rounded-lg shadow-lg text-left flex flex-col gap-2">
+                        <h3 className="text-xl font-semibold">
+                          {location.name}
+                        </h3>
+
+                        <p className="text-gray-600">{location.description}</p>
+
+                        {location.imageUrl && (
+                          <img
+                            src={location.imageUrl}
+                            alt={location.name}
+                            className="rounded-lg w-full h-auto object-cover"
+                          />
+                        )}
+                      </div>
                     </InfoWindow>
                   )}
                 </AdvancedMarker>

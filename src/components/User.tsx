@@ -13,7 +13,7 @@ import {
 import ReactModal from "react-modal";
 import { useAuth } from "./useAuth";
 import Loader from "./Loader";
-import { ToastContainer,toast } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 
 interface UserType {
   id: string;
@@ -126,19 +126,16 @@ const UserDetail = () => {
       setCampaignName("");
       setCampaignDescription("");
       setCampaignStatus("active");
-      toast.success(
-        "Campaign create successfully!",
-        {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "colored",
-        }
-      );
+      toast.success("Campaign created successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
       const campaignRef = collection(dataBase, "campaigns");
       const q = query(campaignRef, where("userId", "==", user.id));
       const querySnapshot = await getDocs(q);
@@ -148,19 +145,16 @@ const UserDetail = () => {
       })) as unknown as Campaign[];
       setCampaigns(updatedCampaigns);
     } catch (error) {
-      toast.error(
-        "Failed to create campaign",
-        {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "colored",
-        }
-      );
+      toast.error("Failed to create campaign", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
       console.error("Failed to create campaign:", error);
     }
   };
@@ -247,7 +241,7 @@ const UserDetail = () => {
         {"< BACK"}
       </button>
       <div className="flex justify-between mt-4">
-        <h1 className="text-left text-2xl font-bold pl-4">Company Name</h1>
+        <h1 className="text-left text-2xl font-bold pl-4">User Detail</h1>
         <button
           className="px-4 py-2 text-white font-bold rounded-md bg-ooh-yeah-pink"
           type="button"
@@ -292,6 +286,15 @@ const UserDetail = () => {
                   <strong>Created At:</strong>{" "}
                   {new Date(campaign.createdAt).toLocaleString()}
                 </p>
+                <button
+                  type="button"
+                  className="font-bold text-left w-min whitespace-nowrap"
+                  onClick={() => {
+                    navigate(`/dashboard/campaign/${campaign.id}`);
+                  }}
+                >
+                  Go to campagin details
+                </button>
               </li>
             ))}
           </ul>
