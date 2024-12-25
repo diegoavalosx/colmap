@@ -77,7 +77,7 @@ const Campaigns = () => {
             campaign.id === selectedCampaign.id ? selectedCampaign : campaign
           )
         );
-        toast.success("¡Campaign update successfully!", {
+        toast.success("Campaign updated successfully!", {
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,
@@ -200,7 +200,9 @@ const Campaigns = () => {
         className="relative bg-white rounded-lg shadow-lg p-4 md:p-6 w-11/12 max-w-md mx-auto"
         shouldCloseOnOverlayClick={true}
       >
-        <h1 className="text-lg md:text-xl font-semibold mb-3 md:mb-4 text-center">{`Are you sure you want to delete ${selectedCampaign?.name}?`}</h1>
+        <h1 className="text-lg md:text-xl font-semibold mb-3 md:mb-4 text-center">
+          Are you sure you want to delete this campaign?
+        </h1>
         <p className="mb-5 md:mb-6 text-center">This action cannot be undone</p>
         <div className="flex justify-center space-x-4">
           <button

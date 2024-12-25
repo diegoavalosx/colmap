@@ -5,6 +5,7 @@ import ReactModal from "react-modal";
 import { useAuth } from "./useAuth";
 import Loader from "./Loader";
 import { toast, ToastContainer } from "react-toastify";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 interface Campaign {
   id: string;
@@ -22,10 +23,11 @@ interface Location {
   latitude: string;
   longitude: string;
   createdAt: Date;
+  imageUrl?: string;
 }
 
 const CampaignDetail = () => {
-  const { dataBase } = useAuth();
+  const { dataBase, storage } = useAuth();
   const { campaignId } = useParams<{ campaignId: string }>();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [locations, setLocations] = useState<Location[]>([]);
@@ -35,6 +37,7 @@ const CampaignDetail = () => {
   const [locationDescription, setLocationDescription] = useState<string>("");
   const [locationLatitude, setLocationLatitude] = useState<string>("");
   const [locationLongitude, setLocationLongitude] = useState<string>("");
+  const [locationImageFile, setLocationImageFile] = useState<File | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -95,6 +98,26 @@ const CampaignDetail = () => {
       createdAt: new Date(),
     };
 
+    let imageUrl = "";
+    if (locationImageFile) {
+      try {
+        const storageRef = ref(
+          storage,
+          `campaigns/${campaignId}/locations/${locationImageFile.name}`
+        );
+
+        await uploadBytes(storageRef, locationImageFile);
+
+        imageUrl = await getDownloadURL(storageRef);
+
+        console.log("File uploaded successfully:", imageUrl);
+      } catch (error) {
+        console.error("Error uploading file:", error);
+        toast.error("Failed to upload image. Try again.");
+        return;
+      }
+    }
+
     try {
       const locationRef = collection(
         dataBase,
@@ -102,38 +125,33 @@ const CampaignDetail = () => {
       );
       const newLocation = await addDoc(locationRef, {
         ...locationData,
+        imageUrl,
         createdAt: new Date(),
       });
 
-      toast.success(
-        "¡Location added succesfully!",
-        {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "colored",
-        }
-      );
+      toast.success("¡Location added succesfully!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
       setIsModalOpen(false);
       console.log("Location added with ID:", newLocation.id);
     } catch (error) {
-      toast.error(
-        "Failed to add Location. Try again.",
-        {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "colored",
-        }
-      );
+      toast.error("Failed to add Location. Try again.", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
       console.error("Error adding location:", error);
     }
   };
@@ -214,6 +232,24 @@ const CampaignDetail = () => {
                 required
               />
             </div>
+            <div>
+              <label
+                htmlFor="locationImage"
+                className="block text-sm font-medium mb-1"
+              >
+                Image
+              </label>
+              <input
+                type="file"
+                id="locationImage"
+                accept="image/*"
+                onChange={(e) => {
+                  if (e.target.files?.[0]) {
+                    setLocationImageFile(e.target.files[0]);
+                  }
+                }}
+              />
+            </div>
             <button
               type="submit"
               className="mt-4 px-4 py-2 font-bold text-white bg-ooh-yeah-pink rounded-md focus:outline-none focus:ring focus:ring-opacity-50"
@@ -248,13 +284,10 @@ const CampaignDetail = () => {
           <strong>ID:</strong> {campaign.id}
         </p>
         <p>
-          <strong>Email:</strong> {campaign.name}
-        </p>
-        <p>
           <strong>Name:</strong> {campaign.name}
         </p>
         <p>
-          <strong>Email Verified:</strong> {campaign.status}
+          <strong>Description:</strong> {campaign.description}
         </p>
         <p>
           <strong>Owner:</strong> {campaign.userId}

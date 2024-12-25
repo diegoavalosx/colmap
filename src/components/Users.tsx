@@ -67,7 +67,7 @@ const Users = () => {
             user.id === selectedUser.id ? selectedUser : user
           )
         );
-        toast.success("¡User successfully updated!", {
+        toast.success("User successfully updated!", {
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,
@@ -209,7 +209,9 @@ const Users = () => {
         className="relative bg-white rounded-lg shadow-lg p-4 md:p-6 w-11/12 max-w-md mx-auto"
         shouldCloseOnOverlayClick={true}
       >
-        <h1 className="text-lg md:text-xl font-semibold mb-3 md:mb-4 text-center">{`Are you sure you want to delete ${selectedUser?.name}?`}</h1>
+        <h1 className="text-lg md:text-xl font-semibold mb-3 md:mb-4 text-center">
+          Are you sure you want to delete this user?
+        </h1>
         <p className="mb-5 md:mb-6 text-center">
           All campaigns and locations linked to this user will be deleted. This
           action cannot be undone

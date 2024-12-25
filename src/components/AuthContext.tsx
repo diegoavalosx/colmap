@@ -1,5 +1,6 @@
 import type { User } from "firebase/auth";
 import type { Firestore } from "firebase/firestore";
+import type { FirebaseStorage } from "firebase/storage";
 import { createContext } from "react";
 
 export interface AuthContextType {
@@ -9,9 +10,15 @@ export interface AuthContextType {
   resendVerificationEmail: () => Promise<void>;
   authError: string | null;
   clearAuthError: () => void;
-  authStatus: 'idle' | 'loading' | 'authenticated' | 'error' | 'verificationEmailSent';
+  authStatus:
+    | "idle"
+    | "loading"
+    | "authenticated"
+    | "error"
+    | "verificationEmailSent";
   dataBase: Firestore | null;
   role: string | null;
+  storage: FirebaseStorage;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(

@@ -7,6 +7,7 @@ import {
 } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import type { Firestore } from "firebase/firestore/lite";
+import { type FirebaseStorage, getStorage } from "firebase/storage";
 
 // Function to fetch configuration from the backend
 async function fetchFirebaseConfig() {
@@ -28,6 +29,7 @@ async function fetchFirebaseConfig() {
 interface FirebaseInstances {
   auth: Auth;
   db: Firestore;
+  storage: FirebaseStorage;
 }
 
 // Create and export a promise that resolves with `auth` after initialization
@@ -49,6 +51,8 @@ const firebaseInstancesPromise: Promise<FirebaseInstances> =
 
     const db = getFirestore(app);
 
+    const storage = getStorage(app);
+
     setPersistence(auth, browserSessionPersistence)
       .then(() => {
         console.log("Persistence set");
@@ -57,7 +61,7 @@ const firebaseInstancesPromise: Promise<FirebaseInstances> =
         console.error("Error setting persistence:", error);
       });
 
-    return { auth, db };
+    return { auth, db, storage };
   });
 
 export default firebaseInstancesPromise;
