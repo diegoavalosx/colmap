@@ -16,10 +16,10 @@ module.exports = {
       borderRadius: {
         "custom-br": "30rem",
       },
-
       animation: {
         fadeIn: "fadeIn 0.5s ease-in-out",
         slideUp: "slideUp 1s ease-in-out",
+        spin: "spin 1s linear infinite",
       },
       keyframes: {
         fadeIn: {

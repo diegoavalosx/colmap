@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import App from "./App.tsx";
+import App2 from "./App2.tsx";
 import Login from "./components/Login.tsx";
 import Dashboard from "./components/Dashboard.tsx";
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
@@ -18,6 +19,7 @@ if (rootElement) {
       <Router>
         <Routes>
           <Route path="/" element={<App />} />
+          <Route path="/v2" element={<App2 />} />
           <Route
             path="/*"
             element={
