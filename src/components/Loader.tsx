@@ -1,6 +1,10 @@
-const Loader = () => {
+const Loader: React.FC<{ fullScreen?: boolean }> = ({ fullScreen = true }) => {
   return (
-    <div className="flex justify-center items-center min-h-screen">
+    <div
+      className={`flex justify-center items-center ${
+        fullScreen ? "min-h-screen" : ""
+      }`}
+    >
       <svg
         aria-hidden="true"
         className="inline w-20 h-20 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
