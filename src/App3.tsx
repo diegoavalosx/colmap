@@ -1,9 +1,9 @@
-import { useRef, useState } from "react";
-import Home from "./components/Home";
+import { forwardRef, useRef, useState } from "react";
 import WhoWeAre from "./components/WhoWeAre";
 import WhyUs from "./components/WhyUs";
 import Contact from "./components/Contact";
 import NavBar from "./components/NavBar";
+import image from "./assets/carousel-images/2.png";
 
 function App3() {
   const homeRef = useRef<HTMLDivElement>(null);
@@ -38,12 +38,28 @@ function App3() {
         scrollToSection={scrollToSection}
         activeSection={currentSection}
       />
-      <Home id="home" ref={homeRef} />
+      <HomeDummy id="home" ref={homeRef} />
       <WhoWeAre id="whoWeAre" ref={whoWeAreRef} />
       <WhyUs id="whyUs" ref={whyUsRef} />
       <Contact id="contact" ref={contactRef} />
     </div>
   );
 }
+
+interface HomeDummyProps {
+  id?: string;
+}
+
+const HomeDummy = forwardRef<HTMLDivElement, HomeDummyProps>(({ id }, ref) => {
+  return (
+    <div
+      id={id}
+      ref={ref}
+      className="h-screen w-full bg-deluxe-gray overflow-hidden animate-fadeIn"
+    >
+      <img src={image} alt="homepage" className="object-cover" />
+    </div>
+  );
+});
 
 export default App3;
