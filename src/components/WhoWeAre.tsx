@@ -29,7 +29,7 @@ const WhoWeAre = forwardRef<HTMLDivElement, WhoWeAreProps>(
           </h1>
           <p className="text-lg font-light leading-relaxed">
             Oohyeah is a boutique outdoor media agency specializing in{" "}
-            <span className="text-ooh-yeah-pink font-medium">distinctive</span>{" "}
+            <span className="text-ooh-yeah-pink font-bold">distinctive</span>{" "}
             guerrilla marketing. We manage the entire process from design to
             installation.
           </p>
