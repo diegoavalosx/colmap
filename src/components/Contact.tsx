@@ -91,7 +91,7 @@ const Contact = forwardRef<HTMLDivElement, ContactProps>(
           </button>
         ) : null}
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold">Send us a message</h1>
+          <h1 className="text-3xl font-bold">Request a consultation</h1>
           <h2 className="text-xl font-light">We'd love to hear from you!</h2>
         </div>
         <form
