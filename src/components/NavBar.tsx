@@ -1,6 +1,7 @@
 import { Menu, X } from "lucide-react";
 import logo from "../assets/oohyeah-logo-black.png";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface NavbarProps {
   scrollToSection: (sectionId: string) => void;
@@ -9,11 +10,14 @@ interface NavbarProps {
 
 const NavBar: React.FC<NavbarProps> = ({ scrollToSection, activeSection }) => {
   const [isOpen, setIsOpen] = useState(false);
-
   const toggleMenu = () => setIsOpen(!isOpen);
+  const navigate = useNavigate()
 
   const handleSectionClick = (sectionId: string) => {
     scrollToSection(sectionId);
+    if(sectionId === "dashboard"){
+      navigate("/login")
+    }
     setIsOpen(false);
   };
 
@@ -37,7 +41,7 @@ const NavBar: React.FC<NavbarProps> = ({ scrollToSection, activeSection }) => {
             isOpen ? "block" : "hidden"
           } md:block flex top-full left-0 right-0 items-center justify-center`}
         >
-          {["home", "whoWeAre", "whyUs", "contact"].map((sectionId) => (
+          {["home", "whoWeAre", "contact", "dashboard"].map((sectionId) => (
             <li key={sectionId}>
               <button
                 type="button"
@@ -54,7 +58,9 @@ const NavBar: React.FC<NavbarProps> = ({ scrollToSection, activeSection }) => {
                   ? "About Us"
                   : sectionId === "contact"
                   ? "Contact Us"
-                  : "Why Us"}
+                  : sectionId === "dashboard"
+                  ? "Client Portal"
+                  : ""}
               </button>
             </li>
           ))}
