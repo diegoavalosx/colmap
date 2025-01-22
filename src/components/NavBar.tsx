@@ -19,7 +19,7 @@ const NavBar: React.FC<NavbarProps> = ({ scrollToSection, activeSection }) => {
 
   return (
     <div className="fixed top-0 left-0 w-full z-10 h-20">
-      <div className="md:flex justify-between items-center text-black py-4 px-8 md:px-10 bg-white h-full">
+      <div className="md:flex justify-between items-center text-black py-4 px-8 md:px-10 bg-deluxe-gray h-full">
         <img
           src={logo}
           alt="Logo"
@@ -33,11 +33,11 @@ const NavBar: React.FC<NavbarProps> = ({ scrollToSection, activeSection }) => {
           {isOpen ? <X /> : <Menu />}
         </button>
         <ul
-          className={`md:flex md:items-center font-semibold text-base md:pb-0 md:static md:z-auto z-1 w-full md:w-auto absolute bg-white ${
+          className={`md:flex md:items-center font-semibold text-base md:pb-0 md:static md:z-auto z-1 w-full md:w-auto absolute bg-deluxe-gray ${
             isOpen ? "block" : "hidden"
           } md:block flex top-full left-0 right-0 items-center justify-center`}
         >
-          {["about", "whoAreWe", "whyUs", "contact"].map((sectionId) => (
+          {["home", "whoWeAre", "whyUs", "contact"].map((sectionId) => (
             <li key={sectionId}>
               <button
                 type="button"
@@ -48,13 +48,13 @@ const NavBar: React.FC<NavbarProps> = ({ scrollToSection, activeSection }) => {
                 }`}
                 onClick={() => handleSectionClick(sectionId)}
               >
-                {sectionId === "about"
+                {sectionId === "home"
+                  ? "Home"
+                  : sectionId === "whoWeAre"
                   ? "About Us"
-                  : sectionId === "whoAreWe"
-                  ? "Who We Are"
-                  : sectionId === "whyUs"
-                  ? "Why Us"
-                  : "Contact"}
+                  : sectionId === "contact"
+                  ? "Contact Us"
+                  : "Why Us"}
               </button>
             </li>
           ))}

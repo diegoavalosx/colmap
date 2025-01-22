@@ -51,7 +51,7 @@ const WhyUs = forwardRef<HTMLDivElement, WhyUsProps>(
       <div
         id={id}
         ref={ref}
-        className="h-auto flex flex-col min-h-screen flex-grow bg-white text-gray-900 p-6 md:p-16 items-center justify-center gap-20 animate-fadeIn"
+        className="h-auto flex flex-col min-h-screen flex-grow bg-deluxe-gray text-gray-900 p-6 md:p-16 items-center justify-center gap-20 animate-fadeIn"
       >
         {goBackToHome ? (
           <button

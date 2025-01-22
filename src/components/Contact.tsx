@@ -107,7 +107,7 @@ const Contact = forwardRef<HTMLDivElement, ContactProps>(
               id="POST-name"
               type="text"
               name="user_name"
-              className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 mt-1 focus:border-ooh-yeah-pink focus:outline-none transition-colors"
+              className="w-full border-2 border-gray-300 text-deluxe-black rounded-lg px-4 py-2 mt-1 focus:border-ooh-yeah-pink focus:outline-none transition-colors"
             />
             {nameError && (
               <p className="text-red-500 text-sm mt-1">{nameError}</p>
@@ -121,7 +121,7 @@ const Contact = forwardRef<HTMLDivElement, ContactProps>(
               id="POST-email"
               type="email"
               name="user_email"
-              className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 mt-1 focus:border-ooh-yeah-pink focus:outline-none transition-colors"
+              className="w-full border-2 border-gray-300 text-deluxe-black rounded-lg px-4 py-2 mt-1 focus:border-ooh-yeah-pink focus:outline-none transition-colors"
             />
             {emailError && (
               <p className="text-red-500 text-sm mt-1">{emailError}</p>
@@ -135,7 +135,7 @@ const Contact = forwardRef<HTMLDivElement, ContactProps>(
               id="POST-message"
               name="message"
               rows={4}
-              className="w-full border-2 border-gray-300 rounded-lg px-4 py-2 mt-1 focus:border-ooh-yeah-pink focus:outline-none transition-colors"
+              className="w-full border-2 border-gray-300 text-deluxe-black rounded-lg px-4 py-2 mt-1 focus:border-ooh-yeah-pink focus:outline-none transition-colors"
             />
             {messageError && (
               <p className="text-red-500 text-sm mt-1">{messageError}</p>
