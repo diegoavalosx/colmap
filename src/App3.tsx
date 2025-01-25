@@ -55,9 +55,9 @@ const HomeDummy = forwardRef<HTMLDivElement, HomeDummyProps>(({ id }, ref) => {
     <div
       id={id}
       ref={ref}
-      className="h-auto w-full bg-deluxe-gray overflow-hidden animate-fadeIn"
+      className="h-screen w-full bg-deluxe-gray overflow-hidden animate-fadeIn"
     >
-      <img src={image} alt="homepage" className="object-fill sm:object-cover" />
+      <img src={image} alt="homepage" className="object-cover h-full w-full" />
     </div>
   );
 });
