@@ -1,4 +1,4 @@
-import { forwardRef, useRef, useState } from "react";
+import { forwardRef, useRef, useState, useEffect } from "react";
 import WhoWeAre from "./components/WhoWeAre";
 import WhyUs from "./components/WhyUs";
 import Contact from "./components/Contact";
@@ -10,11 +10,10 @@ function App3() {
   const whoWeAreRef = useRef<HTMLDivElement>(null);
   const whyUsRef = useRef<HTMLDivElement>(null);
   const contactRef = useRef<HTMLDivElement>(null);
+  const navBarRef = useRef<HTMLDivElement>(null);
   const [currentSection, setCurrentSection] = useState<string>("home");
 
-  const scrollToSection = (sectionId: string) => {
-    setCurrentSection(sectionId);
-
+  useEffect(() => {
     const refMap: { [key: string]: React.RefObject<HTMLDivElement> } = {
       home: homeRef,
       whoWeAre: whoWeAreRef,
@@ -22,9 +21,53 @@ function App3() {
       contact: contactRef,
     };
 
+    const observerOptions = {
+      root: null,
+      rootMargin: "0px",
+      threshold: 0.5,
+    };
+
+    const observerCallback = (entries: IntersectionObserverEntry[]) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          const sectionId = Object.keys(refMap).find(
+            (key) => refMap[key].current === entry.target
+          );
+          if (sectionId) {
+            setCurrentSection(sectionId);
+          }
+        }
+      }
+    };
+
+    const observer = new IntersectionObserver(
+      observerCallback,
+      observerOptions
+    );
+
+    for (const ref of Object.values(refMap)) {
+      if (ref.current) {
+        observer.observe(ref.current);
+      }
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  const scrollToSection = (sectionId: string) => {
+    setCurrentSection(sectionId);
+    const navbarOffset = navBarRef.current?.clientHeight || 120;
+    const refMap: { [key: string]: React.RefObject<HTMLDivElement> } = {
+      home: homeRef,
+      whoWeAre: whoWeAreRef,
+      whyUs: whyUsRef,
+      contact: contactRef,
+    };
     const sectionRef = refMap[sectionId];
     if (sectionRef?.current) {
-      const offsetPosition = sectionRef.current.offsetTop;
+      const offsetPosition = sectionRef.current.offsetTop - navbarOffset;
       window.scrollTo({
         top: offsetPosition,
         behavior: "smooth",
@@ -35,6 +78,7 @@ function App3() {
   return (
     <div className="h-screen bg-deluxe-black text-deluxe-black font-sans">
       <NavBar
+        ref={navBarRef}
         scrollToSection={scrollToSection}
         activeSection={currentSection}
       />
