@@ -19,16 +19,19 @@ const NavBar = forwardRef<HTMLDivElement, NavbarProps>(
     };
 
     return (
-      <div className="fixed top-0 left-0 w-full z-10 h-30 md:h-20" ref={ref}>
-        <div className="flex flex-col md:flex-row justify-between md:items-center text-black py-2 px-0 md:px-10 md:py-4 bg-deluxe-gray h-full">
-          <div className="flex h-14 align-center justify-center">
+      <div
+        className="fixed top-0 left-0 w-full z-10 h-[100px] md:h-20"
+        ref={ref}
+      >
+        <div className="flex flex-col md:flex-row justify-between md:items-center text-black p-0 md:px-10 md:py-4 bg-deluxe-gray h-full">
+          <div className="flex h-[60px] pt-2 md:h-14 align-center justify-center">
             <img
               src={logo}
               alt="Logo"
               className="w-52 hover:scale-105 transition-all md:ms-10 relative z-10 self-center"
             />
           </div>
-          <ul className="md:items-center font-semibold text-base md:pb-0 md:static md:z-auto z-1 w-full md:w-auto bg-deluxe-gray flex top-full left-0 right-0 items-center justify-around h-14 md:h-20">
+          <ul className="md:items-center font-semibold text-base md:pb-0 md:static md:z-auto z-1 w-full md:w-auto bg-deluxe-gray flex top-full left-0 right-0 items-center justify-around h-[40px] md:h-20">
             {["home", "whoWeAre", "contact", "dashboard"].map((sectionId) => (
               <li key={sectionId} className="text-center">
                 <button
