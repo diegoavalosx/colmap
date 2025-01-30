@@ -1,4 +1,4 @@
-import { forwardRef, useEffect } from "react";
+import { forwardRef } from "react";
 import logo from "../assets/oohyeah-logo-black.png";
 import { useNavigate } from "react-router-dom";
 
