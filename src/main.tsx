@@ -11,6 +11,7 @@ import { AuthProvider } from "./components/AuthProvider.tsx";
 import SignUp from "./components/SignUp.tsx";
 import "./styles/styles.css";
 import EmailVerification from "./components/EmailVerification.tsx";
+import NotFound from "./components/NotFound.tsx";
 
 const rootElement = document.getElementById("root");
 
@@ -22,6 +23,7 @@ if (rootElement) {
           <Route path="/" element={<App />} />
           <Route path="/v2" element={<App2 />} />
           <Route path="/v3" element={<App3 />} />
+          <Route path="*" element={<NotFound />}/>
           <Route
             path="/*"
             element={
