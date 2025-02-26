@@ -1,5 +1,6 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "./useAuth";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import {
   collection,
   getDocs,
@@ -9,11 +10,12 @@ import {
   where,
   updateDoc,
 } from "firebase/firestore";
-import { HiXCircle, HiPencilAlt } from "react-icons/hi";
-import { Link } from "react-router-dom";
+import { HiXCircle, HiPencilAlt, HiEye } from "react-icons/hi";
+import { useNavigate } from "react-router-dom";
 import ReactModal from "react-modal";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Loader from "./Loader";
 
 type User = {
   id: string;
@@ -23,13 +25,35 @@ type User = {
   role: string;
 };
 
+type SignUpFormData = {
+  name: string;
+  email: string;
+  password: string;
+};
+
 const Users = () => {
   const [users, setUsers] = useState<User[]>([]);
   const { dataBase } = useAuth();
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
   const [originalUser, setOriginalUser] = useState<User | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
+  const [formData, setFormData] = useState<SignUpFormData>({
+    name: "",
+    email: "",
+    password: "",
+  });
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
 
   const handleOpenModal = (user: User) => {
     setSelectedUser(user);
@@ -37,7 +61,6 @@ const Users = () => {
   };
 
   const closeModal = () => {
-    console.log("Cancelado");
     setIsModalOpen(false);
     setSelectedUser(null);
   };
@@ -51,6 +74,14 @@ const Users = () => {
   const handleCloseEditModal = () => {
     setIsEditModalOpen(false);
     setSelectedUser(null);
+  };
+
+  const handleOpenCreateModal = () => {
+    setIsCreateModalOpen(true);
+  };
+
+  const handleCloseCreateModal = () => {
+    setIsCreateModalOpen(false);
   };
 
   const handleEditUserSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -91,6 +122,51 @@ const Users = () => {
         });
         console.error("Failed to update user:", error);
       }
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const functions = getFunctions();
+      const createUser = httpsCallable(functions, "createUser");
+
+      const result = await createUser({
+        email: formData.email,
+        password: formData.password,
+        displayName: formData.name,
+      });
+
+      toast.success("User created successfullly!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
+
+      console.log("User created successfully:", result.data);
+      await fetchUsers();
+      setIsCreateModalOpen(false);
+      setIsLoading(false);
+    } catch (error) {
+      toast.error("Failed to create user. Try again.", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
+      console.error("Failed to create user:", error);
+      setIsLoading(false);
     }
   };
 
@@ -181,23 +257,23 @@ const Users = () => {
     }
   };
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      if (!dataBase) return;
-      try {
-        const querySnapshot = await getDocs(collection(dataBase, "users"));
-        const userList = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as User[];
-        setUsers(userList);
-      } catch (error) {
-        console.error("Error fetching users: ", error);
-      }
-    };
-
-    fetchUsers();
+  const fetchUsers = useCallback(async () => {
+    if (!dataBase) return;
+    try {
+      const querySnapshot = await getDocs(collection(dataBase, "users"));
+      const userList = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as User[];
+      setUsers(userList);
+    } catch (error) {
+      console.error("Error fetching users: ", error);
+    }
   }, [dataBase]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   return (
     <>
@@ -311,16 +387,102 @@ const Users = () => {
           </div>
         )}
       </ReactModal>
-      <h1 className="text-center lg:text-left text-2xl font-bold pl-4">
-        Users
-      </h1>
+      <ReactModal
+        isOpen={isCreateModalOpen}
+        onRequestClose={() => setIsCreateModalOpen(false)}
+        overlayClassName="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center p-4"
+        className="relative bg-white rounded-lg shadow-lg p-4 md:p-6 w-11/12 max-w-md mx-auto"
+        shouldCloseOnOverlayClick={true}
+      >
+        {isLoading ? (
+          <Loader fullScreen={false} />
+        ) : (
+          <form onSubmit={handleSubmit} className="text-left">
+            <label
+              htmlFor="name"
+              className="block text-sm mb-2 font-bold text-gray-700"
+            >
+              Name:
+            </label>
+            <input
+              type="text"
+              name="name"
+              id="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 mb-4 text-black placeholder-gray-400 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink focus:border-transparent"
+              placeholder="Jane Doe"
+              required
+            />
+
+            <label
+              htmlFor="email"
+              className="block text-sm mb-2 font-bold text-gray-700"
+            >
+              Email:
+            </label>
+            <input
+              type="email"
+              name="email"
+              id="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 mb-4 text-black placeholder-gray-400 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink focus:border-transparent"
+              placeholder="you@example.com"
+              required
+            />
+
+            <label
+              htmlFor="password"
+              className="block text-sm mb-2 font-bold text-gray-700"
+            >
+              Password:
+            </label>
+            <input
+              type="password"
+              name="password"
+              id="password"
+              value={formData.password}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 mb-4 text-black placeholder-gray-400 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink focus:border-transparent"
+              placeholder="••••••••"
+              required
+            />
+
+            <div className="flex justify-center space-x-4">
+              <button
+                type="submit"
+                className="w-full py-2 mt-4 font-semibold text-white bg-ooh-yeah-pink rounded-lg hover:bg-pink-600 transition-colors"
+              >
+                Create User
+              </button>
+              <button
+                type="submit"
+                className="mt-4 bg-gray-200 text-black px-4 py-2 md:px-4 rounded-md hover:bg-gray-300 transition"
+                onClick={handleCloseCreateModal}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
+      </ReactModal>
+      <div className="flex justify-between mt-4">
+        <h1 className="text-center lg:text-left text-2xl font-bold pl-4">
+          Users
+        </h1>
+        <button
+          className="px-4 py-2 text-white font-bold rounded-md bg-ooh-yeah-pink"
+          type="button"
+          onClick={handleOpenCreateModal}
+        >
+          New User
+        </button>
+      </div>
       <div className="flex mt-6 overflow-x-auto">
         <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
-                ID
-              </th>
               <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
                 Email
               </th>
@@ -342,14 +504,6 @@ const Users = () => {
             {users.map((user) => (
               <tr key={user.id} className="even:bg-gray-100 hover:bg-gray-50">
                 <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
-                  <Link
-                    to={`/dashboard/user/${user.id}`}
-                    className="text-blue-600 hover:underline"
-                  >
-                    {user.id}
-                  </Link>
-                </td>
-                <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
                   {user.email}
                 </td>
                 <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
@@ -361,21 +515,23 @@ const Users = () => {
                 <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
                   {user.role}
                 </td>
-                <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
+                <td className="flex justify-around px-6 py-4 text-left text-gray-800 border-b border-gray-200">
                   <button
                     type="button"
                     onClick={() => handleOpenEditModal(user)}
                   >
                     <HiPencilAlt size={25} />
                   </button>
+                  <button type="button" onClick={() => handleOpenModal(user)}>
+                    <HiXCircle size={25} />
+                  </button>
                   <button
                     type="button"
-                    onClick={() =>
-                      // deleteUsers(user.id);
-                      handleOpenModal(user)
-                    }
+                    onClick={() => {
+                      navigate(`/dashboard/user/${user.id}`);
+                    }}
                   >
-                    <HiXCircle size={25} />
+                    <HiEye size={25} />
                   </button>
                 </td>
               </tr>

@@ -8,10 +8,10 @@ import Login from "./components/Login.tsx";
 import Dashboard from "./components/Dashboard.tsx";
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import { AuthProvider } from "./components/AuthProvider.tsx";
-import SignUp from "./components/SignUp.tsx";
 import "./styles/styles.css";
 import EmailVerification from "./components/EmailVerification.tsx";
 import NotFound from "./components/NotFound.tsx";
+import Verified from "./components/Verified.tsx";
 
 const rootElement = document.getElementById("root");
 
@@ -23,14 +23,13 @@ if (rootElement) {
           <Route path="/" element={<App />} />
           <Route path="/v2" element={<App2 />} />
           <Route path="/v3" element={<App3 />} />
-          <Route path="*" element={<NotFound />}/>
+          <Route path="/verified" element={<Verified />} />
           <Route
             path="/*"
             element={
               <AuthProvider>
                 <Routes>
                   <Route path="/login" element={<Login />} />
-                  <Route path="/signup" element={<SignUp />} />
                   <Route
                     path="/dashboard/*"
                     element={
@@ -43,6 +42,7 @@ if (rootElement) {
                     path="/email-verification"
                     element={<EmailVerification />}
                   />
+                  <Route path="*" element={<NotFound />} />
                 </Routes>
               </AuthProvider>
             }
