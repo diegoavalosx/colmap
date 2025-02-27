@@ -1,11 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { addDoc, collection, doc, getDoc, getDocs } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  type Timestamp,
+} from "firebase/firestore";
 import ReactModal from "react-modal";
 import { useAuth } from "./useAuth";
 import Loader from "./Loader";
 import { toast, ToastContainer } from "react-toastify";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import InteractiveMap from "./InteractiveMap";
 
 interface Campaign {
   id: string;
@@ -22,7 +30,7 @@ interface Location {
   description: string;
   latitude: string;
   longitude: string;
-  createdAt: Date;
+  createdAt: Date | Timestamp;
   imageUrl?: string;
 }
 
@@ -40,46 +48,44 @@ const CampaignDetail = () => {
   const [locationImageFile, setLocationImageFile] = useState<File | null>(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchCampaignAndLocations = async () => {
-      try {
-        if (!dataBase || !campaignId) return;
+  const fetchCampaignAndLocations = useCallback(async () => {
+    try {
+      if (!dataBase || !campaignId) return;
 
-        const campaignRef = doc(dataBase, "campaigns", campaignId);
-        const campaignSnap = await getDoc(campaignRef);
-        if (campaignSnap.exists()) {
-          setCampaign({
-            id: campaignSnap.id,
-            ...campaignSnap.data(),
-          } as Campaign);
-        } else {
-          console.error("Campaign not found");
-          setCampaign(null);
-          setLoading(false);
-          return;
-        }
-
-        const locationsRef = collection(
-          dataBase,
-          `campaigns/${campaignId}/locations`
-        );
-        const locationsSnapshot = await getDocs(locationsRef);
-
-        const locationsData: Location[] = locationsSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as Location[];
-
-        setLocations(locationsData);
-      } catch (error) {
-        console.error("Error fetching campaign or locations:", error);
-      } finally {
+      const campaignRef = doc(dataBase, "campaigns", campaignId);
+      const campaignSnap = await getDoc(campaignRef);
+      if (campaignSnap.exists()) {
+        setCampaign({
+          id: campaignSnap.id,
+          ...campaignSnap.data(),
+        } as Campaign);
+      } else {
+        console.error("Campaign not found");
+        setCampaign(null);
         setLoading(false);
+        return;
       }
-    };
 
-    fetchCampaignAndLocations();
+      const locationsRef = collection(
+        dataBase,
+        `campaigns/${campaignId}/locations`
+      );
+      const locationsSnapshot = await getDocs(locationsRef);
+      const locationsData: Location[] = locationsSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Location[];
+      setLocations(locationsData);
+    } catch (error) {
+      console.error("Error fetching campaign or locations:", error);
+    } finally {
+      setLoading(false);
+    }
   }, [dataBase, campaignId]);
+
+  useEffect(() => {
+    fetchCampaignAndLocations();
+  }, [fetchCampaignAndLocations]);
 
   const handleAddLocationClick = () => {
     setIsModalOpen(true);
@@ -87,7 +93,6 @@ const CampaignDetail = () => {
 
   const handleFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-
     if (!dataBase) return;
 
     const locationData: Location = {
@@ -105,11 +110,8 @@ const CampaignDetail = () => {
           storage,
           `campaigns/${campaignId}/locations/${locationImageFile.name}`
         );
-
         await uploadBytes(storageRef, locationImageFile);
-
         imageUrl = await getDownloadURL(storageRef);
-
         console.log("File uploaded successfully:", imageUrl);
       } catch (error) {
         console.error("Error uploading file:", error);
@@ -123,33 +125,23 @@ const CampaignDetail = () => {
         dataBase,
         `campaigns/${campaignId}/locations`
       );
-      const newLocation = await addDoc(locationRef, {
+      await addDoc(locationRef, {
         ...locationData,
         imageUrl,
         createdAt: new Date(),
       });
-
-      toast.success("¡Location added succesfully!", {
+      toast.success("Location added successfully!", {
         position: "top-right",
         autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
         theme: "colored",
       });
       setIsModalOpen(false);
-      console.log("Location added with ID:", newLocation.id);
+
+      await fetchCampaignAndLocations();
     } catch (error) {
       toast.error("Failed to add Location. Try again.", {
         position: "top-right",
         autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
         theme: "colored",
       });
       console.error("Error adding location:", error);
@@ -157,11 +149,10 @@ const CampaignDetail = () => {
   };
 
   if (loading) return <Loader />;
-
   if (!campaign) return <p>Campaign not found</p>;
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col w-full h-auto">
       <ReactModal
         isOpen={isModalOpen}
         onRequestClose={() => setIsModalOpen(false)}
@@ -263,9 +254,7 @@ const CampaignDetail = () => {
       <button
         type="button"
         className="font-bold text-left pl-4 w-min whitespace-nowrap"
-        onClick={() => {
-          navigate("/dashboard/campaigns");
-        }}
+        onClick={() => navigate("/dashboard/campaigns")}
       >
         {"< BACK"}
       </button>
@@ -293,6 +282,9 @@ const CampaignDetail = () => {
           <strong>Owner:</strong> {campaign.userId}
         </p>
       </div>
+      <div className="h-96 my-6 w-full">
+        <InteractiveMap />
+      </div>
       <div className="p-6 w-full mx-auto bg-white shadow-md rounded-lg mt-4">
         <h2 className="text-xl font-bold mb-4">Locations</h2>
         {locations.length > 0 ? (
@@ -313,7 +305,9 @@ const CampaignDetail = () => {
                 </p>
                 <p>
                   <strong>Created At:</strong>{" "}
-                  {new Date(location.createdAt).toLocaleString()}
+                  {location.createdAt instanceof Date
+                    ? location.createdAt.toLocaleString()
+                    : location.createdAt.toDate().toLocaleString()}
                 </p>
               </li>
             ))}
