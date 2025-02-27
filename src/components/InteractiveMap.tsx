@@ -139,54 +139,50 @@ const InteractiveMap = () => {
     <>
       {googleMapsApiKey ? (
         <APIProvider apiKey={googleMapsApiKey}>
-          <div className="h-full p-12">
-            <Map
-              {...cameraProps}
-              onCameraChanged={handleCameraChange}
-              mapId="80b9549366c22aeb"
-              gestureHandling="auto"
-              disableDefaultUI={false}
-              zoomControl={true}
-            >
-              {locations.map((location) => (
-                <AdvancedMarker
-                  key={location.id}
-                  position={{
-                    lat: location.latitude,
-                    lng: location.longitude,
-                  }}
-                  onClick={() => setOpenInfoWindowId(location.id)}
-                >
-                  <Pin background="white" />
-                  {openInfoWindowId === location.id && (
-                    <InfoWindow
-                      position={{
-                        lat: location.latitude,
-                        lng: location.longitude,
-                      }}
-                      onCloseClick={() => setOpenInfoWindowId(null)}
-                    >
-                      <div className="w-64 p-4 bg-white rounded-lg shadow-lg text-left flex flex-col gap-2">
-                        <h3 className="text-xl font-semibold">
-                          {location.name}
-                        </h3>
+          <Map
+            {...cameraProps}
+            onCameraChanged={handleCameraChange}
+            mapId="80b9549366c22aeb"
+            gestureHandling="auto"
+            disableDefaultUI={false}
+            zoomControl={true}
+          >
+            {locations.map((location) => (
+              <AdvancedMarker
+                key={location.id}
+                position={{
+                  lat: location.latitude,
+                  lng: location.longitude,
+                }}
+                onClick={() => setOpenInfoWindowId(location.id)}
+              >
+                <Pin background="white" />
+                {openInfoWindowId === location.id && (
+                  <InfoWindow
+                    position={{
+                      lat: location.latitude,
+                      lng: location.longitude,
+                    }}
+                    onCloseClick={() => setOpenInfoWindowId(null)}
+                  >
+                    <div className="w-64 p-4 bg-white rounded-lg shadow-lg text-left flex flex-col gap-2">
+                      <h3 className="text-xl font-semibold">{location.name}</h3>
 
-                        <p className="text-gray-600">{location.description}</p>
+                      <p className="text-gray-600">{location.description}</p>
 
-                        {location.imageUrl && (
-                          <img
-                            src={location.imageUrl}
-                            alt={location.name}
-                            className="rounded-lg w-full h-auto object-cover"
-                          />
-                        )}
-                      </div>
-                    </InfoWindow>
-                  )}
-                </AdvancedMarker>
-              ))}
-            </Map>
-          </div>
+                      {location.imageUrl && (
+                        <img
+                          src={location.imageUrl}
+                          alt={location.name}
+                          className="rounded-lg w-full h-auto object-cover"
+                        />
+                      )}
+                    </div>
+                  </InfoWindow>
+                )}
+              </AdvancedMarker>
+            ))}
+          </Map>
         </APIProvider>
       ) : (
         <Loader />
