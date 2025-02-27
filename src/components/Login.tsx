@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "./useAuth";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 interface LogInFormData {
   email: string;
   password: string;
@@ -97,12 +97,6 @@ const Login = () => {
             {authStatus === "loading" ? "Loading..." : "Log In"}
           </button>
         </form>
-        <p className="text-sm text-center text-gray-500">
-          Don’t have an account?{" "}
-          <Link to="/signup" className="font-medium text-pink hover:underline">
-            Sign up here
-          </Link>
-        </p>
       </div>
     </div>
   );

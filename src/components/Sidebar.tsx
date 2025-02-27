@@ -1,12 +1,13 @@
 import { useAuth } from "./useAuth";
 import logo from "../assets/oohyeah-logo-white.png";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 
 const Sidebar: React.FC = () => {
   const { logout, role } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <>
@@ -17,7 +18,14 @@ const Sidebar: React.FC = () => {
           transition-transform duration-300 lg:relative lg:translate-x-0`}
       >
         <div className="relative w-full">
-          <img src={logo} alt="logo" className="mb-2 px-7" />
+          <button
+            type="button"
+            onClick={() => {
+              navigate("/v3");
+            }}
+          >
+            <img src={logo} alt="logo" className="mb-2 px-7" />
+          </button>
           {role === "admin" && (
             <p className="absolute right-0 top-9 text-xs font-semibold font-sans text-center white">
               Admin
