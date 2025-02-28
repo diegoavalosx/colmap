@@ -283,7 +283,7 @@ const CampaignDetail = () => {
         </p>
       </div>
       <div className="h-96 my-6 w-full">
-        <InteractiveMap />
+        <InteractiveMap campaignId={campaign.id} />
       </div>
       <div className="p-6 w-full mx-auto bg-white shadow-md rounded-lg mt-4">
         <h2 className="text-xl font-bold mb-4">Locations</h2>

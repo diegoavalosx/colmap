@@ -64,7 +64,33 @@ const fetchUserLocations = async (userId: string, db: Firestore) => {
   return locations;
 };
 
-const InteractiveMap = () => {
+const fetchCampaignLocations = async (campaignId: string, db: Firestore) => {
+  try {
+    const locationsRef = collection(db, `campaigns/${campaignId}/locations`);
+    const locationsSnapshot = await getDocs(locationsRef);
+    const locationsData: Location[] = locationsSnapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        name: data.name,
+        description: data.description,
+        latitude: Number.parseFloat(data.latitude),
+        longitude: Number.parseFloat(data.longitude),
+        imageUrl: data.imageUrl,
+      };
+    });
+    return locationsData;
+  } catch (error) {
+    console.error("Error fetching campaign locations:", error);
+    return [];
+  }
+};
+
+interface InteractiveMapProps {
+  campaignId?: string;
+}
+
+const InteractiveMap: React.FC<InteractiveMapProps> = ({ campaignId }) => {
   const [cameraProps, setCameraProps] =
     useState<MapCameraProps>(INITIAL_CAMERA);
   const handleCameraChange = useCallback(
@@ -88,15 +114,22 @@ const InteractiveMap = () => {
 
     const fetchLocations = async () => {
       if (user && dataBase) {
-        const userLocations = await fetchUserLocations(user.uid, dataBase);
-        setLocations(userLocations);
-        calculateCenterAndZoom(userLocations);
+        let locations: Location[];
+
+        if (campaignId) {
+          locations = await fetchCampaignLocations(campaignId, dataBase);
+        } else {
+          locations = await fetchUserLocations(user.uid, dataBase);
+        }
+
+        setLocations(locations);
+        calculateCenterAndZoom(locations);
       }
     };
 
     const calculateCenterAndZoom = (locations: Location[]) => {
       if (!locations.length) return;
-
+      console.log(locations.length);
       if (locations.length === 1) {
         setCameraProps({
           center: {
@@ -133,7 +166,7 @@ const InteractiveMap = () => {
 
     getGoogleMapsApiKey();
     fetchLocations();
-  }, [user, dataBase]);
+  }, [user, dataBase, campaignId]);
 
   return (
     <>
