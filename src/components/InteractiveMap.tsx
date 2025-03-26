@@ -161,10 +161,11 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
         const latZoom = Math.floor(Math.log2(360 / latDiff) + 1);
         const lngZoom = Math.floor(Math.log2(360 / lngDiff) + 1);
         const calculatedZoom = Math.min(latZoom, lngZoom, MAX_ZOOM);
+        console.log(calculatedZoom);
 
         setCameraProps({
           center: bounds.getCenter().toJSON(),
-          zoom: calculatedZoom,
+          zoom: 15,
         });
       }
     };
