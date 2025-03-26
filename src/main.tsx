@@ -1,8 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import App from "./App.tsx";
-import App2 from "./App2.tsx";
 import App3 from "./App3.tsx";
 import Login from "./components/Login.tsx";
 import Dashboard from "./components/Dashboard.tsx";
@@ -12,6 +10,7 @@ import "./styles/styles.css";
 import EmailVerification from "./components/EmailVerification.tsx";
 import NotFound from "./components/NotFound.tsx";
 import Verified from "./components/Verified.tsx";
+import AddLocation from "./components/AddLocation.tsx";
 
 const rootElement = document.getElementById("root");
 
@@ -20,9 +19,7 @@ if (rootElement) {
     <StrictMode>
       <Router>
         <Routes>
-          <Route path="/" element={<App />} />
-          <Route path="/v2" element={<App2 />} />
-          <Route path="/v3" element={<App3 />} />
+          <Route path="/" element={<App3 />} />
           <Route path="/verified" element={<Verified />} />
           <Route
             path="/*"
@@ -43,6 +40,10 @@ if (rootElement) {
                     element={<EmailVerification />}
                   />
                   <Route path="*" element={<NotFound />} />
+                  <Route
+                    path="addlocation/:campaignId?"
+                    element={<AddLocation />}
+                  />
                 </Routes>
               </AuthProvider>
             }

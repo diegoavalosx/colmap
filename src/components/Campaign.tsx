@@ -14,13 +14,14 @@ import Loader from "./Loader";
 import { toast, ToastContainer } from "react-toastify";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import InteractiveMap from "./InteractiveMap";
+import Carousel from "react-multi-carousel";
 
 interface Campaign {
   id: string;
   name: string;
   description: string;
   status: string;
-  createdAt: Date;
+  createdAt: Date | Timestamp;
   userId: string;
 }
 
@@ -32,6 +33,7 @@ interface Location {
   longitude: string;
   createdAt: Date | Timestamp;
   imageUrl?: string;
+  imageUrls?: string[];
 }
 
 const CampaignDetail = () => {
@@ -46,6 +48,11 @@ const CampaignDetail = () => {
   const [locationLatitude, setLocationLatitude] = useState<string>("");
   const [locationLongitude, setLocationLongitude] = useState<string>("");
   const [locationImageFile, setLocationImageFile] = useState<File | null>(null);
+  const [hoveredLocationId, setHoveredLocationId] = useState<string | null>(
+    null
+  );
+  const [imageModalOpen, setImageModalOpen] = useState<boolean>(false);
+  const [activeImageUrls, setActiveImageUrls] = useState<string[]>([]);
   const navigate = useNavigate();
 
   const fetchCampaignAndLocations = useCallback(async () => {
@@ -87,9 +94,9 @@ const CampaignDetail = () => {
     fetchCampaignAndLocations();
   }, [fetchCampaignAndLocations]);
 
-  const handleAddLocationClick = () => {
+  /*const handleAddLocationClick = () => {
     setIsModalOpen(true);
-  };
+  };*/
 
   const handleFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -153,6 +160,76 @@ const CampaignDetail = () => {
 
   return (
     <div className="flex flex-col w-full h-auto">
+      <ReactModal
+        isOpen={imageModalOpen}
+        onRequestClose={() => setImageModalOpen(false)}
+        overlayClassName="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center"
+        className="bg-white rounded-lg max-w-2xl w-full p-6 relative shadow-lg ml-64"
+        shouldCloseOnOverlayClick={true}
+      >
+        <h2 className="text-xl font-semibold mb-4 text-center">
+          Location Images
+        </h2>
+        {activeImageUrls.length > 0 ? (
+          <Carousel
+            additionalTransfrom={0}
+            arrows
+            autoPlay={false}
+            autoPlaySpeed={3000}
+            centerMode={false}
+            className=""
+            containerClass="carousel-container"
+            dotListClass=""
+            draggable
+            focusOnSelect={false}
+            infinite
+            itemClass="px-2"
+            keyBoardControl
+            minimumTouchDrag={80}
+            renderButtonGroupOutside={false}
+            renderDotsOutside={false}
+            responsive={{
+              desktop: {
+                breakpoint: { max: 3000, min: 1024 },
+                items: 1,
+              },
+              tablet: {
+                breakpoint: { max: 1024, min: 464 },
+                items: 1,
+              },
+              mobile: {
+                breakpoint: { max: 464, min: 0 },
+                items: 1,
+              },
+            }}
+            showDots
+            sliderClass=""
+            slidesToSlide={1}
+            swipeable
+          >
+            {activeImageUrls.map((url, idx) => (
+              <img
+                // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+                key={idx}
+                src={url}
+                alt={`Location ${idx + 1}`}
+                className="w-full h-96 object-contain rounded-md"
+                loading="lazy"
+              />
+            ))}
+          </Carousel>
+        ) : (
+          <p className="text-center">No images available for this location.</p>
+        )}
+        <button
+          type="button"
+          className="absolute top-4 right-4 text-gray-600 hover:text-gray-900 text-xl"
+          onClick={() => setImageModalOpen(false)}
+        >
+          &times;
+        </button>
+      </ReactModal>
+
       <ReactModal
         isOpen={isModalOpen}
         onRequestClose={() => setIsModalOpen(false)}
@@ -258,7 +335,7 @@ const CampaignDetail = () => {
       >
         {"< BACK"}
       </button>
-      <div className="flex justify-between mt-4">
+      {/*<div className="flex justify-between mt-4">
         <h1 className="text-left text-2xl font-bold pl-4">Campaign</h1>
         <button
           className="px-4 py-2 text-white font-bold rounded-md bg-ooh-yeah-pink"
@@ -267,7 +344,7 @@ const CampaignDetail = () => {
         >
           New Location
         </button>
-      </div>
+      </div>*/}
       <div className="p-6 w-full mx-auto bg-white shadow-md rounded-lg mt-4 text-left">
         <p>
           <strong>ID:</strong> {campaign.id}
@@ -283,14 +360,24 @@ const CampaignDetail = () => {
         </p>
       </div>
       <div className="h-96 my-6 w-full">
-        <InteractiveMap campaignId={campaign.id} />
+        <InteractiveMap
+          campaignId={campaign.id}
+          hoveredLocationId={hoveredLocationId}
+          setActiveImageUrls={setActiveImageUrls}
+          setImageModalOpen={setImageModalOpen}
+        />
       </div>
       <div className="p-6 w-full mx-auto bg-white shadow-md rounded-lg mt-4">
         <h2 className="text-xl font-bold mb-4">Locations</h2>
         {locations.length > 0 ? (
           <ul className="space-y-2">
             {locations.map((location) => (
-              <li key={location.id} className="border p-4 rounded-md">
+              <li
+                key={location.id}
+                className="border p-4 rounded-md"
+                onMouseEnter={() => setHoveredLocationId(location.name)}
+                onMouseLeave={() => setHoveredLocationId(null)}
+              >
                 <p>
                   <strong>Name:</strong> {location.name}
                 </p>
@@ -309,6 +396,16 @@ const CampaignDetail = () => {
                     ? location.createdAt.toLocaleString()
                     : location.createdAt.toDate().toLocaleString()}
                 </p>
+                <button
+                  type="button"
+                  className="mt-2 text-ooh-yeah-pink hover:underline font-medium"
+                  onClick={() => {
+                    setActiveImageUrls(location.imageUrls ?? []);
+                    setImageModalOpen(true);
+                  }}
+                >
+                  View Images
+                </button>
               </li>
             ))}
           </ul>
