@@ -8,6 +8,7 @@ import {
   getDoc,
   getDocs,
   query,
+  type Timestamp,
   where,
 } from "firebase/firestore";
 import ReactModal from "react-modal";
@@ -27,7 +28,7 @@ interface Campaign {
   name: string;
   description: string;
   status: string;
-  createdAt: Date;
+  createdAt: Date | Timestamp;
   id?: string;
 }
 
@@ -284,7 +285,9 @@ const UserDetail = () => {
                 </p>
                 <p>
                   <strong>Created At:</strong>{" "}
-                  {new Date(campaign.createdAt).toLocaleString()}
+                  {campaign.createdAt instanceof Date
+                    ? campaign.createdAt.toLocaleString()
+                    : campaign.createdAt.toDate().toLocaleString()}
                 </p>
                 <button
                   type="button"

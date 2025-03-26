@@ -5,7 +5,6 @@ import {
   Map,
   AdvancedMarker,
   Pin,
-  InfoWindow,
   type MapCameraProps,
   type MapCameraChangedEvent,
 } from "@vis.gl/react-google-maps";
@@ -30,7 +29,7 @@ interface Location {
   description: string;
   latitude: number;
   longitude: number;
-  imageUrl: string;
+  imageUrls: string[];
 }
 
 const fetchUserLocations = async (userId: string, db: Firestore) => {
@@ -54,7 +53,7 @@ const fetchUserLocations = async (userId: string, db: Firestore) => {
           description: data.description,
           latitude: Number.parseFloat(data.latitude),
           longitude: Number.parseFloat(data.longitude),
-          imageUrl: data.imageUrl,
+          imageUrls: data.imageUrls,
         });
       }
     }
@@ -76,7 +75,7 @@ const fetchCampaignLocations = async (campaignId: string, db: Firestore) => {
         description: data.description,
         latitude: Number.parseFloat(data.latitude),
         longitude: Number.parseFloat(data.longitude),
-        imageUrl: data.imageUrl,
+        imageUrls: data.imageUrls,
       };
     });
     return locationsData;
@@ -88,16 +87,23 @@ const fetchCampaignLocations = async (campaignId: string, db: Firestore) => {
 
 interface InteractiveMapProps {
   campaignId?: string;
+  hoveredLocationId?: string | null;
+  setActiveImageUrls?: React.Dispatch<React.SetStateAction<string[]>>;
+  setImageModalOpen?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const InteractiveMap: React.FC<InteractiveMapProps> = ({ campaignId }) => {
+const InteractiveMap: React.FC<InteractiveMapProps> = ({
+  campaignId,
+  hoveredLocationId,
+  setActiveImageUrls,
+  setImageModalOpen,
+}) => {
   const [cameraProps, setCameraProps] =
     useState<MapCameraProps>(INITIAL_CAMERA);
   const handleCameraChange = useCallback(
     (ev: MapCameraChangedEvent) => setCameraProps(ev.detail),
     []
   );
-  const [openInfoWindowId, setOpenInfoWindowId] = useState<string | null>(null);
   const [googleMapsApiKey, setGoogleMapsApiKey] = useState<string | null>(null);
   const [locations, setLocations] = useState<Location[]>([]);
   const { user, dataBase } = useAuth();
@@ -129,7 +135,6 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ campaignId }) => {
 
     const calculateCenterAndZoom = (locations: Location[]) => {
       if (!locations.length) return;
-      console.log(locations.length);
       if (locations.length === 1) {
         setCameraProps({
           center: {
@@ -187,32 +192,28 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({ campaignId }) => {
                   lat: location.latitude,
                   lng: location.longitude,
                 }}
-                onClick={() => setOpenInfoWindowId(location.id)}
+                onClick={() => {
+                  if (location.imageUrls?.length) {
+                    setActiveImageUrls?.(location.imageUrls);
+                    setImageModalOpen?.(true);
+                  } else {
+                    console.log("No images for this location.");
+                  }
+                }}
               >
-                <Pin background="white" />
-                {openInfoWindowId === location.id && (
-                  <InfoWindow
-                    position={{
-                      lat: location.latitude,
-                      lng: location.longitude,
-                    }}
-                    onCloseClick={() => setOpenInfoWindowId(null)}
-                  >
-                    <div className="w-64 p-4 bg-white rounded-lg shadow-lg text-left flex flex-col gap-2">
-                      <h3 className="text-xl font-semibold">{location.name}</h3>
-
-                      <p className="text-gray-600">{location.description}</p>
-
-                      {location.imageUrl && (
-                        <img
-                          src={location.imageUrl}
-                          alt={location.name}
-                          className="rounded-lg w-full h-auto object-cover"
-                        />
-                      )}
-                    </div>
-                  </InfoWindow>
-                )}
+                <Pin
+                  background={
+                    hoveredLocationId === location.name
+                      ? "ooh-yeah-pink"
+                      : "white"
+                  }
+                  borderColor={
+                    hoveredLocationId === location.name ? "blue" : "black"
+                  }
+                  glyphColor={
+                    hoveredLocationId === location.name ? "white" : "black"
+                  }
+                />
               </AdvancedMarker>
             ))}
           </Map>

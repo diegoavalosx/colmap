@@ -47,7 +47,6 @@ const Campaigns = () => {
   };
 
   const closeModal = () => {
-    console.log("Cancelado");
     setIsModalOpen(false);
     setSelectedCampaign(null);
   };
@@ -99,7 +98,7 @@ const Campaigns = () => {
           progress: undefined,
           theme: "colored",
         });
-        console.log("Error de algo", error);
+        console.log("Error:", error);
       }
     }
   };
