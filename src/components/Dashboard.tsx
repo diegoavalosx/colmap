@@ -9,9 +9,9 @@ import Campaign from "./Campaign";
 
 const Dashboard = () => {
   return (
-    <div className="flex w-full min-h-full">
+    <div className="flex w-full max-h-full">
       <Sidebar />
-      <div className="flex-1 p-6 bg-gray-100 overflow-y-auto">
+      <div className="flex-1 p-6 bg-gray-100">
         <Routes>
           <Route path="/" element={<MainContent />} />
           <Route

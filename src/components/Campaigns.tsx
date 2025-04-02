@@ -7,8 +7,8 @@ import {
   deleteDoc,
   updateDoc,
 } from "firebase/firestore";
-import { HiXCircle, HiPencilAlt } from "react-icons/hi";
-import { Link } from "react-router-dom";
+import { HiXCircle, HiPencilAlt, HiEye } from "react-icons/hi";
+import { useNavigate } from "react-router-dom";
 import ReactModal from "react-modal";
 import { ToastContainer, toast } from "react-toastify";
 
@@ -27,6 +27,7 @@ interface User {
 }
 
 const Campaigns = () => {
+  const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [userEmails, setUserEmails] = useState<{ [userId: string]: string }>(
     {}
@@ -306,9 +307,6 @@ const Campaigns = () => {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
-                ID
-              </th>
-              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
                 Name
               </th>
               <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
@@ -329,14 +327,6 @@ const Campaigns = () => {
                 className="even:bg-gray-100 hover:bg-gray-50"
               >
                 <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
-                  <Link
-                    to={`/dashboard/campaign/${campaign.id}`}
-                    className="text-blue-600 hover:underline"
-                  >
-                    {campaign.id}
-                  </Link>
-                </td>
-                <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
                   {campaign.name}
                 </td>
                 <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
@@ -355,11 +345,18 @@ const Campaigns = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      // deleteCampaign(campaign.id);
                       handleOpenModal(campaign);
                     }}
                   >
                     <HiXCircle size={25} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigate(`/dashboard/campaign/${campaign.id}`);
+                    }}
+                  >
+                    <HiEye size={25} />
                   </button>
                 </td>
               </tr>

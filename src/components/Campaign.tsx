@@ -159,7 +159,7 @@ const CampaignDetail = () => {
   if (!campaign) return <p>Campaign not found</p>;
 
   return (
-    <div className="flex flex-col w-full h-auto">
+    <div className="flex flex-col w-full max-h-full h-full">
       <ReactModal
         isOpen={imageModalOpen}
         onRequestClose={() => setImageModalOpen(false)}
@@ -297,63 +297,62 @@ const CampaignDetail = () => {
         >
           New Location
         </button>
-      </div>*/}
-      {/* <strong>Name:</strong> {campaign.name}
-       */}
-      <h1 className="text-xl font-bold">{campaign.name}</h1>
-      <div className="h-96 my-6 w-full">
-        <InteractiveMap
-          campaignId={campaign.id}
-          hoveredLocationId={hoveredLocationId}
-          setActiveImageUrls={setActiveImageUrls}
-          setImageModalOpen={setImageModalOpen}
-        />
       </div>
-      <div className="p-6 w-full mx-auto bg-white shadow-md rounded-lg mt-4">
-        <h2 className="text-xl font-bold mb-4">Locations</h2>
-        {locations.length > 0 ? (
-          <ul className="space-y-2">
-            {locations.map((location) => (
-              <li
-                key={location.id}
-                className="border p-4 rounded-md"
-                onMouseEnter={() => setHoveredLocationId(location.name)}
-                onMouseLeave={() => setHoveredLocationId(null)}
-              >
-                <p>
-                  <strong>Name:</strong> {location.name}
-                </p>
-                <p>
-                  <strong>Latitude:</strong> {location.latitude}
-                </p>
-                <p>
-                  <strong>Longitude:</strong> {location.longitude}
-                </p>
-                <p>
-                  <strong>Description:</strong> {location.description}
-                </p>
-                <p>
-                  <strong>Created At:</strong>{" "}
-                  {location.createdAt instanceof Date
-                    ? location.createdAt.toLocaleString()
-                    : location.createdAt.toDate().toLocaleString()}
-                </p>
-                <button
-                  type="button"
-                  className="mt-2 text-ooh-yeah-pink hover:underline font-medium"
-                  onClick={() => {
-                    setActiveImageUrls(location.imageUrls ?? []);
-                    setImageModalOpen(true);
-                  }}
+       <strong>Name:</strong> {campaign.name}
+       */}
+      <div className="flex gap-4 h-full">
+        <div className="p-4 w-80 mx-auto bg-white shadow-sm overflow-y-scroll">
+          <h3 className="text-xl font-bold mb-4">{campaign.name}</h3>
+          {locations.length > 0 ? (
+            <ul className="space-y-2">
+              {locations.map((location) => (
+                <li
+                  key={location.id}
+                  className="border p-4 rounded-md"
+                  onMouseEnter={() => setHoveredLocationId(location.name)}
+                  onMouseLeave={() => setHoveredLocationId(null)}
                 >
-                  View Images
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>No locations linked to this campaign.</p>
-        )}
+                  <p className="text-center font-bold">{location.name}</p>
+                  <p>
+                    <strong>Latitude:</strong> {location.latitude}
+                  </p>
+                  <p>
+                    <strong>Longitude:</strong> {location.longitude}
+                  </p>
+                  <p>
+                    <strong>Description:</strong> {location.description}
+                  </p>
+                  <p>
+                    <strong>Created At:</strong>{" "}
+                    {location.createdAt instanceof Date
+                      ? location.createdAt.toLocaleString()
+                      : location.createdAt.toDate().toLocaleString()}
+                  </p>
+                  <button
+                    type="button"
+                    className="mt-2 text-ooh-yeah-pink hover:underline font-medium"
+                    onClick={() => {
+                      setActiveImageUrls(location.imageUrls ?? []);
+                      setImageModalOpen(true);
+                    }}
+                  >
+                    View Images
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No locations linked to this campaign.</p>
+          )}
+        </div>
+        <div className="h-full w-full">
+          <InteractiveMap
+            campaignId={campaign.id}
+            hoveredLocationId={hoveredLocationId}
+            setActiveImageUrls={setActiveImageUrls}
+            setImageModalOpen={setImageModalOpen}
+          />
+        </div>
       </div>
     </div>
   );
