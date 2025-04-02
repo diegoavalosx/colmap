@@ -1,9 +1,7 @@
 import { forwardRef, useRef, useState, useEffect } from "react";
 import WhoWeAre from "./components/WhoWeAre";
-import WhyUs from "./components/WhyUs";
 import Contact from "./components/Contact";
 import NavBar from "./components/NavBar";
-// import image from "./assets/carousel-images/2.png";
 import image from "./assets/wooyeahPhotoPoster.jpg";
 
 function App3() {
