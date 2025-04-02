@@ -92,6 +92,7 @@ const Users = () => {
         const userDocRef = doc(dataBase, "users", selectedUser.id);
         await updateDoc(userDocRef, {
           name: selectedUser.name,
+          role: selectedUser.role,
         });
         setUsers((prevUsers) =>
           prevUsers.map((user) =>
@@ -153,6 +154,7 @@ const Users = () => {
       console.log("User created successfully:", result.data);
       await fetchUsers();
       setIsCreateModalOpen(false);
+      setFormData({ name: "", email: "", password: "" });
       setIsLoading(false);
     } catch (error) {
       toast.error("Failed to create user. Try again.", {
@@ -170,12 +172,13 @@ const Users = () => {
     }
   };
 
+  // Check if the save button should be disabled
+  // based on the selected user's name and role
   const isSaveDisabled = () => {
-    return (
-      !selectedUser ||
-      !selectedUser.name.trim() ||
-      selectedUser.name === originalUser?.name
-    );
+    if (!selectedUser || !selectedUser.name.trim()) return true;
+    const hasNameChanged = selectedUser.name !== originalUser?.name;
+    const hasRoleChanged = selectedUser.role !== originalUser?.role;
+    return !(hasNameChanged || hasRoleChanged);
   };
 
   const handleDeleteUsers = async (id: string) => {
@@ -329,22 +332,6 @@ const Users = () => {
             >
               <div>
                 <label
-                  htmlFor="ID"
-                  className="block text-sm font-semibold mb-1"
-                >
-                  ID
-                </label>
-                <input
-                  type="text"
-                  id="id"
-                  className="w-full p-2 border rounded-md bg-gray-100 text-gray-500 focus:outline-none focus:ring focus:ring-opacity-50"
-                  value={selectedUser.id}
-                  disabled
-                  required
-                />
-              </div>
-              <div>
-                <label
                   htmlFor="name"
                   className="block text-sm font-semibold mb-1"
                 >
@@ -361,6 +348,27 @@ const Users = () => {
                   }
                   required
                 />
+              </div>
+              <div>
+                <label
+                  htmlFor="selectRole"
+                  className="block text-sm font-semibold mb-1"
+                >
+                  Role
+                </label>
+                <select
+                  name="selectRole"
+                  value={selectedUser.role}
+                  className="w-full p-2 border rounded-md focus:outline-none focus:ring focus:ring-opacity-50"
+                  onChange={(e) =>
+                    setSelectedUser((prev) =>
+                      prev ? { ...prev, role: e.target.value } : prev
+                    )
+                  }
+                >
+                  <option value="user">user</option>
+                  <option value="admin">admin</option>
+                </select>
               </div>
               <div className="flex justify-center space-x-4">
                 <button
@@ -467,10 +475,8 @@ const Users = () => {
           </form>
         )}
       </ReactModal>
-      <div className="flex justify-between mt-4">
-        <h1 className="text-center lg:text-left text-2xl font-bold pl-4">
-          Users
-        </h1>
+      <div className="flex justify-between m-5">
+        <h1 className="lg:text-left text-2xl font-bold pl-4">Users</h1>
         <button
           className="px-4 py-2 text-white font-bold rounded-md bg-ooh-yeah-pink"
           type="button"

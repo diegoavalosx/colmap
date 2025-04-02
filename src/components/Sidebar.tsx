@@ -12,7 +12,7 @@ const Sidebar: React.FC = () => {
   return (
     <>
       <div
-        className={`fixed inset-y-0 felt-0 z-50 bg-black text-white w-64 p-4 transform ${
+        className={`fixed inset-y-0 felt-0 z-50 bg-black text-white w-48 p-4 transform ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }
           transition-transform duration-300 lg:relative lg:translate-x-0`}
@@ -67,7 +67,7 @@ const Sidebar: React.FC = () => {
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         className="absolute z-50 p-2 text-white bg-black rounded-md top-4 left-2 lg:hidden"
       >
-        {isSidebarOpen ? <X /> : <Menu />}
+        {isSidebarOpen ? <X size={18} /> : <Menu />}
       </button>
     </>
   );

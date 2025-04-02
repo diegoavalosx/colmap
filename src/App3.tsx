@@ -3,7 +3,8 @@ import WhoWeAre from "./components/WhoWeAre";
 import WhyUs from "./components/WhyUs";
 import Contact from "./components/Contact";
 import NavBar from "./components/NavBar";
-import image from "./assets/carousel-images/2.png";
+// import image from "./assets/carousel-images/2.png";
+import image from "./assets/wooyeahPhotoPoster.jpg";
 
 function App3() {
   const homeRef = useRef<HTMLDivElement>(null);
@@ -62,7 +63,6 @@ function App3() {
     const refMap: { [key: string]: React.RefObject<HTMLDivElement> } = {
       home: homeRef,
       whoWeAre: whoWeAreRef,
-      whyUs: whyUsRef,
       contact: contactRef,
     };
     const sectionRef = refMap[sectionId];
@@ -84,7 +84,7 @@ function App3() {
       />
       <HomeDummy id="home" ref={homeRef} />
       <WhoWeAre id="whoWeAre" ref={whoWeAreRef} />
-      <WhyUs id="whyUs" ref={whyUsRef} />
+      {/* <WhyUs id="whyUs" ref={whyUsRef} /> */}
       <Contact id="contact" ref={contactRef} />
     </div>
   );
@@ -99,9 +99,13 @@ const HomeDummy = forwardRef<HTMLDivElement, HomeDummyProps>(({ id }, ref) => {
     <div
       id={id}
       ref={ref}
-      className="h-screen w-full bg-deluxe-gray overflow-hidden animate-fadeIn"
+      className="max-h-[48rem] w-full bg-deluxe-gray overflow-hidden animate-fadeIn sm:pt-0 pt-[4rem]"
     >
-      <img src={image} alt="homepage" className="object-cover h-full w-full" />
+      <img
+        src={image}
+        alt="homepage"
+        className="object-cover md:object-contain h-full w-full"
+      />
     </div>
   );
 });

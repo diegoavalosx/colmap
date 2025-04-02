@@ -12,7 +12,7 @@ export default function NotFound() {
           We're sorry, the page you're looking for does not exist
         </p>
         <a
-          href="/v3"
+          href="/"
           className="inline-flex items-center px-6 py-3 border border-transparent text-base
               md:text-lg font-medium rounded-md text-white bg-ooh-yeah-pink hover:bg-ooh-yeah-pink-700
               transition-colors duration-200"
