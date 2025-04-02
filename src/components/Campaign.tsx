@@ -345,19 +345,10 @@ const CampaignDetail = () => {
           New Location
         </button>
       </div>*/}
-      <div className="p-6 w-full mx-auto bg-white shadow-md rounded-lg mt-4 text-left">
-        <p>
-          <strong>ID:</strong> {campaign.id}
-        </p>
-        <p>
-          <strong>Name:</strong> {campaign.name}
-        </p>
-        <p>
-          <strong>Description:</strong> {campaign.description}
-        </p>
-        <p>
-          <strong>Owner:</strong> {campaign.userId}
-        </p>
+      {/* <strong>Name:</strong> {campaign.name}
+       */}
+      <div className="p-6 w-full mx-auto  mt-4 text-center">
+        <h1 className="text-xl font-bold">{campaign.name}</h1>
       </div>
       <div className="h-96 my-6 w-full">
         <InteractiveMap

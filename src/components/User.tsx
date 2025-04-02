@@ -14,6 +14,7 @@ import {
 import ReactModal from "react-modal";
 import { useAuth } from "./useAuth";
 import Loader from "./Loader";
+import { HiOutlineDocumentSearch } from "react-icons/hi";
 import { ToastContainer, toast } from "react-toastify";
 
 interface UserType {
@@ -242,7 +243,10 @@ const UserDetail = () => {
         {"< BACK"}
       </button>
       <div className="flex justify-between mt-4">
-        <h1 className="text-left text-2xl font-bold pl-4">User Detail</h1>
+        <h1 className="text-left text-2xl font-bold pl-4">
+          {/* Hacer una funcion para comprobar si el nombre del usuario termina en S, colocar el apostrofe correctamente */}
+          {user.name}' Campaigns
+        </h1>
         <button
           className="px-4 py-2 text-white font-bold rounded-md bg-ooh-yeah-pink"
           type="button"
@@ -251,59 +255,60 @@ const UserDetail = () => {
           New Campaign
         </button>
       </div>
-      <div className="p-6 w-full mx-auto bg-white shadow-md rounded-lg mt-4 text-left">
-        <p>
-          <strong>ID:</strong> {user.id}
-        </p>
-        <p>
-          <strong>Email:</strong> {user.email}
-        </p>
-        <p>
-          <strong>Name:</strong> {user.name}
-        </p>
-        <p>
-          <strong>Email Verified:</strong> {user.emailVerified ? "Yes" : "No"}
-        </p>
-        <p>
-          <strong>Role:</strong> {user.role}
-        </p>
-      </div>
-      <div className="p-6 w-full mx-auto bg-white shadow-md rounded-lg mt-4 text-left">
-        <h2 className="text-xl font-bold mb-4">Campaigns</h2>
-        {campaigns.length > 0 ? (
-          <ul className="space-y-2">
-            {campaigns.map((campaign) => (
-              <li key={campaign.id} className="border p-4 rounded-md">
-                <p>
-                  <strong>Name:</strong> {campaign.name}
-                </p>
-                <p>
-                  <strong>Description:</strong> {campaign.description}
-                </p>
-                <p>
-                  <strong>Status:</strong> {campaign.status}
-                </p>
-                <p>
-                  <strong>Created At:</strong>{" "}
-                  {campaign.createdAt instanceof Date
-                    ? campaign.createdAt.toLocaleString()
-                    : campaign.createdAt.toDate().toLocaleString()}
-                </p>
-                <button
-                  type="button"
-                  className="font-bold text-left w-min whitespace-nowrap"
-                  onClick={() => {
-                    navigate(`/dashboard/campaign/${campaign.id}`);
-                  }}
-                >
-                  Go to campagin details
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>No campaigns linked to this user.</p>
-        )}
+      <div className="flex mt-6 overflow-x-auto">
+        <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
+                Name
+              </th>
+              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
+                Description
+              </th>
+              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
+                Status
+              </th>
+              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
+                Create at
+              </th>
+              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
+                Details
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {campaigns.length > 0 ? (
+              campaigns.map((campaign) => (
+                <tr key={campaign.id} className="border-b border-gray-200">
+                  <td className="px-6 py-4">{campaign.name}</td>
+                  <td className="px-6 py-4">{campaign.description}</td>
+                  <td className="px-6 py-4">{campaign.status}</td>
+                  <td className="px-6 py-4">
+                    {campaign.createdAt instanceof Date
+                      ? campaign.createdAt.toLocaleString()
+                      : campaign.createdAt.toDate().toLocaleString()}
+                  </td>
+                  <td className="px-6 py-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigate(`/dashboard/campaign/${campaign.id}`);
+                      }}
+                    >
+                      <HiOutlineDocumentSearch size={25} />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td className="px-6 py-4 text-center text-gray-500">
+                  No campaigns linked to this user.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
