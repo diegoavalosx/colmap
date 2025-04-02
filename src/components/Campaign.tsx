@@ -301,7 +301,7 @@ const CampaignDetail = () => {
        <strong>Name:</strong> {campaign.name}
        */}
       <div className="flex gap-4 h-full">
-        <div className="p-4 w-80 mx-auto bg-white shadow-md">
+        <div className="p-4 w-80 mx-auto bg-white shadow-sm overflow-y-scroll">
           <h3 className="text-xl font-bold mb-4">{campaign.name}</h3>
           {locations.length > 0 ? (
             <ul className="space-y-2">
@@ -312,9 +312,7 @@ const CampaignDetail = () => {
                   onMouseEnter={() => setHoveredLocationId(location.name)}
                   onMouseLeave={() => setHoveredLocationId(null)}
                 >
-                  <p>
-                    <strong>Name:</strong> {location.name}
-                  </p>
+                  <p className="text-center font-bold">{location.name}</p>
                   <p>
                     <strong>Latitude:</strong> {location.latitude}
                   </p>
