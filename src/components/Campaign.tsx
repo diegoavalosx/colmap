@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import {
   addDoc,
   collection,
@@ -14,7 +14,7 @@ import Loader from "./Loader";
 import { toast, ToastContainer } from "react-toastify";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import InteractiveMap from "./InteractiveMap";
-import Carousel from "react-multi-carousel";
+import Carousel from "./Carousel";
 
 interface Campaign {
   id: string;
@@ -53,7 +53,7 @@ const CampaignDetail = () => {
   );
   const [imageModalOpen, setImageModalOpen] = useState<boolean>(false);
   const [activeImageUrls, setActiveImageUrls] = useState<string[]>([]);
-  const navigate = useNavigate();
+  //const navigate = useNavigate();
 
   const fetchCampaignAndLocations = useCallback(async () => {
     try {
@@ -171,53 +171,7 @@ const CampaignDetail = () => {
           Location Images
         </h2>
         {activeImageUrls.length > 0 ? (
-          <Carousel
-            additionalTransfrom={0}
-            arrows
-            autoPlay={false}
-            autoPlaySpeed={3000}
-            centerMode={false}
-            className=""
-            containerClass="carousel-container"
-            dotListClass=""
-            draggable
-            focusOnSelect={false}
-            infinite
-            itemClass="px-2"
-            keyBoardControl
-            minimumTouchDrag={80}
-            renderButtonGroupOutside={false}
-            renderDotsOutside={false}
-            responsive={{
-              desktop: {
-                breakpoint: { max: 3000, min: 1024 },
-                items: 1,
-              },
-              tablet: {
-                breakpoint: { max: 1024, min: 464 },
-                items: 1,
-              },
-              mobile: {
-                breakpoint: { max: 464, min: 0 },
-                items: 1,
-              },
-            }}
-            showDots
-            sliderClass=""
-            slidesToSlide={1}
-            swipeable
-          >
-            {activeImageUrls.map((url, idx) => (
-              <img
-                // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-                key={idx}
-                src={url}
-                alt={`Location ${idx + 1}`}
-                className="w-full h-96 object-contain rounded-md"
-                loading="lazy"
-              />
-            ))}
-          </Carousel>
+          <Carousel images={activeImageUrls} />
         ) : (
           <p className="text-center">No images available for this location.</p>
         )}
@@ -229,7 +183,6 @@ const CampaignDetail = () => {
           &times;
         </button>
       </ReactModal>
-
       <ReactModal
         isOpen={isModalOpen}
         onRequestClose={() => setIsModalOpen(false)}
@@ -328,14 +281,14 @@ const CampaignDetail = () => {
         </div>
       </ReactModal>
       <ToastContainer />
-      <button
+      {/*<button
         type="button"
         className="font-bold text-left pl-4 w-min whitespace-nowrap"
         onClick={() => navigate("/dashboard/campaigns")}
       >
         {"< BACK"}
       </button>
-      {/*<div className="flex justify-between mt-4">
+      <div className="flex justify-between mt-4">
         <h1 className="text-left text-2xl font-bold pl-4">Campaign</h1>
         <button
           className="px-4 py-2 text-white font-bold rounded-md bg-ooh-yeah-pink"
@@ -347,9 +300,7 @@ const CampaignDetail = () => {
       </div>*/}
       {/* <strong>Name:</strong> {campaign.name}
        */}
-      <div className="p-6 w-full mx-auto  mt-4 text-center">
-        <h1 className="text-xl font-bold">{campaign.name}</h1>
-      </div>
+      <h1 className="text-xl font-bold">{campaign.name}</h1>
       <div className="h-96 my-6 w-full">
         <InteractiveMap
           campaignId={campaign.id}

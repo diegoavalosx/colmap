@@ -24,10 +24,10 @@ const Sidebar: React.FC = () => {
               navigate("/v3");
             }}
           >
-            <img src={logo} alt="logo" className="mb-2 px-7" />
+            <img src={logo} alt="logo" className="mb-2" />
           </button>
           {role === "admin" && (
-            <p className="absolute right-0 top-9 text-xs font-semibold font-sans text-center white">
+            <p className="absolute right-0 top-11 text-xs font-semibold font-sans text-center white">
               Admin
             </p>
           )}
