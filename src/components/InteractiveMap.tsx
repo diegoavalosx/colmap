@@ -20,7 +20,7 @@ import { useAuth } from "./useAuth";
 
 const INITIAL_CAMERA = {
   center: { lat: 40.7128, lng: -74.006 },
-  zoom: 14,
+  zoom: 12,
 };
 
 interface Location {
@@ -129,44 +129,6 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
         }
 
         setLocations(locations);
-        calculateCenterAndZoom(locations);
-      }
-    };
-
-    const calculateCenterAndZoom = (locations: Location[]) => {
-      if (!locations.length) return;
-      if (locations.length === 1) {
-        setCameraProps({
-          center: {
-            lat: locations[0].latitude,
-            lng: locations[0].longitude,
-          },
-          zoom: 14,
-        });
-      } else {
-        const bounds = new window.google.maps.LatLngBounds();
-        for (const location of locations) {
-          bounds.extend({
-            lat: location.latitude,
-            lng: location.longitude,
-          });
-        }
-
-        const MAX_ZOOM = 21;
-
-        const ne = bounds.getNorthEast();
-        const sw = bounds.getSouthWest();
-        const latDiff = Math.abs(ne.lat() - sw.lat());
-        const lngDiff = Math.abs(ne.lng() - sw.lng());
-        const latZoom = Math.floor(Math.log2(360 / latDiff) + 1);
-        const lngZoom = Math.floor(Math.log2(360 / lngDiff) + 1);
-        const calculatedZoom = Math.min(latZoom, lngZoom, MAX_ZOOM);
-        console.log(calculatedZoom);
-
-        setCameraProps({
-          center: bounds.getCenter().toJSON(),
-          zoom: 15,
-        });
       }
     };
 
