@@ -9,12 +9,11 @@ import { getFirestore } from "firebase/firestore";
 import type { Firestore } from "firebase/firestore/lite";
 import { type FirebaseStorage, getStorage } from "firebase/storage";
 
-// Function to fetch configuration from the backend
 async function fetchFirebaseConfig() {
   try {
     const response = await fetch(
       `${import.meta.env.VITE_API_URL}/app/api/firebase-config`
-    ); // Replace with your deployed backend URL
+    );
     if (!response.ok) {
       throw new Error("Failed to fetch Firebase config");
     }
@@ -32,7 +31,6 @@ interface FirebaseInstances {
   storage: FirebaseStorage;
 }
 
-// Create and export a promise that resolves with `auth` after initialization
 const firebaseInstancesPromise: Promise<FirebaseInstances> =
   fetchFirebaseConfig().then((configResponse) => {
     const firebaseConfig = {
@@ -41,8 +39,8 @@ const firebaseInstancesPromise: Promise<FirebaseInstances> =
       projectId: "colmap-9f519",
       storageBucket: "colmap-9f519.firebasestorage.app",
       messagingSenderId: "303034418721",
-      appId: configResponse.appId, // Replace with your actual app ID
-      measurementId: "G-EHDRJ4J6TT", // Replace as needed
+      appId: configResponse.appId,
+      measurementId: "G-EHDRJ4J6TT",
     };
 
     const app = initializeApp(firebaseConfig);

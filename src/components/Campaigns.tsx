@@ -299,9 +299,11 @@ const Campaigns = () => {
           </div>
         )}
       </ReactModal>
-      <h1 className="text-center lg:text-left text-2xl font-bold pl-4">
-        Campaigns
-      </h1>
+      <div className="my-5">
+        <h1 className="text-center lg:text-left text-2xl font-bold pl-4">
+          Campaigns
+        </h1>
+      </div>
       <div className="flex mt-6 overflow-x-auto">
         <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
           <thead className="bg-gray-50">
@@ -335,7 +337,7 @@ const Campaigns = () => {
                 <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
                   {userEmails[campaign.userId] || "No email available"}
                 </td>
-                <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
+                <td className="flex justify-around px-6 py-4 text-gray-800 border-b border-gray-200">
                   <button
                     type="button"
                     onClick={() => handleOpenEditModal(campaign)}

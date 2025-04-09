@@ -50,7 +50,7 @@ const WhoWeAre = forwardRef<HTMLDivElement, WhoWeAreProps>(
       <div
         id={id}
         ref={ref}
-        className="min-h-screen h-auto p-6 bg-deluxe-black text-white md:p-16 md:grid-cols-2 gap-6 md:gap-12 animate-fadeIn"
+        className="h-auto p-8 bg-deluxe-black text-white md:p-16 md:grid-cols-2 gap-6 md:gap-12 animate-fadeIn"
       >
         {goBackToHome ? (
           <button
@@ -61,7 +61,7 @@ const WhoWeAre = forwardRef<HTMLDivElement, WhoWeAreProps>(
             BACK
           </button>
         ) : null}
-        <div className="space-y-6 flex flex-col w-full h-full self-stretch mb-10">
+        <div className="space-y-6 flex flex-col w-auto h-full self-stretch mb-10">
           <h1 className="text-2xl  md:text-4xl font-bold mb-0 md:mb-4 text-center">
             WHO WE ARE
           </h1>

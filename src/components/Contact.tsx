@@ -80,7 +80,7 @@ const Contact = forwardRef<HTMLDivElement, ContactProps>(
       <div
         id={id}
         ref={ref}
-        className="min-h-screen h-auto p-6 bg-deluxe-black text-white md:p-16 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 animate-fadeIn"
+        className="h-auto p-6 bg-deluxe-black text-white md:p-16 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 animate-fadeIn"
       >
         {goBackToHome ? (
           <button
