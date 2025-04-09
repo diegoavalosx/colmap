@@ -475,7 +475,7 @@ const Users = () => {
           </form>
         )}
       </ReactModal>
-      <div className="flex justify-between m-5">
+      <div className="flex justify-between my-5">
         <h1 className="lg:text-left text-2xl font-bold pl-4">Users</h1>
         <button
           className="px-4 py-2 text-white font-bold rounded-md bg-ooh-yeah-pink"

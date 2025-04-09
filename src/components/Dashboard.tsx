@@ -6,6 +6,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import User from "./User";
 import Campaigns from "./Campaigns";
 import Campaign from "./Campaign";
+import Settings from "./Settings";
 
 const Dashboard = () => {
   return (
@@ -27,6 +28,14 @@ const Dashboard = () => {
             element={
               <ProtectedRoute requiredRole="admin">
                 <Campaigns />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="settings"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <Settings />
               </ProtectedRoute>
             }
           />

@@ -2,7 +2,8 @@ import { forwardRef, useRef, useState, useEffect } from "react";
 import WhoWeAre from "./components/WhoWeAre";
 import Contact from "./components/Contact";
 import NavBar from "./components/NavBar";
-import image from "./assets/wooyeahPhotoPoster.jpg";
+import defaultImage from "./assets/wooyeahPhotoPoster.jpg";
+import { fetchHomepageImageUrl } from "./firebase-public";
 
 function App3() {
   const homeRef = useRef<HTMLDivElement>(null);
@@ -11,6 +12,37 @@ function App3() {
   const contactRef = useRef<HTMLDivElement>(null);
   const navBarRef = useRef<HTMLDivElement>(null);
   const [currentSection, setCurrentSection] = useState<string>("home");
+  const [homepageImageUrl, setHomepageImageUrl] =
+    useState<string>(defaultImage);
+  const [imageLoading, setImageLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const getHomepageImage = async () => {
+      try {
+        setImageLoading(true);
+        const imageUrl = await fetchHomepageImageUrl();
+        if (imageUrl) {
+          const img = new Image();
+          img.src = imageUrl;
+          img.onload = () => {
+            setHomepageImageUrl(imageUrl);
+            setImageLoading(false);
+          };
+          img.onerror = () => {
+            console.error("Failed to load image, using default");
+            setImageLoading(false);
+          };
+        } else {
+          setImageLoading(false);
+        }
+      } catch (error) {
+        console.error("Error fetching homepage image:", error);
+        setImageLoading(false);
+      }
+    };
+
+    getHomepageImage();
+  }, []);
 
   useEffect(() => {
     const refMap: { [key: string]: React.RefObject<HTMLDivElement> } = {
@@ -73,6 +105,19 @@ function App3() {
     }
   };
 
+  if (imageLoading) {
+    return (
+      <div className="h-screen bg-deluxe-black text-deluxe-black font-sans">
+        <NavBar
+          ref={navBarRef}
+          scrollToSection={scrollToSection}
+          activeSection={currentSection}
+        />
+        <div className="max-h-[48rem] w-full bg-deluxe-gray animate-pulse flex items-center justify-center sm:pt-0 pt-[4rem]" />
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen bg-deluxe-black text-deluxe-black font-sans">
       <NavBar
@@ -80,9 +125,8 @@ function App3() {
         scrollToSection={scrollToSection}
         activeSection={currentSection}
       />
-      <HomeDummy id="home" ref={homeRef} />
+      <HomeDummy id="home" ref={homeRef} imageUrl={homepageImageUrl} />
       <WhoWeAre id="whoWeAre" ref={whoWeAreRef} />
-      {/* <WhyUs id="whyUs" ref={whyUsRef} /> */}
       <Contact id="contact" ref={contactRef} />
     </div>
   );
@@ -90,22 +134,30 @@ function App3() {
 
 interface HomeDummyProps {
   id?: string;
+  imageUrl: string;
 }
 
-const HomeDummy = forwardRef<HTMLDivElement, HomeDummyProps>(({ id }, ref) => {
-  return (
-    <div
-      id={id}
-      ref={ref}
-      className="max-h-[48rem] w-full bg-deluxe-gray overflow-hidden animate-fadeIn sm:pt-0 pt-[4rem]"
-    >
-      <img
-        src={image}
-        alt="homepage"
-        className="object-cover md:object-contain h-full w-full"
-      />
-    </div>
-  );
-});
+const HomeDummy = forwardRef<HTMLDivElement, HomeDummyProps>(
+  ({ id, imageUrl }, ref) => {
+    return (
+      <div
+        id={id}
+        ref={ref}
+        className="max-h-[48rem] w-full bg-deluxe-gray overflow-hidden animate-fadeIn sm:pt-0 pt-[4rem]"
+      >
+        <img
+          src={imageUrl}
+          alt="homepage"
+          className="object-cover md:object-contain h-full w-full"
+          onError={(e) => {
+            // Fallback to default image if loading fails
+            const target = e.target as HTMLImageElement;
+            target.src = defaultImage;
+          }}
+        />
+      </div>
+    );
+  }
+);
 
 export default App3;
