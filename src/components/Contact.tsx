@@ -15,6 +15,7 @@ const Contact = forwardRef<HTMLDivElement, ContactProps>(
     const [emailError, setEmailError] = useState("");
     const [messageError, setmessageError] = useState("");
     const [formSuccess, setformSuccess] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     const validateForm = () => {
       let isValid = true;
@@ -52,6 +53,7 @@ const Contact = forwardRef<HTMLDivElement, ContactProps>(
       e.preventDefault();
 
       if (validateForm() && form.current) {
+        setIsLoading(true);
         emailjs
           .sendForm("service_8lw0vae", "template_oh3nnzt", form.current, {
             publicKey: "o1R8SWpVH1-dSQA6e",
@@ -64,6 +66,7 @@ const Contact = forwardRef<HTMLDivElement, ContactProps>(
               setTimeout(() => {
                 setformSuccess(null);
               }, 3000);
+              setIsLoading(false);
             },
             (error) => {
               console.log("FAILED...", error.text);
@@ -71,6 +74,7 @@ const Contact = forwardRef<HTMLDivElement, ContactProps>(
               setTimeout(() => {
                 setformSuccess(null);
               }, 3000);
+              setIsLoading(false);
             }
           );
       }
@@ -95,7 +99,7 @@ const Contact = forwardRef<HTMLDivElement, ContactProps>(
           <img src={image} alt="ooh-yeah" className="rounded-md object-cover" />
         </div>
         <div className="space-y-6 flex flex-col justify-center w-full h-full self-stretch items-center">
-          <h1 className="text-3xl font-bold">Request a consultation</h1>
+          <h1 className="text-3xl font-bold">Request a Consultation</h1>
           <h2 className="text-xl font-light">We'd love to hear from you!</h2>
 
           <form
@@ -151,9 +155,14 @@ const Contact = forwardRef<HTMLDivElement, ContactProps>(
 
             <button
               type="submit"
-              className="px-6 py-2 font-bold bg-ooh-yeah-pink text-white rounded-lg shadow-md hover:bg-ooh-yeah-pink-700 transition-colors"
+              disabled={isLoading}
+              className={`px-6 py-2 font-bold bg-ooh-yeah-pink text-white rounded-lg shadow-md transition-colors ${
+                isLoading
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-ooh-yeah-pink-700"
+              }`}
             >
-              SEND
+              {isLoading ? "SENDING..." : "SEND"}
             </button>
 
             {formSuccess && (

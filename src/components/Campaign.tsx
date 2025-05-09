@@ -164,7 +164,7 @@ const CampaignDetail = () => {
         isOpen={imageModalOpen}
         onRequestClose={() => setImageModalOpen(false)}
         overlayClassName="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center"
-        className="bg-white rounded-lg max-w-2xl w-full p-6 relative shadow-lg ml-64"
+        className="bg-white rounded-lg max-w-2xl w-full p-6 relative shadow-lg sm:ml-64 ml-0"
         shouldCloseOnOverlayClick={true}
       >
         <h2 className="text-xl font-semibold mb-4 text-center">

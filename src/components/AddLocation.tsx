@@ -32,6 +32,7 @@ const AddLocation = () => {
   const [longitude, setLongitude] = useState("");
   const [images, setImages] = useState<File[]>([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { campaignId } = useParams<{ campaignId?: string }>();
 
   useEffect(() => {
@@ -69,21 +70,22 @@ const AddLocation = () => {
     fetchCampaigns();
   }, [campaignId, dataBase]);
 
-  const handleUrlParse = () => {
-    const regex = /@(-?\d+\.\d+),(-?\d+\.\d+)/;
-    const match = googleMapsUrl.match(regex);
+  const handleUrlParse = (value: string) => {
+    const regex = /\((-?\d+\.\d+),\s*(-?\d+\.\d+)\)/;
+    const match = value.match(regex);
     if (match) {
       setLatitude(match[1]);
       setLongitude(match[2]);
     } else {
-      toast.error("Could not extract coordinates from URL");
+      setLatitude("");
+      setLongitude("");
     }
   };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files) {
-      const selected = Array.from(files).slice(0, 5); // Limit to 5
+      const selected = Array.from(files).slice(0, 5);
       setImages(selected);
     }
   };
@@ -92,6 +94,7 @@ const AddLocation = () => {
     e.preventDefault();
     if (!dataBase || !storage || !selectedCampaign) return;
 
+    setIsLoading(true);
     try {
       const imageUrls: string[] = [];
 
@@ -131,6 +134,8 @@ const AddLocation = () => {
     } catch (error) {
       toast.error("Failed to add location. Try again.");
       console.error("Upload error:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -144,9 +149,7 @@ const AddLocation = () => {
       <h1 className="text-2xl font-bold mb-4 text-center">Add New Location</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="search" className="block font-medium mb-1">
-            Select Campaign
-          </label>
+          <label htmlFor="search" className="block font-medium mb-1"></label>
           <input
             id="search"
             type="text"
@@ -208,51 +211,19 @@ const AddLocation = () => {
         </div>
         <div>
           <label htmlFor="url" className="block font-medium mb-1">
-            Google Maps URL
+            Coordinates
           </label>
           <input
             id="url"
-            type="url"
+            type="text"
             className="w-full p-2 border rounded"
             value={googleMapsUrl}
-            onChange={(e) => setGoogleMapsUrl(e.target.value)}
-            placeholder="https://www.google.com/maps/..."
+            onChange={(e) => {
+              setGoogleMapsUrl(e.target.value);
+              handleUrlParse(e.target.value);
+            }}
+            placeholder="(latitude, longitude)"
           />
-          <button
-            type="button"
-            className="mt-2 px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-            onClick={handleUrlParse}
-          >
-            Extract Coordinates
-          </button>
-        </div>
-        <div className="flex gap-4">
-          <div className="flex-1">
-            <label htmlFor="latitue" className="block font-medium mb-1">
-              Latitude
-            </label>
-            <input
-              id="latitue"
-              type="text"
-              className="w-full p-2 border rounded"
-              value={latitude}
-              onChange={(e) => setLatitude(e.target.value)}
-              required
-            />
-          </div>
-          <div className="flex-1">
-            <label htmlFor="longitude" className="block font-medium mb-1">
-              Longitude
-            </label>
-            <input
-              id="longitude"
-              type="text"
-              className="w-full p-2 border rounded"
-              value={longitude}
-              onChange={(e) => setLongitude(e.target.value)}
-              required
-            />
-          </div>
         </div>
         <div>
           <label htmlFor="images" className="block font-medium mb-1">
@@ -268,7 +239,7 @@ const AddLocation = () => {
           {images.length > 0 && (
             <ul className="text-sm mt-2 list-disc list-inside">
               {images.map((img, i) => (
-                // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+                // biome-ignore lint/suspicious/noArrayIndexKey: it's okay in this case
                 <li key={i}>{img.name}</li>
               ))}
             </ul>
@@ -276,12 +247,24 @@ const AddLocation = () => {
         </div>
         <button
           type="submit"
-          className="w-full bg-ooh-yeah-pink text-white py-2 rounded font-bold hover:bg-ooh-yeah-pink-700"
+          className={`w-full bg-ooh-yeah-pink text-white py-2 rounded font-bold transition-colors ${
+            isLoading ||
+            !selectedCampaign ||
+            !locationName ||
+            !latitude ||
+            !longitude
+              ? "opacity-50 cursor-not-allowed"
+              : "hover:bg-ooh-yeah-pink-700"
+          }`}
           disabled={
-            !selectedCampaign || !locationName || !latitude || !longitude
+            isLoading ||
+            !selectedCampaign ||
+            !locationName ||
+            !latitude ||
+            !longitude
           }
         >
-          Upload Location
+          {isLoading ? "UPLOADING..." : "Upload Location"}
         </button>
       </form>
     </div>
