@@ -172,8 +172,6 @@ const Users = () => {
     }
   };
 
-  // Check if the save button should be disabled
-  // based on the selected user's name and role
   const isSaveDisabled = () => {
     if (!selectedUser || !selectedUser.name.trim()) return true;
     const hasNameChanged = selectedUser.name !== originalUser?.name;
@@ -475,17 +473,17 @@ const Users = () => {
           </form>
         )}
       </ReactModal>
-      <div className="flex justify-between my-5">
-        <h1 className="lg:text-left text-2xl font-bold pl-4">Users</h1>
+      <div className="flex justify-between items-center my-5">
+        <h1 className="lg:text-left text-2xl font-bold">Users</h1>
         <button
-          className="px-4 py-2 text-white font-bold rounded-md bg-ooh-yeah-pink"
+          className="px-4 py-2 text-white font-bold rounded-md bg-ooh-yeah-pink hover:bg-ooh-yeah-pink-700 transition-colors"
           type="button"
           onClick={handleOpenCreateModal}
         >
           New User
         </button>
       </div>
-      <div className="flex mt-6 overflow-x-auto">
+      <div className="flex overflow-x-auto">
         <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
           <thead className="bg-gray-50">
             <tr>
@@ -521,24 +519,26 @@ const Users = () => {
                 <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
                   {user.role}
                 </td>
-                <td className="flex justify-around px-6 py-4 text-left text-gray-800 border-b border-gray-200">
-                  <button
-                    type="button"
-                    onClick={() => handleOpenEditModal(user)}
-                  >
-                    <HiPencilAlt size={25} />
-                  </button>
-                  <button type="button" onClick={() => handleOpenModal(user)}>
-                    <HiXCircle size={25} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      navigate(`/dashboard/user/${user.id}`);
-                    }}
-                  >
-                    <HiEye size={25} />
-                  </button>
+                <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
+                  <div className="flex items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEditModal(user)}
+                    >
+                      <HiPencilAlt size={25} />
+                    </button>
+                    <button type="button" onClick={() => handleOpenModal(user)}>
+                      <HiXCircle size={25} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigate(`/dashboard/user/${user.id}`);
+                      }}
+                    >
+                      <HiEye size={25} />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
