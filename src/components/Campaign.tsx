@@ -47,7 +47,8 @@ const CampaignDetail = () => {
   const [locationDescription, setLocationDescription] = useState<string>("");
   const [locationLatitude, setLocationLatitude] = useState<string>("");
   const [locationLongitude, setLocationLongitude] = useState<string>("");
-  const [locationImageFile, setLocationImageFile] = useState<File | null>(null);
+  const [locationImages, setLocationImages] = useState<File[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [hoveredLocationId, setHoveredLocationId] = useState<string | null>(
     null
   );
@@ -94,64 +95,64 @@ const CampaignDetail = () => {
     fetchCampaignAndLocations();
   }, [fetchCampaignAndLocations]);
 
-  /*const handleAddLocationClick = () => {
+  const handleAddLocationClick = () => {
     setIsModalOpen(true);
-  };*/
+  };
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      const selected = Array.from(files).slice(0, 5);
+      setLocationImages(selected);
+    }
+  };
 
   const handleFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!dataBase) return;
+    if (!dataBase || !storage || !campaignId) return;
 
-    const locationData: Location = {
-      name: locationName,
-      description: locationDescription,
-      latitude: locationLatitude,
-      longitude: locationLongitude,
-      createdAt: new Date(),
-    };
+    setIsLoading(true);
+    try {
+      const imageUrls: string[] = [];
 
-    let imageUrl = "";
-    if (locationImageFile) {
-      try {
+      for (const image of locationImages) {
         const storageRef = ref(
           storage,
-          `campaigns/${campaignId}/locations/${locationImageFile.name}`
+          `campaigns/${campaignId}/locations/${Date.now()}_${image.name}`
         );
-        await uploadBytes(storageRef, locationImageFile);
-        imageUrl = await getDownloadURL(storageRef);
-        console.log("File uploaded successfully:", imageUrl);
-      } catch (error) {
-        console.error("Error uploading file:", error);
-        toast.error("Failed to upload image. Try again.");
-        return;
+        await uploadBytes(storageRef, image);
+        const downloadUrl = await getDownloadURL(storageRef);
+        imageUrls.push(downloadUrl);
       }
-    }
 
-    try {
+      const locationData: Location = {
+        name: locationName,
+        description: locationDescription,
+        latitude: locationLatitude,
+        longitude: locationLongitude,
+        imageUrls,
+        createdAt: new Date(),
+      };
+
       const locationRef = collection(
         dataBase,
         `campaigns/${campaignId}/locations`
       );
-      await addDoc(locationRef, {
-        ...locationData,
-        imageUrl,
-        createdAt: new Date(),
-      });
-      toast.success("Location added successfully!", {
-        position: "top-right",
-        autoClose: 3000,
-        theme: "colored",
-      });
-      setIsModalOpen(false);
+      await addDoc(locationRef, locationData);
 
+      toast.success("Location successfully added!");
+      setIsModalOpen(false);
+      setLocationName("");
+      setLocationDescription("");
+      setLocationLatitude("");
+      setLocationLongitude("");
+      setLocationImages([]);
       await fetchCampaignAndLocations();
     } catch (error) {
-      toast.error("Failed to add Location. Try again.", {
-        position: "top-right",
-        autoClose: 3000,
-        theme: "colored",
-      });
-      console.error("Error adding location:", error);
+      toast.error("Failed to add location. Try again.");
+      console.error("Upload error:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -159,7 +160,7 @@ const CampaignDetail = () => {
   if (!campaign) return <p>Campaign not found</p>;
 
   return (
-    <div className="flex flex-col w-full max-h-full h-full">
+    <div className="flex flex-col w-full max-h-full h-full mt-8">
       <ReactModal
         isOpen={imageModalOpen}
         onRequestClose={() => setImageModalOpen(false)}
@@ -183,6 +184,16 @@ const CampaignDetail = () => {
           &times;
         </button>
       </ReactModal>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-bold">{campaign.name}</h2>
+        <button
+          className="px-4 py-2 text-white font-bold rounded-md bg-ooh-yeah-pink hover:bg-ooh-yeah-pink-700 transition-colors"
+          type="button"
+          onClick={handleAddLocationClick}
+        >
+          Add Location
+        </button>
+      </div>
       <ReactModal
         isOpen={isModalOpen}
         onRequestClose={() => setIsModalOpen(false)}
@@ -191,7 +202,7 @@ const CampaignDetail = () => {
         shouldCloseOnOverlayClick={true}
       >
         <div className="p-6 bg-white rounded-lg w-full">
-          <h2 className="text-xl font-bold mb-4">Add new location</h2>
+          <h2 className="text-xl font-bold mb-4">Add location</h2>
           <form onSubmit={handleFormSubmit} className="flex flex-col gap-4">
             <div>
               <label htmlFor="name" className="block text-sm font-medium mb-1">
@@ -218,7 +229,6 @@ const CampaignDetail = () => {
                 className="w-full p-2 border rounded-md focus:outline-none focus:ring focus:ring-opacity-50"
                 value={locationDescription}
                 onChange={(e) => setLocationDescription(e.target.value)}
-                required
               />
             </div>
             <div>
@@ -255,53 +265,51 @@ const CampaignDetail = () => {
             </div>
             <div>
               <label
-                htmlFor="locationImage"
+                htmlFor="images"
                 className="block text-sm font-medium mb-1"
               >
-                Image
+                Upload Images (max 5)
               </label>
               <input
                 type="file"
-                id="locationImage"
+                id="images"
                 accept="image/*"
-                onChange={(e) => {
-                  if (e.target.files?.[0]) {
-                    setLocationImageFile(e.target.files[0]);
-                  }
-                }}
+                multiple
+                onChange={handleImageUpload}
               />
+              {locationImages.length > 0 && (
+                <ul className="text-sm mt-2 list-disc list-inside">
+                  {locationImages.map((img, i) => (
+                    <li key={i}>{img.name}</li>
+                  ))}
+                </ul>
+              )}
             </div>
             <button
               type="submit"
-              className="mt-4 px-4 py-2 font-bold text-white bg-ooh-yeah-pink rounded-md focus:outline-none focus:ring focus:ring-opacity-50"
+              className={`mt-4 px-4 py-2 font-bold text-white bg-ooh-yeah-pink rounded-md focus:outline-none focus:ring focus:ring-opacity-50 ${
+                isLoading
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-ooh-yeah-pink-700"
+              }`}
+              disabled={isLoading}
             >
-              Add location
+              {isLoading ? "Uploading..." : "Add Location"}
             </button>
           </form>
         </div>
       </ReactModal>
       <ToastContainer />
-      {/*<button
-        type="button"
-        className="font-bold text-left pl-4 w-min whitespace-nowrap"
-        onClick={() => navigate("/dashboard/campaigns")}
-      >
-        {"< BACK"}
-      </button>
-      <div className="flex justify-between mt-4">
-        <h1 className="text-left text-2xl font-bold pl-4">Campaign</h1>
-        <button
-          className="px-4 py-2 text-white font-bold rounded-md bg-ooh-yeah-pink"
-          type="button"
-          onClick={handleAddLocationClick}
-        >
-          New Location
-        </button>
-      </div>
-       <strong>Name:</strong> {campaign.name}
-       */}
-      <div className="flex gap-4 h-full">
-        <div className="p-4 w-80 mx-auto bg-white shadow-sm overflow-y-scroll">
+      <div className="flex flex-col md:flex-row gap-4 h-full">
+        <div className="h-[50vh] md:h-full md:flex-1 w-full bg-white shadow-sm overflow-y-auto flex-shrink-0">
+          <InteractiveMap
+            campaignId={campaign.id}
+            hoveredLocationId={hoveredLocationId}
+            setActiveImageUrls={setActiveImageUrls}
+            setImageModalOpen={setImageModalOpen}
+          />
+        </div>
+        <div className="p-4 md:min-w-80 md:w-80 w-full bg-white shadow-sm overflow-y-auto">
           <h3 className="text-xl font-bold mb-4">{campaign.name}</h3>
           {locations.length > 0 ? (
             <ul className="space-y-2">
@@ -318,9 +326,6 @@ const CampaignDetail = () => {
                   </p>
                   <p>
                     <strong>Longitude:</strong> {location.longitude}
-                  </p>
-                  <p>
-                    <strong>Description:</strong> {location.description}
                   </p>
                   <p>
                     <strong>Created At:</strong>{" "}
@@ -344,14 +349,6 @@ const CampaignDetail = () => {
           ) : (
             <p>No locations linked to this campaign.</p>
           )}
-        </div>
-        <div className="h-full w-full">
-          <InteractiveMap
-            campaignId={campaign.id}
-            hoveredLocationId={hoveredLocationId}
-            setActiveImageUrls={setActiveImageUrls}
-            setImageModalOpen={setImageModalOpen}
-          />
         </div>
       </div>
     </div>

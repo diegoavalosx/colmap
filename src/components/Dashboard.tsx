@@ -12,7 +12,7 @@ const Dashboard = () => {
   return (
     <div className="flex w-full max-h-full">
       <Sidebar />
-      <div className="flex-1 p-6 bg-gray-100">
+      <div className="flex-1 px-4 pt-10 pb-4 md:p-6 bg-gray-100 overflow-scroll">
         <Routes>
           <Route path="/" element={<MainContent />} />
           <Route

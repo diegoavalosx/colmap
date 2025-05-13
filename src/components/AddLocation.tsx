@@ -139,31 +139,35 @@ const AddLocation = () => {
     }
   };
 
-  const filteredCampaigns = campaigns.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredCampaigns = campaigns
+    .filter((c) => c.name.toLowerCase().includes(search.toLowerCase()))
+    .slice(0, 5);
 
   return (
     <div className="max-w-xl mx-auto p-6 bg-white">
       <ToastContainer />
       <h1 className="text-2xl font-bold mb-4 text-center">Add New Location</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="search" className="block font-medium mb-1"></label>
+        <div className="relative">
+          <label htmlFor="search" className="block font-medium mb-1">
+            Campaign
+          </label>
           <input
             id="search"
             type="text"
             placeholder="Search campaigns..."
-            className="w-full p-2 border rounded mb-2"
+            className="w-full p-2 border rounded"
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
               setDropdownOpen(true);
             }}
             onFocus={() => setDropdownOpen(true)}
+            required
+            autoComplete="off"
           />
           {dropdownOpen && (
-            <div className="max-h-40 overflow-y-auto border rounded">
+            <div className="absolute w-full max-h-40 overflow-y-auto border rounded mt-1 bg-white shadow-lg z-50">
               {filteredCampaigns.map((campaign) => (
                 <div
                   key={campaign.id}
@@ -184,6 +188,8 @@ const AddLocation = () => {
                       setDropdownOpen(false);
                     }
                   }}
+                  role="button"
+                  tabIndex={0}
                 >
                   {campaign.name}
                 </div>
@@ -191,6 +197,13 @@ const AddLocation = () => {
               {filteredCampaigns.length === 0 && (
                 <div className="p-2 text-sm text-gray-500">
                   No campaigns found
+                </div>
+              )}
+              {campaigns.filter((c) =>
+                c.name.toLowerCase().includes(search.toLowerCase())
+              ).length > 5 && (
+                <div className="p-2 text-sm text-gray-500 border-t sticky bottom-0 bg-white">
+                  Showing first 5 results. Type more to refine search.
                 </div>
               )}
             </div>

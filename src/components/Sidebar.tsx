@@ -2,7 +2,7 @@ import { useAuth } from "./useAuth";
 import logo from "../assets/oohyeah-logo-white.png";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu } from "lucide-react";
 
 const Sidebar: React.FC = () => {
   const { logout, role } = useAuth();
@@ -35,21 +35,41 @@ const Sidebar: React.FC = () => {
         <nav className="text-center font-semibold">
           <ul>
             <li className="mb-2 hover:bg-gray-700 p-2 rounded">
-              <Link to="/dashboard">Home</Link>
+              <Link
+                to="/dashboard"
+                onClick={() => isSidebarOpen && setIsSidebarOpen(false)}
+              >
+                Home
+              </Link>
             </li>
             {role === "admin" && (
               <li className="mb-2 hover:bg-gray-700 p-2 rounded">
-                <Link to="/dashboard/users">Users</Link>
+                <Link
+                  to="/dashboard/users"
+                  onClick={() => isSidebarOpen && setIsSidebarOpen(false)}
+                >
+                  Users
+                </Link>
               </li>
             )}
             {role === "admin" && (
               <li className="mb-2 hover:bg-gray-700 p-2 rounded">
-                <Link to="/dashboard/campaigns">Campaigns</Link>
+                <Link
+                  to="/dashboard/campaigns"
+                  onClick={() => isSidebarOpen && setIsSidebarOpen(false)}
+                >
+                  Campaigns
+                </Link>
               </li>
             )}
             {role === "admin" && (
               <li className="mb-2 hover:bg-gray-700 p-2 rounded">
-                <Link to="/dashboard/settings">Settings</Link>
+                <Link
+                  to="/dashboard/settings"
+                  onClick={() => isSidebarOpen && setIsSidebarOpen(false)}
+                >
+                  Settings
+                </Link>
               </li>
             )}
             <li className="mb-2 hover:bg-gray-700 p-2 rounded">
@@ -70,9 +90,9 @@ const Sidebar: React.FC = () => {
       <button
         type="button"
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className="absolute z-50 p-2 text-white bg-black rounded-md top-4 left-2 lg:hidden"
+        className="absolute z-50 p-2 text-white bg-black rounded-md top-4 left-4 lg:hidden"
       >
-        {isSidebarOpen ? <X size={18} /> : <Menu />}
+        {isSidebarOpen ? null : <Menu />}
       </button>
     </>
   );

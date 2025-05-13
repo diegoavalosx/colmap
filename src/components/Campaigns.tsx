@@ -6,16 +6,17 @@ import {
   doc,
   deleteDoc,
   updateDoc,
+  addDoc,
 } from "firebase/firestore";
 import { HiXCircle, HiPencilAlt, HiEye } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import ReactModal from "react-modal";
 import { ToastContainer, toast } from "react-toastify";
+import Loader from "./Loader";
 
 interface Campaign {
   id: string;
   name: string;
-  description: string;
   status: string;
   createdAt: Date;
   userId: string;
@@ -24,6 +25,13 @@ interface Campaign {
 interface User {
   id: string;
   email: string;
+  name: string;
+}
+
+interface CreateCampaignFormData {
+  name: string;
+  status: string;
+  userId: string;
 }
 
 const Campaigns = () => {
@@ -41,6 +49,17 @@ const Campaigns = () => {
   const [originalCampaign, setOriginalCampaign] = useState<Campaign | null>(
     null
   );
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [formData, setFormData] = useState<CreateCampaignFormData>({
+    name: "",
+    status: "active",
+    userId: "",
+  });
+  const [users, setUsers] = useState<User[]>([]);
+  const [userSearch, setUserSearch] = useState("");
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   const handleOpenModal = (campaign: Campaign) => {
     setSelectedCampaign(campaign);
@@ -162,6 +181,91 @@ const Campaigns = () => {
     }
   };
 
+  const handleOpenCreateModal = () => {
+    setIsCreateModalOpen(true);
+    setUserSearch("");
+    setSelectedUser(null);
+  };
+
+  const handleCloseCreateModal = () => {
+    setIsCreateModalOpen(false);
+    setFormData({
+      name: "",
+      status: "active",
+      userId: "",
+    });
+    setUserSearch("");
+    setSelectedUser(null);
+    setUserDropdownOpen(false);
+  };
+
+  const handleInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
+  const handleCreateCampaignSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!dataBase) return;
+    setIsLoading(true);
+
+    try {
+      const campaignData = {
+        ...formData,
+        createdAt: new Date(),
+      };
+
+      const campaignRef = collection(dataBase, "campaigns");
+      await addDoc(campaignRef, campaignData);
+
+      toast.success("Campaign created successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
+
+      const campaignSnapshot = await getDocs(collection(dataBase, "campaigns"));
+      const campaignList = campaignSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Campaign[];
+      setCampaigns(campaignList);
+
+      setIsCreateModalOpen(false);
+      setFormData({
+        name: "",
+        status: "active",
+        userId: "",
+      });
+    } catch (error) {
+      toast.error("Failed to create campaign. Try again.", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
+      console.error("Failed to create campaign:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     const fetchCampaignsAndUsers = async () => {
       if (!dataBase) return;
@@ -176,10 +280,15 @@ const Campaigns = () => {
         setCampaigns(campaignList);
 
         const userSnapshot = await getDocs(collection(dataBase, "users"));
+        const userList = userSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as User[];
+        setUsers(userList);
+
         const userMap: { [userId: string]: string } = {};
-        for (const userDoc of userSnapshot.docs) {
-          const userData = userDoc.data() as User;
-          userMap[userDoc.id] = userData.email;
+        for (const user of userList) {
+          userMap[user.id] = user.email;
         }
         setUserEmails(userMap);
       } catch (error) {
@@ -189,6 +298,14 @@ const Campaigns = () => {
 
     fetchCampaignsAndUsers();
   }, [dataBase]);
+
+  const filteredUsers = users
+    .filter((user) =>
+      `${user.name} (${user.email})`
+        .toLowerCase()
+        .includes(userSearch.toLowerCase())
+    )
+    .slice(0, 5);
 
   return (
     <>
@@ -299,13 +416,169 @@ const Campaigns = () => {
           </div>
         )}
       </ReactModal>
-      <div className="my-5">
-        <h1 className="text-center lg:text-left text-2xl font-bold pl-4">
+      <ReactModal
+        isOpen={isCreateModalOpen}
+        onRequestClose={handleCloseCreateModal}
+        overlayClassName="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center p-4"
+        className="relative bg-white rounded-lg shadow-lg p-4 md:p-6 w-11/12 max-w-md mx-auto"
+        shouldCloseOnOverlayClick={true}
+      >
+        {isLoading ? (
+          <Loader fullScreen={false} />
+        ) : (
+          <form onSubmit={handleCreateCampaignSubmit} className="text-left">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Create New Campaign</h2>
+              <button
+                type="button"
+                onClick={handleCloseCreateModal}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <HiXCircle size={24} />
+              </button>
+            </div>
+
+            <div className="mb-4 relative">
+              <label
+                htmlFor="userSearch"
+                className="block text-sm mb-2 font-bold text-gray-700"
+              >
+                User:
+              </label>
+              <input
+                id="userSearch"
+                type="text"
+                placeholder="Search users..."
+                className="w-full px-3 py-2 text-black placeholder-gray-400 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink focus:border-transparent"
+                value={userSearch}
+                onChange={(e) => {
+                  setUserSearch(e.target.value);
+                  setUserDropdownOpen(true);
+                }}
+                onFocus={() => setUserDropdownOpen(true)}
+                required
+                autoComplete="off"
+              />
+              {userDropdownOpen && (
+                <div className="absolute w-full max-h-40 overflow-y-auto border rounded mt-1 bg-white shadow-lg z-50">
+                  {filteredUsers.map((user) => (
+                    <div
+                      key={user.id}
+                      className={`p-2 cursor-pointer hover:bg-gray-100 ${
+                        selectedUser?.id === user.id
+                          ? "bg-gray-200 font-semibold"
+                          : ""
+                      }`}
+                      onClick={() => {
+                        setSelectedUser(user);
+                        setUserSearch(`${user.name} (${user.email})`);
+                        setFormData((prev) => ({ ...prev, userId: user.id }));
+                        setUserDropdownOpen(false);
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          setSelectedUser(user);
+                          setUserSearch(`${user.name} (${user.email})`);
+                          setFormData((prev) => ({ ...prev, userId: user.id }));
+                          setUserDropdownOpen(false);
+                        }
+                      }}
+                      role="button"
+                      tabIndex={0}
+                    >
+                      {user.name} ({user.email})
+                    </div>
+                  ))}
+                  {filteredUsers.length === 0 && (
+                    <div className="p-2 text-sm text-gray-500">
+                      No users found
+                    </div>
+                  )}
+                  {users.filter((user) =>
+                    `${user.name} (${user.email})`
+                      .toLowerCase()
+                      .includes(userSearch.toLowerCase())
+                  ).length > 5 && (
+                    <div className="p-2 text-sm text-gray-500 border-t sticky bottom-0 bg-white">
+                      Showing first 5 results. Type more to refine search.
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <label
+              htmlFor="name"
+              className="block text-sm mb-2 font-bold text-gray-700"
+            >
+              Name:
+            </label>
+            <input
+              type="text"
+              name="name"
+              id="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 mb-4 text-black placeholder-gray-400 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink focus:border-transparent"
+              placeholder="Campaign Name"
+              required
+            />
+
+            <label
+              htmlFor="status"
+              className="block text-sm mb-2 font-bold text-gray-700"
+            >
+              Status:
+            </label>
+            <select
+              name="status"
+              id="status"
+              value={formData.status}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 mb-4 text-black placeholder-gray-400 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink focus:border-transparent"
+              required
+            >
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+
+            <div className="flex justify-center space-x-4">
+              <button
+                type="submit"
+                disabled={!selectedUser || !formData.name}
+                className={`w-full py-2 mt-4 font-semibold text-white rounded-lg transition-colors ${
+                  !selectedUser || !formData.name
+                    ? "bg-ooh-yeah-pink opacity-50 cursor-not-allowed"
+                    : "bg-ooh-yeah-pink hover:bg-pink-600"
+                }`}
+              >
+                Create Campaign
+              </button>
+              <button
+                type="button"
+                className="mt-4 bg-gray-200 text-black px-4 py-2 md:px-4 rounded-md hover:bg-gray-300 transition"
+                onClick={handleCloseCreateModal}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
+      </ReactModal>
+      <div className="flex justify-between items-center my-5 md:my-5">
+        <h1 className="text-center lg:text-left text-2xl font-bold">
           Campaigns
         </h1>
+        <button
+          className="px-4 py-2 text-white font-bold rounded-md bg-ooh-yeah-pink hover:bg-ooh-yeah-pink-700 transition-colors"
+          type="button"
+          onClick={handleOpenCreateModal}
+        >
+          New Campaign
+        </button>
       </div>
-      <div className="flex mt-6 overflow-x-auto">
-        <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+      <div className="flex mt-0 overflow-scroll">
+        <table className="min-w-full bg-white shadow-md rounded-lg">
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
@@ -328,38 +601,51 @@ const Campaigns = () => {
                 key={campaign.id}
                 className="even:bg-gray-100 hover:bg-gray-50"
               >
-                <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
-                  {campaign.name}
+                <td className="px-6 py-4 md:text-left text-center text-gray-800 border-b border-gray-200">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      navigate(`/dashboard/campaign/${campaign.id}`)
+                    }
+                    className="text-ooh-yeah-pink hover:underline"
+                  >
+                    {campaign.name}
+                  </button>
                 </td>
-                <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
+                <td className="px-6 py-4 md:text-left text-center text-gray-800 border-b border-gray-200">
                   {campaign.status}
                 </td>
-                <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
+                <td className="px-6 py-4 md:text-left text-center text-gray-800 border-b border-gray-200">
                   {userEmails[campaign.userId] || "No email available"}
                 </td>
-                <td className="flex justify-around px-6 py-4 text-gray-800 border-b border-gray-200">
-                  <button
-                    type="button"
-                    onClick={() => handleOpenEditModal(campaign)}
-                  >
-                    <HiPencilAlt size={25} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      handleOpenModal(campaign);
-                    }}
-                  >
-                    <HiXCircle size={25} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      navigate(`/dashboard/campaign/${campaign.id}`);
-                    }}
-                  >
-                    <HiEye size={25} />
-                  </button>
+                <td className="px-6 py-4 md:text-left text-center text-gray-800 border-b border-gray-200">
+                  <div className="flex items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEditModal(campaign)}
+                      className="hover:text-ooh-yeah-pink transition-colors"
+                    >
+                      <HiPencilAlt size={25} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleOpenModal(campaign);
+                      }}
+                      className="hover:text-red-500 transition-colors"
+                    >
+                      <HiXCircle size={25} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigate(`/dashboard/campaign/${campaign.id}`);
+                      }}
+                      className="hover:text-ooh-yeah-pink transition-colors"
+                    >
+                      <HiEye size={25} />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
