@@ -8,13 +8,7 @@ import {
   type MapCameraProps,
   type MapCameraChangedEvent,
 } from "@vis.gl/react-google-maps";
-import {
-  collection,
-  getDocs,
-  query,
-  where,
-  type Firestore,
-} from "firebase/firestore";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "./useAuth";
 
@@ -31,59 +25,6 @@ interface Location {
   longitude: number;
   imageUrls: string[];
 }
-
-const fetchUserLocations = async (userId: string, db: Firestore) => {
-  const locations: Location[] = [];
-  try {
-    const campaignsRef = collection(db, "campaigns");
-    const campaignsQuery = query(campaignsRef, where("userId", "==", userId));
-    const campaignsSnapshot = await getDocs(campaignsQuery);
-
-    const campaignIds = campaignsSnapshot.docs.map((doc) => doc.id);
-
-    for (const campaignId of campaignIds) {
-      const locationsRef = collection(db, `campaigns/${campaignId}/locations`);
-      const locationsSnapshot = await getDocs(locationsRef);
-
-      for (const locationDoc of locationsSnapshot.docs) {
-        const data = locationDoc.data();
-        locations.push({
-          id: locationDoc.id,
-          name: data.name,
-          description: data.description,
-          latitude: Number.parseFloat(data.latitude),
-          longitude: Number.parseFloat(data.longitude),
-          imageUrls: data.imageUrls,
-        });
-      }
-    }
-  } catch (error) {
-    console.error("Error fetching locations:", error);
-  }
-  return locations;
-};
-
-const fetchCampaignLocations = async (campaignId: string, db: Firestore) => {
-  try {
-    const locationsRef = collection(db, `campaigns/${campaignId}/locations`);
-    const locationsSnapshot = await getDocs(locationsRef);
-    const locationsData: Location[] = locationsSnapshot.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        name: data.name,
-        description: data.description,
-        latitude: Number.parseFloat(data.latitude),
-        longitude: Number.parseFloat(data.longitude),
-        imageUrls: data.imageUrls,
-      };
-    });
-    return locationsData;
-  } catch (error) {
-    console.error("Error fetching campaign locations:", error);
-    return [];
-  }
-};
 
 interface InteractiveMapProps {
   campaignId?: string;
@@ -118,22 +59,91 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
       );
     };
 
-    const fetchLocations = async () => {
-      if (user && dataBase) {
-        let locations: Location[];
+    getGoogleMapsApiKey();
+  }, []);
 
-        if (campaignId) {
-          locations = await fetchCampaignLocations(campaignId, dataBase);
-        } else {
-          locations = await fetchUserLocations(user.uid, dataBase);
+  useEffect(() => {
+    if (!user || !dataBase) return;
+
+    let unsubscribeLocations: (() => void) | undefined;
+
+    if (campaignId) {
+      // Listen to locations in a specific campaign
+      const locationsRef = collection(
+        dataBase,
+        `campaigns/${campaignId}/locations`
+      );
+      unsubscribeLocations = onSnapshot(locationsRef, (snapshot) => {
+        const locationsData: Location[] = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            name: data.name,
+            description: data.description,
+            latitude: Number.parseFloat(data.latitude),
+            longitude: Number.parseFloat(data.longitude),
+            imageUrls: data.imageUrls,
+          };
+        });
+        setLocations(locationsData);
+      });
+    } else {
+      // Listen to all campaigns for the user
+      const campaignsRef = collection(dataBase, "campaigns");
+      const campaignsQuery = query(
+        campaignsRef,
+        where("userId", "==", user.uid)
+      );
+
+      const unsubscribeCampaigns = onSnapshot(
+        campaignsQuery,
+        async (campaignsSnapshot) => {
+          const campaignIds = campaignsSnapshot.docs.map((doc) => doc.id);
+
+          // For each campaign, listen to its locations
+          const locationUnsubscribers = campaignIds.map((campaignId) => {
+            const locationsRef = collection(
+              dataBase,
+              `campaigns/${campaignId}/locations`
+            );
+            return onSnapshot(locationsRef, (locationsSnapshot) => {
+              const campaignLocations = locationsSnapshot.docs.map((doc) => {
+                const data = doc.data();
+                return {
+                  id: doc.id,
+                  name: data.name,
+                  description: data.description,
+                  latitude: Number.parseFloat(data.latitude),
+                  longitude: Number.parseFloat(data.longitude),
+                  imageUrls: data.imageUrls,
+                };
+              });
+
+              // Update all locations by replacing the locations for this campaign
+              setLocations((prevLocations) => {
+                const otherLocations = prevLocations.filter(
+                  (loc) => !loc.id.startsWith(campaignId)
+                );
+                return [...otherLocations, ...campaignLocations];
+              });
+            });
+          });
+
+          // Return a function to unsubscribe from all listeners
+          unsubscribeLocations = () => {
+            locationUnsubscribers.forEach((unsubscribe) => unsubscribe());
+            unsubscribeCampaigns();
+          };
         }
+      );
+    }
 
-        setLocations(locations);
+    // Cleanup function
+    return () => {
+      if (unsubscribeLocations) {
+        unsubscribeLocations();
       }
     };
-
-    getGoogleMapsApiKey();
-    fetchLocations();
   }, [user, dataBase, campaignId]);
 
   return (

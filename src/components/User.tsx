@@ -233,19 +233,10 @@ const UserDetail = () => {
         </div>
       </ReactModal>
       <ToastContainer />
-      <button
-        type="button"
-        className="font-bold text-left pl-4 w-min whitespace-nowrap"
-        onClick={() => {
-          navigate("/dashboard/users");
-        }}
-      >
-        {"< BACK"}
-      </button>
+
       <div className="flex justify-between mt-4">
-        <h1 className="text-left text-2xl font-bold pl-4">
-          {/* Hacer una funcion para comprobar si el nombre del usuario termina en S, colocar el apostrofe correctamente */}
-          {user.name}' Campaigns
+        <h1 className="text-left text-2xl font-bold">
+          {user.name}'s Campaigns
         </h1>
         <button
           className="px-4 py-2 text-white font-bold rounded-md bg-ooh-yeah-pink"
@@ -263,13 +254,10 @@ const UserDetail = () => {
                 Name
               </th>
               <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
-                Description
-              </th>
-              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
                 Status
               </th>
               <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
-                Create at
+                Created at
               </th>
               <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
                 Details
@@ -281,7 +269,6 @@ const UserDetail = () => {
               campaigns.map((campaign) => (
                 <tr key={campaign.id} className="border-b border-gray-200">
                   <td className="px-6 py-4">{campaign.name}</td>
-                  <td className="px-6 py-4">{campaign.description}</td>
                   <td className="px-6 py-4">{campaign.status}</td>
                   <td className="px-6 py-4">
                     {campaign.createdAt instanceof Date

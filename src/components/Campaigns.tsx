@@ -90,6 +90,7 @@ const Campaigns = () => {
         const campaignDocRef = doc(dataBase, "campaigns", selectedCampaign.id);
         await updateDoc(campaignDocRef, {
           name: selectedCampaign.name,
+          status: selectedCampaign.status,
         });
         setCampaigns((prevCampaigns) =>
           prevCampaigns.map((campaign) =>
@@ -127,7 +128,8 @@ const Campaigns = () => {
     return (
       !selectedCampaign ||
       !selectedCampaign.name.trim() ||
-      selectedCampaign.name === originalCampaign?.name
+      (selectedCampaign.name === originalCampaign?.name &&
+        selectedCampaign.status === originalCampaign?.status)
     );
   };
 
@@ -349,7 +351,9 @@ const Campaigns = () => {
         className="relative bg-white rounded-lg shadow-lg p-4 md:p-6 w-11/12 max-w-md mx-auto"
         shouldCloseOnOverlayClick={true}
       >
-        <h1 className="text-lg md:text-xl font-semibold mb-3 md:mb-4 text-center">{`Updating ${originalCampaign?.name}`}</h1>
+        <h1 className="text-lg md:text-xl font-semibold mb-3 md:mb-4 text-center">
+          Updating campaign
+        </h1>
         {selectedCampaign && (
           <div className="p-4 bg-white rounded-lg w-full">
             <form
@@ -390,6 +394,28 @@ const Campaigns = () => {
                   }
                   required
                 />
+              </div>
+              <div>
+                <label
+                  htmlFor="status"
+                  className="block text-sm font-semibold mb-1"
+                >
+                  Status
+                </label>
+                <select
+                  id="status"
+                  className="w-full p-2 border rounded-md focus:outline-none focus:ring focus:ring-opacity-50"
+                  value={selectedCampaign.status}
+                  onChange={(e) =>
+                    setSelectedCampaign((prev) =>
+                      prev ? { ...prev, status: e.target.value } : prev
+                    )
+                  }
+                  required
+                >
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
               </div>
               <div className="flex justify-center space-x-4">
                 <button
@@ -585,13 +611,13 @@ const Campaigns = () => {
                 Name
               </th>
               <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
+                Actions
+              </th>
+              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
                 Status
               </th>
               <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
                 Owner
-              </th>
-              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
-                Actions
               </th>
             </tr>
           </thead>
@@ -611,12 +637,6 @@ const Campaigns = () => {
                   >
                     {campaign.name}
                   </button>
-                </td>
-                <td className="px-6 py-4 md:text-left text-center text-gray-800 border-b border-gray-200">
-                  {campaign.status}
-                </td>
-                <td className="px-6 py-4 md:text-left text-center text-gray-800 border-b border-gray-200">
-                  {userEmails[campaign.userId] || "No email available"}
                 </td>
                 <td className="px-6 py-4 md:text-left text-center text-gray-800 border-b border-gray-200">
                   <div className="flex items-center justify-center gap-2">
@@ -646,6 +666,12 @@ const Campaigns = () => {
                       <HiEye size={25} />
                     </button>
                   </div>
+                </td>
+                <td className="px-6 py-4 md:text-left text-center text-gray-800 border-b border-gray-200">
+                  {campaign.status}
+                </td>
+                <td className="px-6 py-4 md:text-left text-center text-gray-800 border-b border-gray-200">
+                  {userEmails[campaign.userId] || "No email available"}
                 </td>
               </tr>
             ))}

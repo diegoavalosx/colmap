@@ -21,7 +21,7 @@ const Sidebar: React.FC = () => {
           <button
             type="button"
             onClick={() => {
-              navigate("/v3");
+              navigate("/");
             }}
           >
             <img src={logo} alt="logo" className="mb-2" />
