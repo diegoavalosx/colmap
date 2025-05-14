@@ -473,7 +473,7 @@ const Users = () => {
           </form>
         )}
       </ReactModal>
-      <div className="flex justify-between items-center my-5">
+      <div className="flex justify-between items-center my-5 md:my-5">
         <h1 className="lg:text-left text-2xl font-bold">Users</h1>
         <button
           className="px-4 py-2 text-white font-bold rounded-md bg-ooh-yeah-pink hover:bg-ooh-yeah-pink-700 transition-colors"
@@ -483,12 +483,15 @@ const Users = () => {
           New User
         </button>
       </div>
-      <div className="flex overflow-x-auto">
+      <div className="flex mt-0 overflow-x-auto">
         <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
                 Email
+              </th>
+              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
+                Actions
               </th>
               <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
                 Name
@@ -499,25 +502,19 @@ const Users = () => {
               <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
                 Role
               </th>
-              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
-                Actions
-              </th>
             </tr>
           </thead>
           <tbody>
             {users.map((user) => (
               <tr key={user.id} className="even:bg-gray-100 hover:bg-gray-50">
                 <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
-                  {user.email}
-                </td>
-                <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
-                  {user.name}
-                </td>
-                <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
-                  {user.emailVerified ? "Yes" : "No"}
-                </td>
-                <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
-                  {user.role}
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/dashboard/user/${user.id}`)}
+                    className="text-ooh-yeah-pink hover:underline"
+                  >
+                    {user.email}
+                  </button>
                 </td>
                 <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
                   <div className="flex items-center justify-center gap-2">
@@ -539,6 +536,15 @@ const Users = () => {
                       <HiEye size={25} />
                     </button>
                   </div>
+                </td>
+                <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
+                  {user.name}
+                </td>
+                <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
+                  {user.emailVerified ? "Yes" : "No"}
+                </td>
+                <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
+                  {user.role}
                 </td>
               </tr>
             ))}

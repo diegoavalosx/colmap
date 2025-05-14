@@ -7,12 +7,19 @@ import {
   getDoc,
   getDocs,
   type Timestamp,
+  deleteDoc,
 } from "firebase/firestore";
 import ReactModal from "react-modal";
 import { useAuth } from "./useAuth";
 import Loader from "./Loader";
+
 import { toast, ToastContainer } from "react-toastify";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject,
+} from "firebase/storage";
 import InteractiveMap from "./InteractiveMap";
 import Carousel from "./Carousel";
 
@@ -28,7 +35,7 @@ interface Campaign {
 interface Location {
   id?: string;
   name: string;
-  description: string;
+  description?: string;
   latitude: string;
   longitude: string;
   createdAt: Date | Timestamp;
@@ -44,7 +51,7 @@ const CampaignDetail = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [locationName, setLocationName] = useState<string>("");
-  const [locationDescription, setLocationDescription] = useState<string>("");
+  const [coordinates, setCoordinates] = useState<string>("");
   const [locationLatitude, setLocationLatitude] = useState<string>("");
   const [locationLongitude, setLocationLongitude] = useState<string>("");
   const [locationImages, setLocationImages] = useState<File[]>([]);
@@ -54,6 +61,10 @@ const CampaignDetail = () => {
   );
   const [imageModalOpen, setImageModalOpen] = useState<boolean>(false);
   const [activeImageUrls, setActiveImageUrls] = useState<string[]>([]);
+  const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false);
+  const [locationToDelete, setLocationToDelete] = useState<Location | null>(
+    null
+  );
   //const navigate = useNavigate();
 
   const fetchCampaignAndLocations = useCallback(async () => {
@@ -107,6 +118,28 @@ const CampaignDetail = () => {
     }
   };
 
+  const handleCoordinatesParse = (value: string) => {
+    // Remove any whitespace and parentheses
+    const cleanValue = value.replace(/[()\s]/g, "");
+
+    // Split by comma and check if we have two numbers
+    const parts = cleanValue.split(",");
+    if (parts.length === 2) {
+      const lat = parseFloat(parts[0]);
+      const lng = parseFloat(parts[1]);
+
+      if (!isNaN(lat) && !isNaN(lng)) {
+        setLocationLatitude(lat.toString());
+        setLocationLongitude(lng.toString());
+        return;
+      }
+    }
+
+    // If we couldn't parse the coordinates, clear the fields
+    setLocationLatitude("");
+    setLocationLongitude("");
+  };
+
   const handleFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!dataBase || !storage || !campaignId) return;
@@ -127,7 +160,6 @@ const CampaignDetail = () => {
 
       const locationData: Location = {
         name: locationName,
-        description: locationDescription,
         latitude: locationLatitude,
         longitude: locationLongitude,
         imageUrls,
@@ -143,7 +175,6 @@ const CampaignDetail = () => {
       toast.success("Location successfully added!");
       setIsModalOpen(false);
       setLocationName("");
-      setLocationDescription("");
       setLocationLatitude("");
       setLocationLongitude("");
       setLocationImages([]);
@@ -154,6 +185,37 @@ const CampaignDetail = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleDeleteLocation = async (location: Location) => {
+    if (!dataBase || !storage || !campaignId || !location.id) return;
+
+    try {
+      // Delete images from storage if they exist
+      if (location.imageUrls && location.imageUrls.length > 0) {
+        const deleteImagePromises = location.imageUrls.map(async (imageUrl) => {
+          try {
+            const imageRef = ref(storage, imageUrl);
+            await deleteObject(imageRef);
+          } catch (error) {
+            console.error("Error deleting image:", error);
+          }
+        });
+        await Promise.all(deleteImagePromises);
+      }
+
+      // Delete the location document
+      await deleteDoc(
+        doc(dataBase, `campaigns/${campaignId}/locations/${location.id}`)
+      );
+      toast.success("Location and associated images successfully deleted!");
+      await fetchCampaignAndLocations();
+    } catch (error) {
+      toast.error("Failed to delete location. Try again.");
+      console.error("Error deleting location:", error);
+    }
+    setDeleteModalOpen(false);
+    setLocationToDelete(null);
   };
 
   if (loading) return <Loader />;
@@ -219,47 +281,21 @@ const CampaignDetail = () => {
             </div>
             <div>
               <label
-                htmlFor="description"
+                htmlFor="coordinates"
                 className="block text-sm font-medium mb-1"
               >
-                Description
-              </label>
-              <textarea
-                id="description"
-                className="w-full p-2 border rounded-md focus:outline-none focus:ring focus:ring-opacity-50"
-                value={locationDescription}
-                onChange={(e) => setLocationDescription(e.target.value)}
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="latitude"
-                className="block text-sm font-medium mb-1"
-              >
-                Latitude
+                Coordinates
               </label>
               <input
                 type="text"
-                id="latitude"
+                id="coordinates"
                 className="w-full p-2 border rounded-md focus:outline-none focus:ring focus:ring-opacity-50"
-                value={locationLatitude}
-                onChange={(e) => setLocationLatitude(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="longitude"
-                className="block text-sm font-medium mb-1"
-              >
-                Longitude
-              </label>
-              <input
-                type="text"
-                id="longitude"
-                className="w-full p-2 border rounded-md focus:outline-none focus:ring focus:ring-opacity-50"
-                value={locationLongitude}
-                onChange={(e) => setLocationLongitude(e.target.value)}
+                value={coordinates}
+                onChange={(e) => {
+                  setCoordinates(e.target.value);
+                  handleCoordinatesParse(e.target.value);
+                }}
+                placeholder="(latitude, longitude) or latitude, longitude"
                 required
               />
             </div>
@@ -299,6 +335,42 @@ const CampaignDetail = () => {
           </form>
         </div>
       </ReactModal>
+      <ReactModal
+        isOpen={deleteModalOpen}
+        onRequestClose={() => {
+          setDeleteModalOpen(false);
+          setLocationToDelete(null);
+        }}
+        overlayClassName="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center p-4"
+        className="relative bg-white rounded-lg shadow-lg p-4 md:p-6 w-11/12 max-w-md mx-auto"
+        shouldCloseOnOverlayClick={true}
+      >
+        <h1 className="text-lg md:text-xl font-semibold mb-3 md:mb-4 text-center">
+          Are you sure you want to delete this location?
+        </h1>
+        <p className="mb-5 md:mb-6 text-center">This action cannot be undone</p>
+        <div className="flex justify-center space-x-4">
+          <button
+            type="button"
+            className="bg-ooh-yeah-pink text-white px-3 py-2 md:px-4 rounded-md hover:bg-ooh-yeah-pink-700 transition"
+            onClick={() =>
+              locationToDelete && handleDeleteLocation(locationToDelete)
+            }
+          >
+            Yes, delete
+          </button>
+          <button
+            type="button"
+            className="bg-gray-200 text-black px-3 py-2 md:px-4 rounded-md hover:bg-gray-300 transition"
+            onClick={() => {
+              setDeleteModalOpen(false);
+              setLocationToDelete(null);
+            }}
+          >
+            No, cancel
+          </button>
+        </div>
+      </ReactModal>
       <ToastContainer />
       <div className="flex flex-col md:flex-row gap-4 h-full">
         <div className="h-[50vh] md:h-full md:flex-1 w-full bg-white shadow-sm overflow-y-auto flex-shrink-0">
@@ -333,16 +405,28 @@ const CampaignDetail = () => {
                       ? location.createdAt.toLocaleString()
                       : location.createdAt.toDate().toLocaleString()}
                   </p>
-                  <button
-                    type="button"
-                    className="mt-2 text-ooh-yeah-pink hover:underline font-medium"
-                    onClick={() => {
-                      setActiveImageUrls(location.imageUrls ?? []);
-                      setImageModalOpen(true);
-                    }}
-                  >
-                    View Images
-                  </button>
+                  <div className="flex justify-between items-center mt-2">
+                    <button
+                      type="button"
+                      className="text-ooh-yeah-pink hover:underline font-medium"
+                      onClick={() => {
+                        setActiveImageUrls(location.imageUrls ?? []);
+                        setImageModalOpen(true);
+                      }}
+                    >
+                      View Images
+                    </button>
+                    <button
+                      type="button"
+                      className="text-red-500 hover:text-red-700 font-medium"
+                      onClick={() => {
+                        setLocationToDelete(location);
+                        setDeleteModalOpen(true);
+                      }}
+                    >
+                      Delete Location
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>

@@ -71,15 +71,25 @@ const AddLocation = () => {
   }, [campaignId, dataBase]);
 
   const handleUrlParse = (value: string) => {
-    const regex = /\((-?\d+\.\d+),\s*(-?\d+\.\d+)\)/;
-    const match = value.match(regex);
-    if (match) {
-      setLatitude(match[1]);
-      setLongitude(match[2]);
-    } else {
-      setLatitude("");
-      setLongitude("");
+    // Remove any whitespace and parentheses
+    const cleanValue = value.replace(/[()\s]/g, "");
+
+    // Split by comma and check if we have two numbers
+    const parts = cleanValue.split(",");
+    if (parts.length === 2) {
+      const lat = parseFloat(parts[0]);
+      const lng = parseFloat(parts[1]);
+
+      if (!isNaN(lat) && !isNaN(lng)) {
+        setLatitude(lat.toString());
+        setLongitude(lng.toString());
+        return;
+      }
     }
+
+    // If we couldn't parse the coordinates, clear the fields
+    setLatitude("");
+    setLongitude("");
   };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -235,7 +245,7 @@ const AddLocation = () => {
               setGoogleMapsUrl(e.target.value);
               handleUrlParse(e.target.value);
             }}
-            placeholder="(latitude, longitude)"
+            placeholder="(latitude, longitude) or latitude, longitude"
           />
         </div>
         <div>
