@@ -8,7 +8,13 @@ import {
   updateDoc,
   addDoc,
 } from "firebase/firestore";
-import { HiXCircle, HiPencilAlt, HiEye } from "react-icons/hi";
+import {
+  HiXCircle,
+  HiPencilAlt,
+  HiEye,
+  HiFilter,
+  HiPlus,
+} from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import ReactModal from "react-modal";
 import { ToastContainer, toast } from "react-toastify";
@@ -60,6 +66,12 @@ const Campaigns = () => {
   const [userSearch, setUserSearch] = useState("");
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [filters, setFilters] = useState({
+    name: "",
+    status: "",
+    owner: "",
+  });
+  const [showFilters, setShowFilters] = useState(false);
 
   const handleOpenModal = (campaign: Campaign) => {
     setSelectedCampaign(campaign);
@@ -267,6 +279,27 @@ const Campaigns = () => {
       setIsLoading(false);
     }
   };
+
+  const handleFilterChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFilters((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const filteredCampaigns = campaigns.filter((campaign) => {
+    return (
+      campaign.name.toLowerCase().includes(filters.name.toLowerCase()) &&
+      (filters.status === "" || campaign.status === filters.status) &&
+      (filters.owner === "" ||
+        userEmails[campaign.userId]
+          ?.toLowerCase()
+          .includes(filters.owner.toLowerCase()))
+    );
+  });
 
   useEffect(() => {
     const fetchCampaignsAndUsers = async () => {
@@ -595,34 +628,154 @@ const Campaigns = () => {
         <h1 className="text-center lg:text-left text-2xl font-bold">
           Campaigns
         </h1>
-        <button
-          className="px-4 py-2 text-white font-bold rounded-md bg-ooh-yeah-pink hover:bg-ooh-yeah-pink-700 transition-colors"
-          type="button"
-          onClick={handleOpenCreateModal}
-        >
-          New Campaign
-        </button>
+        <div className="flex gap-2">
+          <button
+            className="px-4 py-2 text-white font-bold rounded-md bg-gray-600 hover:bg-gray-700 transition-colors flex items-center gap-2"
+            type="button"
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <HiFilter size={20} />
+          </button>
+          <button
+            className="px-4 py-2 text-white font-bold rounded-md bg-ooh-yeah-pink hover:bg-ooh-yeah-pink-700 transition-colors"
+            type="button"
+            onClick={handleOpenCreateModal}
+          >
+            <HiPlus size={20} />
+          </button>
+        </div>
       </div>
+
+      {showFilters && (
+        <div className="mb-4 p-4 bg-gray-50 rounded-lg shadow-sm">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label
+                htmlFor="filter-name"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Name
+              </label>
+              <input
+                type="text"
+                id="filter-name"
+                name="name"
+                value={filters.name}
+                onChange={handleFilterChange}
+                className="w-full p-2 border rounded-md focus:outline-none focus:ring focus:ring-opacity-50"
+                placeholder="Search by campaign name..."
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="filter-status"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Status
+              </label>
+              <select
+                id="filter-status"
+                name="status"
+                value={filters.status}
+                onChange={handleFilterChange}
+                className="w-full p-2 border rounded-md focus:outline-none focus:ring focus:ring-opacity-50"
+              >
+                <option value="">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            <div>
+              <label
+                htmlFor="filter-owner"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Owner
+              </label>
+              <input
+                type="text"
+                id="filter-owner"
+                name="owner"
+                value={filters.owner}
+                onChange={handleFilterChange}
+                className="w-full p-2 border rounded-md focus:outline-none focus:ring focus:ring-opacity-50"
+                placeholder="Search by owner email..."
+              />
+            </div>
+          </div>
+          {/* Active filters display */}
+          {(filters.name || filters.status || filters.owner) && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {filters.name && (
+                <span className="px-2 py-1 bg-gray-200 rounded-full text-sm flex items-center gap-1">
+                  Name: {filters.name}
+                  <button
+                    onClick={() =>
+                      setFilters((prev) => ({ ...prev, name: "" }))
+                    }
+                    className="text-gray-600 hover:text-gray-800"
+                  >
+                    <HiXCircle size={16} />
+                  </button>
+                </span>
+              )}
+              {filters.status && (
+                <span className="px-2 py-1 bg-gray-200 rounded-full text-sm flex items-center gap-1">
+                  Status: {filters.status}
+                  <button
+                    onClick={() =>
+                      setFilters((prev) => ({ ...prev, status: "" }))
+                    }
+                    className="text-gray-600 hover:text-gray-800"
+                  >
+                    <HiXCircle size={16} />
+                  </button>
+                </span>
+              )}
+              {filters.owner && (
+                <span className="px-2 py-1 bg-gray-200 rounded-full text-sm flex items-center gap-1">
+                  Owner: {filters.owner}
+                  <button
+                    onClick={() =>
+                      setFilters((prev) => ({ ...prev, owner: "" }))
+                    }
+                    className="text-gray-600 hover:text-gray-800"
+                  >
+                    <HiXCircle size={16} />
+                  </button>
+                </span>
+              )}
+              <button
+                onClick={() => setFilters({ name: "", status: "", owner: "" })}
+                className="px-2 py-1 text-sm text-gray-600 hover:text-gray-800"
+              >
+                Clear all
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="flex mt-0 overflow-scroll">
         <table className="min-w-full bg-white shadow-md rounded-lg">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
+              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200 w-1/3">
                 Name
               </th>
-              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
+              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200 w-1/6">
                 Actions
               </th>
-              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
+              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200 w-1/6">
                 Status
               </th>
-              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
+              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200 w-1/3">
                 Owner
               </th>
             </tr>
           </thead>
           <tbody>
-            {campaigns.map((campaign) => (
+            {filteredCampaigns.map((campaign) => (
               <tr
                 key={campaign.id}
                 className="even:bg-gray-100 hover:bg-gray-50"
@@ -633,13 +786,13 @@ const Campaigns = () => {
                     onClick={() =>
                       navigate(`/dashboard/campaign/${campaign.id}`)
                     }
-                    className="text-ooh-yeah-pink hover:underline"
+                    className="text-ooh-yeah-pink hover:underline truncate block w-full text-left"
                   >
                     {campaign.name}
                   </button>
                 </td>
                 <td className="px-6 py-4 md:text-left text-center text-gray-800 border-b border-gray-200">
-                  <div className="flex items-center justify-center gap-2">
+                  <div className="flex items-center justify-start gap-2">
                     <button
                       type="button"
                       onClick={() => handleOpenEditModal(campaign)}
@@ -670,7 +823,7 @@ const Campaigns = () => {
                 <td className="px-6 py-4 md:text-left text-center text-gray-800 border-b border-gray-200">
                   {campaign.status}
                 </td>
-                <td className="px-6 py-4 md:text-left text-center text-gray-800 border-b border-gray-200">
+                <td className="px-6 py-4 md:text-left text-center text-gray-800 border-b border-gray-200 truncate">
                   {userEmails[campaign.userId] || "No email available"}
                 </td>
               </tr>

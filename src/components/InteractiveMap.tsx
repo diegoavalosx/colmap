@@ -176,16 +176,15 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
               >
                 <Pin
                   background={
-                    hoveredLocationId === location.name
-                      ? "ooh-yeah-pink"
-                      : "white"
+                    hoveredLocationId === location.id ? "#E91E63" : "#E91E63"
                   }
                   borderColor={
-                    hoveredLocationId === location.name ? "blue" : "black"
+                    hoveredLocationId === location.id ? "#E91E63" : "#E91E63"
                   }
                   glyphColor={
-                    hoveredLocationId === location.name ? "white" : "black"
+                    hoveredLocationId === location.id ? "white" : "white"
                   }
+                  scale={hoveredLocationId === location.id ? 1.2 : 1}
                 />
               </AdvancedMarker>
             ))}

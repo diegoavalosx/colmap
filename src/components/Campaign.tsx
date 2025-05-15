@@ -34,7 +34,6 @@ interface Campaign {
 
 interface Location {
   id?: string;
-  name: string;
   description?: string;
   latitude: string;
   longitude: string;
@@ -50,7 +49,6 @@ const CampaignDetail = () => {
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [locationName, setLocationName] = useState<string>("");
   const [coordinates, setCoordinates] = useState<string>("");
   const [locationLatitude, setLocationLatitude] = useState<string>("");
   const [locationLongitude, setLocationLongitude] = useState<string>("");
@@ -159,7 +157,6 @@ const CampaignDetail = () => {
       }
 
       const locationData: Location = {
-        name: locationName,
         latitude: locationLatitude,
         longitude: locationLongitude,
         imageUrls,
@@ -174,7 +171,6 @@ const CampaignDetail = () => {
 
       toast.success("Location successfully added!");
       setIsModalOpen(false);
-      setLocationName("");
       setLocationLatitude("");
       setLocationLongitude("");
       setLocationImages([]);
@@ -266,19 +262,6 @@ const CampaignDetail = () => {
         <div className="p-6 bg-white rounded-lg w-full">
           <h2 className="text-xl font-bold mb-4">Add location</h2>
           <form onSubmit={handleFormSubmit} className="flex flex-col gap-4">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium mb-1">
-                Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                className="w-full p-2 border rounded-md focus:outline-none focus:ring focus:ring-opacity-50"
-                value={locationName}
-                onChange={(e) => setLocationName(e.target.value)}
-                required
-              />
-            </div>
             <div>
               <label
                 htmlFor="coordinates"
@@ -389,10 +372,11 @@ const CampaignDetail = () => {
                 <li
                   key={location.id}
                   className="border p-4 rounded-md"
-                  onMouseEnter={() => setHoveredLocationId(location.name)}
+                  onMouseEnter={() =>
+                    location.id && setHoveredLocationId(location.id)
+                  }
                   onMouseLeave={() => setHoveredLocationId(null)}
                 >
-                  <p className="text-center font-bold">{location.name}</p>
                   <p>
                     <strong>Latitude:</strong> {location.latitude}
                   </p>
