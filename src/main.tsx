@@ -40,10 +40,7 @@ if (rootElement) {
                     element={<EmailVerification />}
                   />
                   <Route path="*" element={<NotFound />} />
-                  <Route
-                    path="addlocation/:campaignId?"
-                    element={<AddLocation />}
-                  />
+                  <Route path="addlocation" element={<AddLocation />} />
                 </Routes>
               </AuthProvider>
             }

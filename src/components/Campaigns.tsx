@@ -14,6 +14,7 @@ import {
   HiEye,
   HiFilter,
   HiPlus,
+  HiLink,
 } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import ReactModal from "react-modal";
@@ -341,6 +342,36 @@ const Campaigns = () => {
         .includes(userSearch.toLowerCase())
     )
     .slice(0, 5);
+
+  const handleCopyLocationLink = (campaignId: string) => {
+    const url = `${window.location.origin}/addlocation?campaignId=${campaignId}`;
+    navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        toast.success("Link copied to clipboard!", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        });
+      })
+      .catch(() => {
+        toast.error("Failed to copy link", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        });
+      });
+  };
 
   return (
     <>
@@ -817,6 +848,14 @@ const Campaigns = () => {
                       className="hover:text-ooh-yeah-pink transition-colors"
                     >
                       <HiEye size={25} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleCopyLocationLink(campaign.id)}
+                      className="hover:text-ooh-yeah-pink transition-colors"
+                      title="Copy location link"
+                    >
+                      <HiLink size={25} />
                     </button>
                   </div>
                 </td>
