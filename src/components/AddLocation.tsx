@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { collection, getDocs, addDoc, getDoc, doc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useAuth } from "./useAuth";
 import { toast, ToastContainer } from "react-toastify";
-import { useParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 
 interface Campaign {
   id: string;
@@ -31,12 +31,23 @@ const AddLocation = () => {
   const [images, setImages] = useState<File[]>([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { campaignId } = useParams<{ campaignId?: string }>();
+  const [searchParams] = useSearchParams();
+  const campaignId = searchParams.get("campaignId");
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchCampaigns = async () => {
       if (!dataBase) return;
 
+      // Always fetch all campaigns
+      const snapshot = await getDocs(collection(dataBase, "campaigns"));
+      const campaignsData = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...(doc.data() as { name: string }),
+      }));
+      setCampaigns(campaignsData);
+
+      // If campaignId is present, set it as selected
       if (campaignId) {
         try {
           const docRef = doc(dataBase, "campaigns", campaignId);
@@ -48,6 +59,7 @@ const AddLocation = () => {
             };
             setSelectedCampaign(campaignData);
             setSearch(campaignData.name);
+            setDropdownOpen(false);
           } else {
             toast.error("Campaign not found.");
           }
@@ -55,18 +67,27 @@ const AddLocation = () => {
           toast.error("Failed to load campaign.");
           console.error(error);
         }
-      } else {
-        const snapshot = await getDocs(collection(dataBase, "campaigns"));
-        const campaignsData = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...(doc.data() as { name: string }),
-        }));
-        setCampaigns(campaignsData);
       }
     };
 
     fetchCampaigns();
   }, [campaignId, dataBase]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleUrlParse = (value: string) => {
     // Remove any whitespace and parentheses
@@ -153,7 +174,7 @@ const AddLocation = () => {
       <ToastContainer />
       <h1 className="text-2xl font-bold mb-4 text-center">Add New Location</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="relative">
+        <div className="relative" ref={dropdownRef}>
           <label htmlFor="search" className="block font-medium mb-1">
             Campaign
           </label>

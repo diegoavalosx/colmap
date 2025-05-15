@@ -16,6 +16,7 @@ import {
   HiEye,
   HiFilter,
   HiPlus,
+  HiEyeOff,
 } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import ReactModal from "react-modal";
@@ -46,6 +47,7 @@ const Users = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
   const [originalUser, setOriginalUser] = useState<User | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const [formData, setFormData] = useState<SignUpFormData>({
     name: "",
     email: "",
@@ -478,16 +480,25 @@ const Users = () => {
             >
               Password:
             </label>
-            <input
-              type="password"
-              name="password"
-              id="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 mb-4 text-black placeholder-gray-400 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink focus:border-transparent"
-              placeholder="••••••••"
-              required
-            />
+            <div className="relative mb-4">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                id="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 text-black placeholder-gray-400 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink focus:border-transparent"
+                placeholder="••••••••"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              >
+                {showPassword ? <HiEyeOff size={20} /> : <HiEye size={20} />}
+              </button>
+            </div>
 
             <div className="flex justify-center space-x-4">
               <button
