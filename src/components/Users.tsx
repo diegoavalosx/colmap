@@ -10,7 +10,13 @@ import {
   where,
   updateDoc,
 } from "firebase/firestore";
-import { HiXCircle, HiPencilAlt, HiEye } from "react-icons/hi";
+import {
+  HiXCircle,
+  HiPencilAlt,
+  HiEye,
+  HiFilter,
+  HiPlus,
+} from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import ReactModal from "react-modal";
 import { ToastContainer, toast } from "react-toastify";
@@ -46,6 +52,13 @@ const Users = () => {
     password: "",
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [filters, setFilters] = useState({
+    email: "",
+    name: "",
+    role: "",
+    emailVerified: "",
+  });
+  const [showFilters, setShowFilters] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -276,6 +289,27 @@ const Users = () => {
     fetchUsers();
   }, [fetchUsers]);
 
+  const handleFilterChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFilters((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const filteredUsers = users.filter((user) => {
+    return (
+      user.email.toLowerCase().includes(filters.email.toLowerCase()) &&
+      user.name.toLowerCase().includes(filters.name.toLowerCase()) &&
+      (filters.role === "" || user.role === filters.role) &&
+      (filters.emailVerified === "" ||
+        (filters.emailVerified === "yes" && user.emailVerified) ||
+        (filters.emailVerified === "no" && !user.emailVerified))
+    );
+  });
+
   return (
     <>
       <ToastContainer />
@@ -475,49 +509,215 @@ const Users = () => {
       </ReactModal>
       <div className="flex justify-between items-center my-5 md:my-5">
         <h1 className="lg:text-left text-2xl font-bold">Users</h1>
-        <button
-          className="px-4 py-2 text-white font-bold rounded-md bg-ooh-yeah-pink hover:bg-ooh-yeah-pink-700 transition-colors"
-          type="button"
-          onClick={handleOpenCreateModal}
-        >
-          New User
-        </button>
+        <div className="flex gap-2">
+          <button
+            className="px-4 py-2 text-white font-bold rounded-md bg-gray-600 hover:bg-gray-700 transition-colors flex items-center gap-2"
+            type="button"
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <HiFilter size={20} />
+          </button>
+          <button
+            className="px-4 py-2 text-white font-bold rounded-md bg-ooh-yeah-pink hover:bg-ooh-yeah-pink-700 transition-colors"
+            type="button"
+            onClick={handleOpenCreateModal}
+          >
+            <HiPlus size={20} />
+          </button>
+        </div>
       </div>
+
+      {/* Collapsible filter panel */}
+      {showFilters && (
+        <div className="mb-4 p-4 bg-gray-50 rounded-lg shadow-sm">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label
+                htmlFor="filter-email"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Email
+              </label>
+              <input
+                type="text"
+                id="filter-email"
+                name="email"
+                value={filters.email}
+                onChange={handleFilterChange}
+                className="w-full p-2 border rounded-md focus:outline-none focus:ring focus:ring-opacity-50"
+                placeholder="Search by email..."
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="filter-name"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Name
+              </label>
+              <input
+                type="text"
+                id="filter-name"
+                name="name"
+                value={filters.name}
+                onChange={handleFilterChange}
+                className="w-full p-2 border rounded-md focus:outline-none focus:ring focus:ring-opacity-50"
+                placeholder="Search by name..."
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="filter-role"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Role
+              </label>
+              <select
+                id="filter-role"
+                name="role"
+                value={filters.role}
+                onChange={handleFilterChange}
+                className="w-full p-2 border rounded-md focus:outline-none focus:ring focus:ring-opacity-50"
+              >
+                <option value="">All Roles</option>
+                <option value="admin">Admin</option>
+                <option value="user">User</option>
+              </select>
+            </div>
+            <div>
+              <label
+                htmlFor="filter-emailVerified"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Email Verified
+              </label>
+              <select
+                id="filter-emailVerified"
+                name="emailVerified"
+                value={filters.emailVerified}
+                onChange={handleFilterChange}
+                className="w-full p-2 border rounded-md focus:outline-none focus:ring focus:ring-opacity-50"
+              >
+                <option value="">All</option>
+                <option value="yes">Verified</option>
+                <option value="no">Not Verified</option>
+              </select>
+            </div>
+          </div>
+          {/* Active filters display */}
+          {(filters.email ||
+            filters.name ||
+            filters.role ||
+            filters.emailVerified) && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {filters.email && (
+                <span className="px-2 py-1 bg-gray-200 rounded-full text-sm flex items-center gap-1">
+                  Email: {filters.email}
+                  <button
+                    onClick={() =>
+                      setFilters((prev) => ({ ...prev, email: "" }))
+                    }
+                    className="text-gray-600 hover:text-gray-800"
+                  >
+                    <HiXCircle size={16} />
+                  </button>
+                </span>
+              )}
+              {filters.name && (
+                <span className="px-2 py-1 bg-gray-200 rounded-full text-sm flex items-center gap-1">
+                  Name: {filters.name}
+                  <button
+                    onClick={() =>
+                      setFilters((prev) => ({ ...prev, name: "" }))
+                    }
+                    className="text-gray-600 hover:text-gray-800"
+                  >
+                    <HiXCircle size={16} />
+                  </button>
+                </span>
+              )}
+              {filters.role && (
+                <span className="px-2 py-1 bg-gray-200 rounded-full text-sm flex items-center gap-1">
+                  Role: {filters.role}
+                  <button
+                    onClick={() =>
+                      setFilters((prev) => ({ ...prev, role: "" }))
+                    }
+                    className="text-gray-600 hover:text-gray-800"
+                  >
+                    <HiXCircle size={16} />
+                  </button>
+                </span>
+              )}
+              {filters.emailVerified && (
+                <span className="px-2 py-1 bg-gray-200 rounded-full text-sm flex items-center gap-1">
+                  Email:{" "}
+                  {filters.emailVerified === "yes"
+                    ? "Verified"
+                    : "Not Verified"}
+                  <button
+                    onClick={() =>
+                      setFilters((prev) => ({ ...prev, emailVerified: "" }))
+                    }
+                    className="text-gray-600 hover:text-gray-800"
+                  >
+                    <HiXCircle size={16} />
+                  </button>
+                </span>
+              )}
+              <button
+                onClick={() =>
+                  setFilters({
+                    email: "",
+                    name: "",
+                    role: "",
+                    emailVerified: "",
+                  })
+                }
+                className="px-2 py-1 text-sm text-gray-600 hover:text-gray-800"
+              >
+                Clear all
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="flex mt-0 overflow-x-auto">
         <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
+              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200 w-1/3">
                 Email
               </th>
-              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
+              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200 w-1/6">
                 Actions
               </th>
-              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
+              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200 w-1/4">
                 Name
               </th>
-              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
+              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200 w-1/6">
                 Email verified
               </th>
-              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200">
+              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200 w-1/6">
                 Role
               </th>
             </tr>
           </thead>
           <tbody>
-            {users.map((user) => (
+            {filteredUsers.map((user) => (
               <tr key={user.id} className="even:bg-gray-100 hover:bg-gray-50">
                 <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
                   <button
                     type="button"
                     onClick={() => navigate(`/dashboard/user/${user.id}`)}
-                    className="text-ooh-yeah-pink hover:underline"
+                    className="text-ooh-yeah-pink hover:underline truncate block w-full text-left"
                   >
                     {user.email}
                   </button>
                 </td>
                 <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
-                  <div className="flex items-center justify-center gap-2">
+                  <div className="flex items-center justify-start gap-2">
                     <button
                       type="button"
                       onClick={() => handleOpenEditModal(user)}
@@ -537,7 +737,7 @@ const Users = () => {
                     </button>
                   </div>
                 </td>
-                <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
+                <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200 truncate">
                   {user.name}
                 </td>
                 <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">

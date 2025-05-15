@@ -11,7 +11,6 @@ interface Campaign {
 }
 
 interface Location {
-  name: string;
   description?: string;
   latitude: string;
   longitude: string;
@@ -26,7 +25,6 @@ const AddLocation = () => {
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(
     null
   );
-  const [locationName, setLocationName] = useState("");
   const [googleMapsUrl, setGoogleMapsUrl] = useState("");
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
@@ -87,7 +85,6 @@ const AddLocation = () => {
       }
     }
 
-    // If we couldn't parse the coordinates, clear the fields
     setLatitude("");
     setLongitude("");
   };
@@ -121,7 +118,6 @@ const AddLocation = () => {
       }
 
       const locationData: Location = {
-        name: locationName,
         latitude,
         longitude,
         imageUrls,
@@ -135,7 +131,6 @@ const AddLocation = () => {
       await addDoc(locationRef, locationData);
 
       toast.success("Location successfully added!");
-      setLocationName("");
       setLatitude("");
       setLongitude("");
       setGoogleMapsUrl("");
@@ -220,19 +215,6 @@ const AddLocation = () => {
           )}
         </div>
         <div>
-          <label htmlFor="name" className="block font-medium mb-1">
-            Location Name
-          </label>
-          <input
-            id="name"
-            type="text"
-            className="w-full p-2 border rounded"
-            value={locationName}
-            onChange={(e) => setLocationName(e.target.value)}
-            required
-          />
-        </div>
-        <div>
           <label htmlFor="url" className="block font-medium mb-1">
             Coordinates
           </label>
@@ -271,21 +253,11 @@ const AddLocation = () => {
         <button
           type="submit"
           className={`w-full bg-ooh-yeah-pink text-white py-2 rounded font-bold transition-colors ${
-            isLoading ||
-            !selectedCampaign ||
-            !locationName ||
-            !latitude ||
-            !longitude
+            isLoading || !selectedCampaign || !latitude || !longitude
               ? "opacity-50 cursor-not-allowed"
               : "hover:bg-ooh-yeah-pink-700"
           }`}
-          disabled={
-            isLoading ||
-            !selectedCampaign ||
-            !locationName ||
-            !latitude ||
-            !longitude
-          }
+          disabled={isLoading || !selectedCampaign || !latitude || !longitude}
         >
           {isLoading ? "UPLOADING..." : "Upload Location"}
         </button>
