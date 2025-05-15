@@ -20,6 +20,7 @@ import { useNavigate } from "react-router-dom";
 import ReactModal from "react-modal";
 import { ToastContainer, toast } from "react-toastify";
 import Loader from "./Loader";
+import { BiTrash } from "react-icons/bi";
 
 interface Campaign {
   id: string;
@@ -838,7 +839,7 @@ const Campaigns = () => {
                       }}
                       className="hover:text-red-500 transition-colors"
                     >
-                      <HiXCircle size={25} />
+                      <BiTrash size={25} />
                     </button>
                     <button
                       type="button"
