@@ -22,6 +22,7 @@ import ReactModal from "react-modal";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Loader from "./Loader";
+import { BiTrash } from "react-icons/bi";
 
 type User = {
   id: string;
@@ -725,7 +726,7 @@ const Users = () => {
                       <HiPencilAlt size={25} />
                     </button>
                     <button type="button" onClick={() => handleOpenModal(user)}>
-                      <HiXCircle size={25} />
+                      <BiTrash size={25} />
                     </button>
                     <button
                       type="button"
