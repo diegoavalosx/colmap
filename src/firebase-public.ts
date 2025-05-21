@@ -40,23 +40,6 @@ async function getPublicFirestore() {
   }
 }
 
-export async function fetchHomepageImageUrl(): Promise<string | null> {
-  try {
-    const db = await getPublicFirestore();
-    const settingsDocRef = doc(db, "settings", "siteSettings");
-    const settingsDoc = await getDoc(settingsDocRef);
-
-    if (settingsDoc.exists() && settingsDoc.data().homepageImageUrl) {
-      return settingsDoc.data().homepageImageUrl;
-    }
-
-    return null;
-  } catch (error) {
-    console.error("Error fetching homepage image URL:", error);
-    return null;
-  }
-}
-
 export async function fetchSiteSettings() {
   try {
     const db = await getPublicFirestore();
