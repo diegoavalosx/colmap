@@ -1,15 +1,15 @@
 import type React from "react";
 import { forwardRef, useRef, useState } from "react";
 import emailjs from "@emailjs/browser";
-import image from "../assets/carousel-images/3.png";
 
 interface ContactProps {
   id?: string;
   goBackToHome?: () => void;
+  imageUrl?: string;
 }
 
 const Contact = forwardRef<HTMLDivElement, ContactProps>(
-  ({ id, goBackToHome }, ref) => {
+  ({ id, goBackToHome, imageUrl }, ref) => {
     const form = useRef<HTMLFormElement | null>(null);
     const [nameError, setNameError] = useState("");
     const [emailError, setEmailError] = useState("");
@@ -96,7 +96,11 @@ const Contact = forwardRef<HTMLDivElement, ContactProps>(
           </button>
         ) : null}
         <div className="flex justify-center w-full h-full p-10">
-          <img src={image} alt="ooh-yeah" className="rounded-md object-cover" />
+          <img
+            src={imageUrl}
+            alt="ooh-yeah"
+            className="rounded-md object-cover"
+          />
         </div>
         <div className="space-y-6 flex flex-col justify-center w-full h-full self-stretch items-center">
           <h1 className="text-3xl font-bold">Request a Consultation</h1>

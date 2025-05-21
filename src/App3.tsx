@@ -3,7 +3,7 @@ import WhoWeAre from "./components/WhoWeAre";
 import Contact from "./components/Contact";
 import NavBar from "./components/NavBar";
 import defaultImage from "./assets/wooyeahPhotoPoster.jpg";
-import { fetchHomepageImageUrl } from "./firebase-public";
+import { fetchSiteSettings } from "./firebase-public";
 
 function App3() {
   const homeRef = useRef<HTMLDivElement>(null);
@@ -12,24 +12,40 @@ function App3() {
   const contactRef = useRef<HTMLDivElement>(null);
   const navBarRef = useRef<HTMLDivElement>(null);
   const [currentSection, setCurrentSection] = useState<string>("home");
-  const [homepageImageUrl, setHomepageImageUrl] =
-    useState<string>(defaultImage);
+  const [imageUrls, setImageUrls] = useState<{
+    homepage: string;
+    consult: string;
+  }>({
+    homepage: defaultImage,
+    consult: "",
+  });
   const [imageLoading, setImageLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const getHomepageImage = async () => {
       try {
         setImageLoading(true);
-        const imageUrl = await fetchHomepageImageUrl();
-        if (imageUrl) {
+        const settings = await fetchSiteSettings();
+        if (settings) {
+          const homepageUrl = settings.homepageImageUrl;
+          const consultUrl = settings.consultImageUrl;
+
           const img = new Image();
-          img.src = imageUrl;
+          img.src = homepageUrl;
           img.onload = () => {
-            setHomepageImageUrl(imageUrl);
+            setImageUrls({
+              homepage: homepageUrl || defaultImage,
+              consult: consultUrl || "",
+            });
             setImageLoading(false);
           };
+
           img.onerror = () => {
             console.error("Failed to load image, using default");
+            setImageUrls({
+              homepage: defaultImage,
+              consult: consultUrl || "",
+            });
             setImageLoading(false);
           };
         } else {
@@ -125,9 +141,9 @@ function App3() {
         scrollToSection={scrollToSection}
         activeSection={currentSection}
       />
-      <HomeDummy id="home" ref={homeRef} imageUrl={homepageImageUrl} />
+      <HomeDummy id="home" ref={homeRef} imageUrl={imageUrls.homepage} />
       <WhoWeAre id="whoWeAre" ref={whoWeAreRef} />
-      <Contact id="contact" ref={contactRef} />
+      <Contact id="contact" ref={contactRef} imageUrl={imageUrls.consult} />
     </div>
   );
 }
