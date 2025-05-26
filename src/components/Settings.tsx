@@ -15,72 +15,14 @@ import {
 import { toast, ToastContainer } from "react-toastify";
 
 import firebaseInstancesPromise from "../firebase-config";
+import { compressImage } from "../utils/compressImage";
+import { deleteOldImage } from "../utils/deleteOldImage";
 
 interface SiteSettings {
   homepageImageUrl: string;
   consultImageUrl: string;
   lastUpdated: Date;
 }
-
-const compressImage = (
-  file: File,
-  maxWidth?: number,
-  maxHeight?: number,
-  quality?: number
-): Promise<File> => {
-  return new Promise((resolve) => {
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    const img = new Image();
-
-    img.onload = () => {
-      const finalMaxWidth = maxWidth ?? 1920;
-      const finalMaxHeight = maxHeight ?? 1080;
-      const finalQuality = quality ?? 0.8;
-
-      let { width, height } = img;
-
-      if (width > finalMaxWidth || height > finalMaxHeight) {
-        const aspectRatio = width / height;
-
-        if (width > height) {
-          width = finalMaxWidth;
-          height = width / aspectRatio;
-        } else {
-          height = finalMaxHeight;
-          width = height * aspectRatio;
-        }
-      }
-
-      canvas.width = width;
-      canvas.height = height;
-
-      ctx?.drawImage(img, 0, 0, width, height);
-
-      canvas.toBlob(
-        (blob) => {
-          if (blob) {
-            const compressedFile = new File([blob], file.name, {
-              type: "image/jpeg",
-              lastModified: Date.now(),
-            });
-            resolve(compressedFile);
-          } else {
-            resolve(file);
-          }
-        },
-        "image/jpeg",
-        finalQuality
-      );
-    };
-
-    img.onerror = () => {
-      resolve(file);
-    };
-
-    img.src = URL.createObjectURL(file);
-  });
-};
 
 const Settings = () => {
   const [db, setDb] = useState<Firestore | null>(null);
@@ -180,6 +122,9 @@ const Settings = () => {
       const newUrls: Partial<SiteSettings> = {};
 
       if (homepageImages.homepage) {
+        if (currentImageUrl.homepage) {
+          await deleteOldImage(storage, currentImageUrl.homepage);
+        }
         const homepageRef = ref(storage, "settings/homepage-image.jpg");
         await uploadBytes(homepageRef, homepageImages.homepage);
         const homepageUrl = await getDownloadURL(homepageRef);
@@ -187,6 +132,9 @@ const Settings = () => {
       }
 
       if (homepageImages.consultImage) {
+        if (currentImageUrl.consultImage) {
+          await deleteOldImage(storage, currentImageUrl.consultImage);
+        }
         const consultImageRef = ref(storage, "settings/consult-image.jpg");
         await uploadBytes(consultImageRef, homepageImages.consultImage);
         const consultImageUrl = await getDownloadURL(consultImageRef);
@@ -281,7 +229,7 @@ const Settings = () => {
                   Current Consult Image:
                 </p>
                 <img
-                  src="https://firebasestorage.googleapis.com/v0/b/colmap-9f519.firebasestorage.app/o/settings%2Fconsult-image.jpg?alt=media"
+                  src={currentImageUrl.consultImage}
                   alt="Current consult"
                   className="max-h-60 object-cover border rounded"
                 />
