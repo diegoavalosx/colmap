@@ -48,7 +48,7 @@ const Campaigns = () => {
   const [userEmails, setUserEmails] = useState<{ [userId: string]: string }>(
     {}
   );
-  const { dataBase } = useAuth();
+  const { dataBase, role, user } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(
     null
@@ -305,7 +305,7 @@ const Campaigns = () => {
 
   useEffect(() => {
     const fetchCampaignsAndUsers = async () => {
-      if (!dataBase) return;
+      if (!dataBase || !role || !user) return;
       try {
         const campaignSnapshot = await getDocs(
           collection(dataBase, "campaigns")
@@ -314,7 +314,15 @@ const Campaigns = () => {
           id: doc.id,
           ...doc.data(),
         })) as Campaign[];
-        setCampaigns(campaignList);
+
+        const visibleCampaigns =
+          role === "admin"
+            ? campaignList
+            : campaignList.filter((campaign) => campaign.userId === user.uid);
+
+        setCampaigns(visibleCampaigns);
+
+        if (role !== "admin") return;
 
         const userSnapshot = await getDocs(collection(dataBase, "users"));
         const userList = userSnapshot.docs.map((doc) => ({
@@ -329,12 +337,13 @@ const Campaigns = () => {
         }
         setUserEmails(userMap);
       } catch (error) {
+        console.log(error);
         console.error("Error fetching campaigns or users: ", error);
       }
     };
 
     fetchCampaignsAndUsers();
-  }, [dataBase]);
+  }, [dataBase, role, user]);
 
   const filteredUsers = users
     .filter((user) =>
@@ -553,7 +562,8 @@ const Campaigns = () => {
               {userDropdownOpen && (
                 <div className="absolute w-full max-h-40 overflow-y-auto border rounded mt-1 bg-white shadow-lg z-50">
                   {filteredUsers.map((user) => (
-                    <div
+                    <button
+                      type="button"
                       key={user.id}
                       className={`p-2 cursor-pointer hover:bg-gray-100 ${
                         selectedUser?.id === user.id
@@ -574,11 +584,10 @@ const Campaigns = () => {
                           setUserDropdownOpen(false);
                         }
                       }}
-                      role="button"
                       tabIndex={0}
                     >
                       {user.name} ({user.email})
-                    </div>
+                    </button>
                   ))}
                   {filteredUsers.length === 0 && (
                     <div className="p-2 text-sm text-gray-500">
@@ -742,6 +751,7 @@ const Campaigns = () => {
                 <span className="px-2 py-1 bg-gray-200 rounded-full text-sm flex items-center gap-1">
                   Name: {filters.name}
                   <button
+                    type="button"
                     onClick={() =>
                       setFilters((prev) => ({ ...prev, name: "" }))
                     }
@@ -755,6 +765,7 @@ const Campaigns = () => {
                 <span className="px-2 py-1 bg-gray-200 rounded-full text-sm flex items-center gap-1">
                   Status: {filters.status}
                   <button
+                    type="button"
                     onClick={() =>
                       setFilters((prev) => ({ ...prev, status: "" }))
                     }
@@ -768,6 +779,7 @@ const Campaigns = () => {
                 <span className="px-2 py-1 bg-gray-200 rounded-full text-sm flex items-center gap-1">
                   Owner: {filters.owner}
                   <button
+                    type="button"
                     onClick={() =>
                       setFilters((prev) => ({ ...prev, owner: "" }))
                     }
@@ -778,6 +790,7 @@ const Campaigns = () => {
                 </span>
               )}
               <button
+                type="button"
                 onClick={() => setFilters({ name: "", status: "", owner: "" })}
                 className="px-2 py-1 text-sm text-gray-600 hover:text-gray-800"
               >

@@ -3,7 +3,6 @@ import WhoWeAre from "./components/WhoWeAre";
 import Contact from "./components/Contact";
 import NavBar from "./components/NavBar";
 import defaultImage from "./assets/wooyeahPhotoPoster.jpg";
-import { fetchSiteSettings } from "./firebase-public";
 
 function App3() {
   const homeRef = useRef<HTMLDivElement>(null);
@@ -12,53 +11,6 @@ function App3() {
   const contactRef = useRef<HTMLDivElement>(null);
   const navBarRef = useRef<HTMLDivElement>(null);
   const [currentSection, setCurrentSection] = useState<string>("home");
-  const [imageUrls, setImageUrls] = useState<{
-    homepage: string;
-    consult: string;
-  }>({
-    homepage: defaultImage,
-    consult: "",
-  });
-  const [imageLoading, setImageLoading] = useState<boolean>(true);
-
-  useEffect(() => {
-    const getHomepageImage = async () => {
-      try {
-        setImageLoading(true);
-        const settings = await fetchSiteSettings();
-        if (settings) {
-          const homepageUrl = settings.homepageImageUrl;
-          const consultUrl = settings.consultImageUrl;
-
-          const img = new Image();
-          img.src = homepageUrl;
-          img.onload = () => {
-            setImageUrls({
-              homepage: homepageUrl || defaultImage,
-              consult: consultUrl || "",
-            });
-            setImageLoading(false);
-          };
-
-          img.onerror = () => {
-            console.error("Failed to load image, using default");
-            setImageUrls({
-              homepage: defaultImage,
-              consult: consultUrl || "",
-            });
-            setImageLoading(false);
-          };
-        } else {
-          setImageLoading(false);
-        }
-      } catch (error) {
-        console.error("Error fetching homepage image:", error);
-        setImageLoading(false);
-      }
-    };
-
-    getHomepageImage();
-  }, []);
 
   useEffect(() => {
     const refMap: { [key: string]: React.RefObject<HTMLDivElement> } = {
@@ -121,19 +73,6 @@ function App3() {
     }
   };
 
-  if (imageLoading) {
-    return (
-      <div className="h-screen bg-deluxe-black text-deluxe-black font-sans">
-        <NavBar
-          ref={navBarRef}
-          scrollToSection={scrollToSection}
-          activeSection={currentSection}
-        />
-        <div className="max-h-[48rem] w-full bg-deluxe-gray animate-pulse flex items-center justify-center sm:pt-0 pt-[4rem]" />
-      </div>
-    );
-  }
-
   return (
     <div className="h-screen bg-deluxe-black text-deluxe-black font-sans">
       <NavBar
@@ -141,39 +80,37 @@ function App3() {
         scrollToSection={scrollToSection}
         activeSection={currentSection}
       />
-      <HomeDummy id="home" ref={homeRef} imageUrl={imageUrls.homepage} />
+      <HomeDummy id="home" ref={homeRef} />
       <WhoWeAre id="whoWeAre" ref={whoWeAreRef} />
-      <Contact id="contact" ref={contactRef} imageUrl={imageUrls.consult} />
+      <Contact id="contact" ref={contactRef} />
     </div>
   );
 }
 
 interface HomeDummyProps {
   id?: string;
-  imageUrl: string;
 }
 
-const HomeDummy = forwardRef<HTMLDivElement, HomeDummyProps>(
-  ({ id, imageUrl }, ref) => {
-    return (
-      <div
-        id={id}
-        ref={ref}
-        className="max-h-[48rem] w-full bg-deluxe-gray overflow-hidden animate-fadeIn sm:pt-0 pt-[4rem]"
-      >
-        <img
-          src={imageUrl}
-          alt="homepage"
-          className="object-cover md:object-contain h-full w-full"
-          onError={(e) => {
-            // Fallback to default image if loading fails
-            const target = e.target as HTMLImageElement;
-            target.src = defaultImage;
-          }}
-        />
-      </div>
-    );
-  }
-);
+const HomeDummy = forwardRef<HTMLDivElement, HomeDummyProps>(({ id }, ref) => {
+  return (
+    <div
+      id={id}
+      ref={ref}
+      className="max-h-[48rem] h-auto md:h-[48rem] w-full bg-deluxe-gray overflow-hidden animate-fadeIn sm:pt-0 pt-[4rem]"
+    >
+      <img
+        src="https://firebasestorage.googleapis.com/v0/b/colmap-9f519.firebasestorage.app/o/settings%2Fhomepage-image.jpg?alt=media"
+        alt="homepage"
+        className="object-contain md:object-cover h-full w-full
+            transition-opacity duration-500 ease-out"
+        loading="eager"
+        decoding="async"
+        onError={({ currentTarget }) => {
+          currentTarget.src = defaultImage;
+        }}
+      />
+    </div>
+  );
+});
 
 export default App3;

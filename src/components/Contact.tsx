@@ -5,11 +5,10 @@ import emailjs from "@emailjs/browser";
 interface ContactProps {
   id?: string;
   goBackToHome?: () => void;
-  imageUrl?: string;
 }
 
 const Contact = forwardRef<HTMLDivElement, ContactProps>(
-  ({ id, goBackToHome, imageUrl }, ref) => {
+  ({ id, goBackToHome }, ref) => {
     const form = useRef<HTMLFormElement | null>(null);
     const [nameError, setNameError] = useState("");
     const [emailError, setEmailError] = useState("");
@@ -97,7 +96,7 @@ const Contact = forwardRef<HTMLDivElement, ContactProps>(
         ) : null}
         <div className="flex justify-center w-full h-full p-10">
           <img
-            src={imageUrl}
+            src="https://firebasestorage.googleapis.com/v0/b/colmap-9f519.firebasestorage.app/o/settings%2Fconsult-image.jpg?alt=media"
             alt="ooh-yeah"
             className="rounded-md object-cover"
           />
