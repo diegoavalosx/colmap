@@ -23,14 +23,7 @@ const Dashboard = () => {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="campaigns"
-            element={
-              <ProtectedRoute requiredRole="admin">
-                <Campaigns />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="campaigns" element={<Campaigns />} />
           <Route
             path="settings"
             element={

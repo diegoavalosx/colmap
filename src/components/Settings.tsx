@@ -22,6 +22,66 @@ interface SiteSettings {
   lastUpdated: Date;
 }
 
+const compressImage = (
+  file: File,
+  maxWidth?: number,
+  maxHeight?: number,
+  quality?: number
+): Promise<File> => {
+  return new Promise((resolve) => {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    const img = new Image();
+
+    img.onload = () => {
+      const finalMaxWidth = maxWidth ?? 1920;
+      const finalMaxHeight = maxHeight ?? 1080;
+      const finalQuality = quality ?? 0.8;
+
+      let { width, height } = img;
+
+      if (width > finalMaxWidth || height > finalMaxHeight) {
+        const aspectRatio = width / height;
+
+        if (width > height) {
+          width = finalMaxWidth;
+          height = width / aspectRatio;
+        } else {
+          height = finalMaxHeight;
+          width = height * aspectRatio;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      ctx?.drawImage(img, 0, 0, width, height);
+
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            const compressedFile = new File([blob], file.name, {
+              type: "image/jpeg",
+              lastModified: Date.now(),
+            });
+            resolve(compressedFile);
+          } else {
+            resolve(file);
+          }
+        },
+        "image/jpeg",
+        finalQuality
+      );
+    };
+
+    img.onerror = () => {
+      resolve(file);
+    };
+
+    img.src = URL.createObjectURL(file);
+  });
+};
+
 const Settings = () => {
   const [db, setDb] = useState<Firestore | null>(null);
   const [storage, setStorage] = useState<FirebaseStorage | null>(null);
@@ -38,6 +98,10 @@ const Settings = () => {
   });
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [compressionStatus, setCompressionStatus] = useState<{
+    homepage: boolean;
+    consultImage: boolean;
+  }>({ homepage: false, consultImage: false });
 
   useEffect(() => {
     const initFirebase = async () => {
@@ -69,7 +133,6 @@ const Settings = () => {
             homepage: settingsData.homepageImageUrl,
             consultImage: settingsData.consultImageUrl,
           });
-          console.log(currentImageUrl);
         }
       } catch (error) {
         toast.error("Failed to load current settings");
@@ -82,13 +145,29 @@ const Settings = () => {
     }
   }, [db, initialLoading]);
 
-  const handleImageSelect = (
+  const handleImageSelect = async (
     event: React.ChangeEvent<HTMLInputElement>,
     key: "homepage" | "consultImage"
   ) => {
-    const files = event.target.files?.[0];
-    if (files) {
-      setHomepageImages((prev) => ({ ...prev, [key]: files }));
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setCompressionStatus((prev) => ({ ...prev, [key]: true }));
+
+    try {
+      const compressedFile = await compressImage(
+        file,
+        key === "homepage" ? 1920 : 1200,
+        key === "homepage" ? 1080 : 800,
+        0.8
+      );
+
+      setHomepageImages((prev) => ({ ...prev, [key]: compressedFile }));
+    } catch (error) {
+      console.error("Compression failed:", error);
+      setHomepageImages((prev) => ({ ...prev, [key]: file }));
+    } finally {
+      setCompressionStatus((prev) => ({ ...prev, [key]: false }));
     }
   };
 
@@ -101,23 +180,19 @@ const Settings = () => {
       const newUrls: Partial<SiteSettings> = {};
 
       if (homepageImages.homepage) {
-        const homepageRef = ref(
-          storage,
-          `settings/homepage_${Date.now()}_${homepageImages.homepage}`
-        );
+        const homepageRef = ref(storage, "settings/homepage-image.jpg");
         await uploadBytes(homepageRef, homepageImages.homepage);
         const homepageUrl = await getDownloadURL(homepageRef);
         newUrls.homepageImageUrl = homepageUrl;
       }
+
       if (homepageImages.consultImage) {
-        const consultImageRef = ref(
-          storage,
-          `settings/homepage_${Date.now()}_${homepageImages.homepage}`
-        );
+        const consultImageRef = ref(storage, "settings/consult-image.jpg");
         await uploadBytes(consultImageRef, homepageImages.consultImage);
-        const consultImagenUrl = await getDownloadURL(consultImageRef);
-        newUrls.consultImageUrl = consultImagenUrl;
+        const consultImageUrl = await getDownloadURL(consultImageRef);
+        newUrls.consultImageUrl = consultImageUrl;
       }
+
       const settingsDocRef = doc(db, "settings", "siteSettings");
       const settingsDoc = await getDoc(settingsDocRef);
 
@@ -139,9 +214,9 @@ const Settings = () => {
         consultImage: newUrls.consultImageUrl || prev.consultImage,
       }));
       setHomepageImages({ homepage: null, consultImage: null });
-      toast.success("Homepage image updated successfully!");
+      toast.success("Images updated successfully!");
     } catch (error) {
-      toast.error("Failed to update homepage image");
+      toast.error("Failed to update images");
       console.error("Upload error:", error);
     } finally {
       setLoading(false);
@@ -195,11 +270,6 @@ const Settings = () => {
               onChange={(event) => handleImageSelect(event, "homepage")}
               className="w-full p-2 border rounded"
             />
-            {homepageImages.homepage && (
-              <p className="text-sm mt-2">
-                Selected: {homepageImages.homepage.name}
-              </p>
-            )}
           </div>
 
           <div className="mb-6">
@@ -211,7 +281,7 @@ const Settings = () => {
                   Current Consult Image:
                 </p>
                 <img
-                  src={currentImageUrl.consultImage}
+                  src="https://firebasestorage.googleapis.com/v0/b/colmap-9f519.firebasestorage.app/o/settings%2Fconsult-image.jpg?alt=media"
                   alt="Current consult"
                   className="max-h-60 object-cover border rounded"
                 />
@@ -228,11 +298,6 @@ const Settings = () => {
               onChange={(event) => handleImageSelect(event, "consultImage")}
               className="w-full p-2 border rounded"
             />
-            {homepageImages.consultImage && (
-              <p className="text-sm mt-2">
-                Selected: {homepageImages.consultImage.name}
-              </p>
-            )}
           </div>
 
           <button
@@ -240,7 +305,9 @@ const Settings = () => {
             className="w-full bg-ooh-yeah-pink text-white py-2 rounded font-bold hover:bg-ooh-yeah-pink-700 disabled:opacity-50"
             disabled={
               (!homepageImages.homepage && !homepageImages.consultImage) ||
-              loading
+              loading ||
+              compressionStatus.homepage ||
+              compressionStatus.consultImage
             }
           >
             {loading ? "Uploading..." : "Update Images"}
@@ -250,4 +317,5 @@ const Settings = () => {
     </>
   );
 };
+
 export default Settings;

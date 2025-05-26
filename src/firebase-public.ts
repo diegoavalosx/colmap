@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
+import { getFirestore } from "firebase/firestore";
 import type { Firestore } from "firebase/firestore/lite";
 
 let firestore: Firestore | null = null;
@@ -37,23 +37,6 @@ async function getPublicFirestore() {
   } catch (error) {
     console.error("Error initializing public Firestore:", error);
     throw error;
-  }
-}
-
-export async function fetchSiteSettings() {
-  try {
-    const db = await getPublicFirestore();
-    const settingsDocRef = doc(db, "settings", "siteSettings");
-    const settingsDoc = await getDoc(settingsDocRef);
-
-    if (settingsDoc.exists()) {
-      return settingsDoc.data();
-    }
-
-    return null;
-  } catch (error) {
-    console.error("Error fetching site settings:", error);
-    return null;
   }
 }
 
