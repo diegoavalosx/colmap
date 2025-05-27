@@ -626,6 +626,7 @@ const Users = () => {
                 <span className="px-2 py-1 bg-gray-200 rounded-full text-sm flex items-center gap-1">
                   Email: {filters.email}
                   <button
+                    type="button"
                     onClick={() =>
                       setFilters((prev) => ({ ...prev, email: "" }))
                     }
@@ -639,6 +640,7 @@ const Users = () => {
                 <span className="px-2 py-1 bg-gray-200 rounded-full text-sm flex items-center gap-1">
                   Name: {filters.name}
                   <button
+                    type="button"
                     onClick={() =>
                       setFilters((prev) => ({ ...prev, name: "" }))
                     }
@@ -652,6 +654,7 @@ const Users = () => {
                 <span className="px-2 py-1 bg-gray-200 rounded-full text-sm flex items-center gap-1">
                   Role: {filters.role}
                   <button
+                    type="button"
                     onClick={() =>
                       setFilters((prev) => ({ ...prev, role: "" }))
                     }
@@ -668,6 +671,7 @@ const Users = () => {
                     ? "Verified"
                     : "Not Verified"}
                   <button
+                    type="button"
                     onClick={() =>
                       setFilters((prev) => ({ ...prev, emailVerified: "" }))
                     }
@@ -678,6 +682,7 @@ const Users = () => {
                 </span>
               )}
               <button
+                type="button"
                 onClick={() =>
                   setFilters({
                     email: "",
