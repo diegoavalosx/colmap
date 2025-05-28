@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "./useAuth";
 import {
   collection,
@@ -7,6 +7,12 @@ import {
   deleteDoc,
   updateDoc,
   addDoc,
+  QueryDocumentSnapshot,
+  DocumentData,
+  orderBy,
+  query,
+  limit,
+  startAfter,
 } from "firebase/firestore";
 import {
   HiXCircle,
@@ -15,6 +21,8 @@ import {
   HiFilter,
   HiPlus,
   HiLink,
+  HiArrowLeft,
+  HiArrowRight,
 } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import ReactModal from "react-modal";
@@ -45,9 +53,15 @@ interface CreateCampaignFormData {
 const Campaigns = () => {
   const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [userEmails, setUserEmails] = useState<{ [userId: string]: string }>(
     {}
   );
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [lastVisible, setLastVisible] =
+    useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const [hasNextPage, setHasNextPage] = useState<boolean>(true);
+  const pageSize = 5;
   const { dataBase, role, user } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(
@@ -64,7 +78,6 @@ const Campaigns = () => {
     status: "active",
     userId: "",
   });
-  const [users, setUsers] = useState<User[]>([]);
   const [userSearch, setUserSearch] = useState("");
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -306,10 +319,17 @@ const Campaigns = () => {
   useEffect(() => {
     const fetchCampaignsAndUsers = async () => {
       if (!dataBase || !role || !user) return;
+
       try {
-        const campaignSnapshot = await getDocs(
-          collection(dataBase, "campaigns")
+        // Fetch for the first campaigns page
+        const campaignQuery = query(
+          collection(dataBase, "campaigns"),
+          orderBy("name", "asc"),
+          limit(pageSize)
         );
+
+        const campaignSnapshot = await getDocs(campaignQuery);
+
         const campaignList = campaignSnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
@@ -321,6 +341,9 @@ const Campaigns = () => {
             : campaignList.filter((campaign) => campaign.userId === user.uid);
 
         setCampaigns(visibleCampaigns);
+        setLastVisible(campaignSnapshot.docs[campaignSnapshot.docs.length - 1]);
+        setHasNextPage(campaignSnapshot.docs.length === pageSize);
+        setCurrentPage(1);
 
         if (role !== "admin") return;
 
@@ -344,6 +367,90 @@ const Campaigns = () => {
 
     fetchCampaignsAndUsers();
   }, [dataBase, role, user]);
+
+  // function to fetch next page of campaigs
+  const fetchNextPage = useCallback(async () => {
+    if (!dataBase || !lastVisible || !hasNextPage || !role || !user) return;
+
+    try {
+      const q = query(
+        collection(dataBase, "campaigns"),
+        orderBy("name", "asc"),
+        startAfter(lastVisible),
+        limit(pageSize)
+      );
+
+      const campaignSnapshot = await getDocs(q);
+      const campaignList = campaignSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Campaign[];
+
+      const visibleCampaigns =
+        role === "admin"
+          ? campaignList
+          : campaignList.filter((campaign) => campaign.userId === user.uid);
+
+      setCampaigns(visibleCampaigns);
+      setLastVisible(
+        campaignSnapshot.docs[campaignSnapshot.docs.length - 1] || null
+      );
+      setHasNextPage(campaignSnapshot.docs.length === pageSize);
+      setCurrentPage((prev) => prev + 1);
+    } catch (error) {
+      console.error("Error fetching next page of campaigns:", error);
+    }
+  }, [dataBase, lastVisible, hasNextPage, role, user]);
+
+  // Specific page
+  const loadPage = useCallback(
+    async (pageNumber: number) => {
+      if (!dataBase || !role || !user) return;
+
+      try {
+        const totalToLoad = pageSize * pageNumber;
+
+        const q = query(
+          collection(dataBase, "campaigns"),
+          orderBy("name", "asc"),
+          limit(totalToLoad)
+        );
+
+        const campaignSnapshot = await getDocs(q);
+        const allCampaigns = campaignSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Campaign[];
+
+        const filteredCampaigns =
+          role === "admin"
+            ? allCampaigns
+            : allCampaigns.filter((campaign) => campaign.userId === user.uid);
+
+        const startIndex = (pageNumber - 1) * pageSize;
+        const pageCampaigns = filteredCampaigns.slice(
+          startIndex,
+          startIndex + pageSize
+        );
+
+        setCampaigns(pageCampaigns);
+        setCurrentPage(pageNumber);
+        setLastVisible(
+          campaignSnapshot.docs[campaignSnapshot.docs.length - 1] || null
+        );
+        setHasNextPage(filteredCampaigns.length === totalToLoad);
+      } catch (error) {
+        console.error("Error loading page: ", error);
+      }
+    },
+    [dataBase, role, user]
+  );
+
+  // Function to prev page
+  const fetchPreviousPage = useCallback(async () => {
+    if (currentPage <= 1) return;
+    await loadPage(currentPage - 1);
+  }, [currentPage, loadPage]);
 
   const filteredUsers = users
     .filter((user) =>
@@ -883,6 +990,36 @@ const Campaigns = () => {
             ))}
           </tbody>
         </table>
+      </div>
+      <div className="flex justify-end items-center mt-4 p-4">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={fetchPreviousPage}
+            disabled={currentPage <= 1}
+            className={`px-3 py-2 rounded-md ${
+              currentPage <= 1
+                ? "bg-gray-300 cursor-not-allowed"
+                : "bg-ooh-yeah-pink text-white hover:bg-ooh-yeah-pink-700"
+            }`}
+          >
+            <HiArrowLeft />
+          </button>
+          <span className="px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-sm font-semibold shadow-sm border border-gray-300">
+            {currentPage}
+          </span>
+
+          <button
+            onClick={fetchNextPage}
+            disabled={!hasNextPage}
+            className={`px-3 py-2 rounded-md ${
+              !hasNextPage
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-ooh-yeah-pink text-white hover:bg-ooh-yeah-pink-700"
+            }`}
+          >
+            <HiArrowRight />
+          </button>
+        </div>
       </div>
     </>
   );

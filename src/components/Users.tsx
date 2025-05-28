@@ -9,6 +9,11 @@ import {
   query,
   where,
   updateDoc,
+  orderBy,
+  limit,
+  startAfter,
+  QueryDocumentSnapshot,
+  DocumentData,
 } from "firebase/firestore";
 import {
   HiXCircle,
@@ -17,6 +22,8 @@ import {
   HiFilter,
   HiPlus,
   HiEyeOff,
+  HiArrowLeft,
+  HiArrowRight,
 } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import ReactModal from "react-modal";
@@ -25,7 +32,7 @@ import "react-toastify/dist/ReactToastify.css";
 import Loader from "./Loader";
 import { BiTrash } from "react-icons/bi";
 
-type User = {
+export type User = {
   id: string;
   email: string;
   name: string;
@@ -40,9 +47,16 @@ type SignUpFormData = {
 };
 
 const Users = () => {
-  const [users, setUsers] = useState<User[]>([]);
   const { dataBase } = useAuth();
   const navigate = useNavigate();
+
+  const [users, setUsers] = useState<User[]>([]);
+  // new state
+  const pageSize = 5;
+  const [lastVisible, setLastVisible] =
+    useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const [hasNextPage, setHasNextPage] = useState<boolean>(true);
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
@@ -274,19 +288,98 @@ const Users = () => {
     }
   };
 
+  // PAGINATION LOGIC
+  // Fetch first page of users
   const fetchUsers = useCallback(async () => {
     if (!dataBase) return;
+
     try {
-      const querySnapshot = await getDocs(collection(dataBase, "users"));
+      const q = query(
+        collection(dataBase, "users"),
+        orderBy("name", "asc"),
+        limit(pageSize)
+      );
+      const querySnapshot = await getDocs(q);
       const userList = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       })) as User[];
       setUsers(userList);
+      setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1]);
+      setHasNextPage(querySnapshot.docs.length === pageSize);
+      setCurrentPage(1);
     } catch (error) {
       console.error("Error fetching users: ", error);
     }
   }, [dataBase]);
+
+  // Fetch next page of users
+  const fetchNextPage = useCallback(async () => {
+    if (!dataBase || !lastVisible || !hasNextPage) return;
+
+    try {
+      const q = query(
+        collection(dataBase, "users"),
+        orderBy("name", "asc"),
+        startAfter(lastVisible),
+        limit(pageSize)
+      );
+
+      const querySnapshot = await getDocs(q);
+      const newUsers = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as User[];
+
+      setUsers(newUsers);
+      setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1] || null);
+      setHasNextPage(querySnapshot.docs.length === pageSize);
+      setCurrentPage((prev) => prev + 1);
+    } catch (error) {
+      console.error("Error fetching next page of users: ", error);
+    }
+  }, [dataBase, lastVisible, hasNextPage]);
+
+  const loadPage = useCallback(
+    async (pageNumber: number) => {
+      if (!dataBase) return;
+
+      try {
+        const totalToLoad = pageSize * pageNumber;
+
+        const q = query(
+          collection(dataBase, "users"),
+          orderBy("name", "asc"),
+          limit(totalToLoad)
+        );
+
+        const querySnapshot = await getDocs(q);
+        const allUsers = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as User[];
+
+        // Take only the users from the requested page
+        const startIndex = (pageNumber - 1) * pageSize;
+        const pageUsers = allUsers.slice(startIndex, startIndex + pageSize);
+
+        setUsers(pageUsers);
+        setCurrentPage(pageNumber);
+        setLastVisible(
+          querySnapshot.docs[querySnapshot.docs.length - 1] || null
+        );
+        setHasNextPage(allUsers.length === totalToLoad);
+      } catch (error) {
+        console.error("Error loading page: ", error);
+      }
+    },
+    [dataBase]
+  );
+
+  const fetchPreviousPage = useCallback(async () => {
+    if (currentPage <= 1) return;
+    await loadPage(currentPage - 1);
+  }, [currentPage, loadPage]);
 
   useEffect(() => {
     fetchUsers();
@@ -762,6 +855,36 @@ const Users = () => {
             ))}
           </tbody>
         </table>
+      </div>
+      <div className="flex justify-end items-center mt-4 p-4">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={fetchPreviousPage}
+            disabled={currentPage <= 1}
+            className={`px-3 py-2 rounded-md ${
+              currentPage <= 1
+                ? "bg-gray-300 cursor-not-allowed"
+                : "bg-ooh-yeah-pink text-white hover:bg-ooh-yeah-pink-700"
+            }`}
+          >
+            <HiArrowLeft />
+          </button>
+          <span className="px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-sm font-semibold shadow-sm border border-gray-300">
+            {currentPage}
+          </span>
+
+          <button
+            onClick={fetchNextPage}
+            disabled={!hasNextPage}
+            className={`px-3 py-2 rounded-md ${
+              !hasNextPage
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-ooh-yeah-pink text-white hover:bg-ooh-yeah-pink-700"
+            }`}
+          >
+            <HiArrowRight />
+          </button>
+        </div>
       </div>
     </>
   );
