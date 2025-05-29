@@ -1,6 +1,5 @@
 import type React from "react";
 import { forwardRef, useRef, useState } from "react";
-import emailjs from "@emailjs/browser";
 
 interface ContactProps {
   id?: string;
@@ -48,34 +47,46 @@ const Contact = forwardRef<HTMLDivElement, ContactProps>(
       }
       return isValid;
     };
-    const sendEmail = (e: React.FormEvent<HTMLFormElement>) => {
+    const sendEmail = async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
 
-      if (validateForm() && form.current) {
-        setIsLoading(true);
-        emailjs
-          .sendForm("service_8lw0vae", "template_oh3nnzt", form.current, {
-            publicKey: "o1R8SWpVH1-dSQA6e",
-          })
-          .then(
-            (result) => {
-              console.log(result.text);
-              setformSuccess("Form sent successfully");
-              form.current?.reset();
-              setTimeout(() => {
-                setformSuccess(null);
-              }, 3000);
-              setIsLoading(false);
+      if (!validateForm() || !form.current) return;
+
+      setIsLoading(true);
+
+      const payload = {
+        name: form.current.user_name.value,
+        email: form.current.user_email.value,
+        message: form.current.message.value,
+      };
+
+      try {
+        const response = await fetch(
+          "https://sendcontactemail-5gaafu43za-uc.a.run.app",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
             },
-            (error) => {
-              console.log("FAILED...", error.text);
-              setformSuccess("Error sending form. Try again.");
-              setTimeout(() => {
-                setformSuccess(null);
-              }, 3000);
-              setIsLoading(false);
-            }
-          );
+            body: JSON.stringify(payload),
+          }
+        );
+
+        const resultText = await response.text();
+
+        if (response.ok) {
+          setformSuccess("Form sent successfully");
+          form.current.reset();
+        } else {
+          console.error("Error:", resultText);
+          setformSuccess("Error sending form. Try again.");
+        }
+      } catch (error) {
+        console.error("Request failed:", error);
+        setformSuccess("Error sending form. Try again.");
+      } finally {
+        setIsLoading(false);
+        setTimeout(() => setformSuccess(null), 3000);
       }
     };
 
