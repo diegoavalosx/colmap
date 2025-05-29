@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent, useMemo } from "react";
 import { useAuth } from "./useAuth";
 import {
   collection,
@@ -7,12 +7,8 @@ import {
   deleteDoc,
   updateDoc,
   addDoc,
-  QueryDocumentSnapshot,
-  DocumentData,
   orderBy,
   query,
-  limit,
-  startAfter,
 } from "firebase/firestore";
 import {
   HiXCircle,
@@ -52,15 +48,12 @@ interface CreateCampaignFormData {
 
 const Campaigns = () => {
   const navigate = useNavigate();
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [allCampaigns, setAllCampaigns] = useState<Campaign[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [userEmails, setUserEmails] = useState<{ [userId: string]: string }>(
     {}
   );
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [lastVisible, setLastVisible] =
-    useState<QueryDocumentSnapshot<DocumentData> | null>(null);
-  const [hasNextPage, setHasNextPage] = useState<boolean>(true);
   const pageSize = 5;
   const { dataBase, role, user } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -119,7 +112,7 @@ const Campaigns = () => {
           name: selectedCampaign.name,
           status: selectedCampaign.status,
         });
-        setCampaigns((prevCampaigns) =>
+        setAllCampaigns((prevCampaigns) =>
           prevCampaigns.map((campaign) =>
             campaign.id === selectedCampaign.id ? selectedCampaign : campaign
           )
@@ -190,7 +183,7 @@ const Campaigns = () => {
         progress: undefined,
         theme: "colored",
       });
-      setCampaigns((prevCampaign) =>
+      setAllCampaigns((prevCampaign) =>
         prevCampaign.filter((campaign) => campaign.id !== campaignId)
       );
       setIsModalOpen(false);
@@ -265,12 +258,23 @@ const Campaigns = () => {
         theme: "colored",
       });
 
-      const campaignSnapshot = await getDocs(collection(dataBase, "campaigns"));
-      const campaignList = campaignSnapshot.docs.map((doc) => ({
+      // Refresh the campaigns list
+      const campaignsQuery = query(
+        collection(dataBase, "campaigns"),
+        orderBy("name", "asc")
+      );
+      const campaignsSnapshot = await getDocs(campaignsQuery);
+      const campaignsList = campaignsSnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       })) as Campaign[];
-      setCampaigns(campaignList);
+
+      const visibleCampaigns =
+        role === "admin"
+          ? campaignsList
+          : campaignsList.filter((campaign) => campaign.userId === user?.uid);
+
+      setAllCampaigns(visibleCampaigns);
 
       setIsCreateModalOpen(false);
       setFormData({
@@ -305,44 +309,58 @@ const Campaigns = () => {
     }));
   };
 
-  const filteredCampaigns = campaigns.filter((campaign) => {
-    return (
-      campaign.name.toLowerCase().includes(filters.name.toLowerCase()) &&
-      (filters.status === "" || campaign.status === filters.status) &&
-      (filters.owner === "" ||
-        userEmails[campaign.userId]
-          ?.toLowerCase()
-          .includes(filters.owner.toLowerCase()))
-    );
-  });
+  const filteredCampaigns = useMemo(() => {
+    const filtered = allCampaigns.filter((campaign) => {
+      const campaignOwner = userEmails[campaign.userId] || "";
+      return (
+        campaign.name.toLowerCase().includes(filters.name.toLowerCase()) &&
+        (filters.status === "" || campaign.status === filters.status) &&
+        (filters.owner === "" ||
+          campaignOwner.toLowerCase().includes(filters.owner.toLowerCase()))
+      );
+    });
+
+    const startIndex = (currentPage - 1) * pageSize;
+    return filtered.slice(startIndex, startIndex + pageSize);
+  }, [allCampaigns, filters, currentPage, pageSize, userEmails]);
+
+  const totalPages = Math.ceil(
+    allCampaigns.filter((campaign) => {
+      const campaignOwner = userEmails[campaign.userId] || "";
+      return (
+        campaign.name.toLowerCase().includes(filters.name.toLowerCase()) &&
+        (filters.status === "" || campaign.status === filters.status) &&
+        (filters.owner === "" ||
+          campaignOwner.toLowerCase().includes(filters.owner.toLowerCase()))
+      );
+    }).length / pageSize
+  );
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
 
   useEffect(() => {
     const fetchCampaignsAndUsers = async () => {
       if (!dataBase || !role || !user) return;
 
       try {
-        // Fetch for the first campaigns page
-        const campaignQuery = query(
+        const campaignsQuery = query(
           collection(dataBase, "campaigns"),
-          orderBy("name", "asc"),
-          limit(pageSize)
+          orderBy("name", "asc")
         );
-
-        const campaignSnapshot = await getDocs(campaignQuery);
-
-        const campaignList = campaignSnapshot.docs.map((doc) => ({
+        const campaignsSnapshot = await getDocs(campaignsQuery);
+        const campaignsList = campaignsSnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         })) as Campaign[];
 
         const visibleCampaigns =
           role === "admin"
-            ? campaignList
-            : campaignList.filter((campaign) => campaign.userId === user.uid);
+            ? campaignsList
+            : campaignsList.filter((campaign) => campaign.userId === user.uid);
 
-        setCampaigns(visibleCampaigns);
-        setLastVisible(campaignSnapshot.docs[campaignSnapshot.docs.length - 1]);
-        setHasNextPage(campaignSnapshot.docs.length === pageSize);
+        setAllCampaigns(visibleCampaigns);
         setCurrentPage(1);
 
         if (role !== "admin") return;
@@ -360,105 +378,12 @@ const Campaigns = () => {
         }
         setUserEmails(userMap);
       } catch (error) {
-        console.log(error);
-        console.error("Error fetching campaigns or users: ", error);
+        console.error("Error fetching campaigns or users:", error);
       }
     };
 
     fetchCampaignsAndUsers();
   }, [dataBase, role, user]);
-
-  // function to fetch next page of campaigs
-  const fetchNextPage = useCallback(async () => {
-    if (!dataBase || !lastVisible || !hasNextPage || !role || !user) return;
-
-    try {
-      const q = query(
-        collection(dataBase, "campaigns"),
-        orderBy("name", "asc"),
-        startAfter(lastVisible),
-        limit(pageSize)
-      );
-
-      const campaignSnapshot = await getDocs(q);
-      const campaignList = campaignSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Campaign[];
-
-      const visibleCampaigns =
-        role === "admin"
-          ? campaignList
-          : campaignList.filter((campaign) => campaign.userId === user.uid);
-
-      setCampaigns(visibleCampaigns);
-      setLastVisible(
-        campaignSnapshot.docs[campaignSnapshot.docs.length - 1] || null
-      );
-      setHasNextPage(campaignSnapshot.docs.length === pageSize);
-      setCurrentPage((prev) => prev + 1);
-    } catch (error) {
-      console.error("Error fetching next page of campaigns:", error);
-    }
-  }, [dataBase, lastVisible, hasNextPage, role, user]);
-
-  // Specific page
-  const loadPage = useCallback(
-    async (pageNumber: number) => {
-      if (!dataBase || !role || !user) return;
-
-      try {
-        const totalToLoad = pageSize * pageNumber;
-
-        const q = query(
-          collection(dataBase, "campaigns"),
-          orderBy("name", "asc"),
-          limit(totalToLoad)
-        );
-
-        const campaignSnapshot = await getDocs(q);
-        const allCampaigns = campaignSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as Campaign[];
-
-        const filteredCampaigns =
-          role === "admin"
-            ? allCampaigns
-            : allCampaigns.filter((campaign) => campaign.userId === user.uid);
-
-        const startIndex = (pageNumber - 1) * pageSize;
-        const pageCampaigns = filteredCampaigns.slice(
-          startIndex,
-          startIndex + pageSize
-        );
-
-        setCampaigns(pageCampaigns);
-        setCurrentPage(pageNumber);
-        setLastVisible(
-          campaignSnapshot.docs[campaignSnapshot.docs.length - 1] || null
-        );
-        setHasNextPage(filteredCampaigns.length === totalToLoad);
-      } catch (error) {
-        console.error("Error loading page: ", error);
-      }
-    },
-    [dataBase, role, user]
-  );
-
-  // Function to prev page
-  const fetchPreviousPage = useCallback(async () => {
-    if (currentPage <= 1) return;
-    await loadPage(currentPage - 1);
-  }, [currentPage, loadPage]);
-
-  const filteredUsers = users
-    .filter((user) =>
-      `${user.name} (${user.email})`
-        .toLowerCase()
-        .includes(userSearch.toLowerCase())
-    )
-    .slice(0, 5);
 
   const handleCopyLocationLink = (campaignId: string) => {
     const url = `${window.location.origin}/addlocation?campaignId=${campaignId}`;
@@ -603,10 +528,9 @@ const Campaigns = () => {
                   type="submit"
                   disabled={isSaveDisabled()}
                   className={`mt-4 px-4 py-2 font-bold text-white rounded-md focus:outline-none focus:ring focus:ring-opacity-50 
-                    ${
-                      isSaveDisabled()
-                        ? "bg-ooh-yeah-pink cursor-not-allowed opacity-40"
-                        : "bg-ooh-yeah-pink hover:bg-ooh-yeah-pink-700"
+                    ${isSaveDisabled()
+                      ? "bg-ooh-yeah-pink cursor-not-allowed opacity-40"
+                      : "bg-ooh-yeah-pink hover:bg-ooh-yeah-pink-700"
                     }`}
                 >
                   Save
@@ -668,15 +592,14 @@ const Campaigns = () => {
               />
               {userDropdownOpen && (
                 <div className="absolute w-full max-h-40 overflow-y-auto border rounded mt-1 bg-white shadow-lg z-50">
-                  {filteredUsers.map((user) => (
+                  {users.map((user) => (
                     <button
                       type="button"
                       key={user.id}
-                      className={`p-2 cursor-pointer hover:bg-gray-100 ${
-                        selectedUser?.id === user.id
-                          ? "bg-gray-200 font-semibold"
-                          : ""
-                      }`}
+                      className={`p-2 cursor-pointer hover:bg-gray-100 ${selectedUser?.id === user.id
+                        ? "bg-gray-200 font-semibold"
+                        : ""
+                        }`}
                       onClick={() => {
                         setSelectedUser(user);
                         setUserSearch(`${user.name} (${user.email})`);
@@ -696,7 +619,7 @@ const Campaigns = () => {
                       {user.name} ({user.email})
                     </button>
                   ))}
-                  {filteredUsers.length === 0 && (
+                  {users.length === 0 && (
                     <div className="p-2 text-sm text-gray-500">
                       No users found
                     </div>
@@ -706,10 +629,10 @@ const Campaigns = () => {
                       .toLowerCase()
                       .includes(userSearch.toLowerCase())
                   ).length > 5 && (
-                    <div className="p-2 text-sm text-gray-500 border-t sticky bottom-0 bg-white">
-                      Showing first 5 results. Type more to refine search.
-                    </div>
-                  )}
+                      <div className="p-2 text-sm text-gray-500 border-t sticky bottom-0 bg-white">
+                        Showing first 5 results. Type more to refine search.
+                      </div>
+                    )}
                 </div>
               )}
             </div>
@@ -753,11 +676,10 @@ const Campaigns = () => {
               <button
                 type="submit"
                 disabled={!selectedUser || !formData.name}
-                className={`w-full py-2 mt-4 font-semibold text-white rounded-lg transition-colors ${
-                  !selectedUser || !formData.name
-                    ? "bg-ooh-yeah-pink opacity-50 cursor-not-allowed"
-                    : "bg-ooh-yeah-pink hover:bg-pink-600"
-                }`}
+                className={`w-full py-2 mt-4 font-semibold text-white rounded-lg transition-colors ${!selectedUser || !formData.name
+                  ? "bg-ooh-yeah-pink opacity-50 cursor-not-allowed"
+                  : "bg-ooh-yeah-pink hover:bg-pink-600"
+                  }`}
               >
                 Create Campaign
               </button>
@@ -851,7 +773,6 @@ const Campaigns = () => {
               />
             </div>
           </div>
-          {/* Active filters display */}
           {(filters.name || filters.status || filters.owner) && (
             <div className="mt-3 flex flex-wrap gap-2">
               {filters.name && (
@@ -991,36 +912,33 @@ const Campaigns = () => {
           </tbody>
         </table>
       </div>
-      <div className="flex justify-end items-center mt-4 p-4">
-        <div className="flex items-center gap-2">
+      {totalPages > 1 && (
+        <div className="flex justify-between items-center mt-4 p-4">
           <button
-            onClick={fetchPreviousPage}
+            onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage <= 1}
-            className={`px-3 py-2 rounded-md ${
-              currentPage <= 1
-                ? "bg-gray-300 cursor-not-allowed"
-                : "bg-ooh-yeah-pink text-white hover:bg-ooh-yeah-pink-700"
-            }`}
+            className={`px-3 py-2 rounded-md ${currentPage <= 1
+              ? "bg-gray-300 cursor-not-allowed"
+              : "bg-ooh-yeah-pink text-white hover:bg-ooh-yeah-pink-700"
+              }`}
           >
             <HiArrowLeft />
           </button>
           <span className="px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-sm font-semibold shadow-sm border border-gray-300">
-            {currentPage}
+            Page {currentPage} of {totalPages}
           </span>
-
           <button
-            onClick={fetchNextPage}
-            disabled={!hasNextPage}
-            className={`px-3 py-2 rounded-md ${
-              !hasNextPage
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-ooh-yeah-pink text-white hover:bg-ooh-yeah-pink-700"
-            }`}
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage >= totalPages}
+            className={`px-3 py-2 rounded-md ${currentPage >= totalPages
+              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+              : "bg-ooh-yeah-pink text-white hover:bg-ooh-yeah-pink-700"
+              }`}
           >
             <HiArrowRight />
           </button>
         </div>
-      </div>
+      )}
     </>
   );
 };

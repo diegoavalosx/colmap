@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+  type FormEvent,
+  useMemo,
+} from "react";
 import { useAuth } from "./useAuth";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import {
@@ -10,10 +16,6 @@ import {
   where,
   updateDoc,
   orderBy,
-  limit,
-  startAfter,
-  QueryDocumentSnapshot,
-  DocumentData,
 } from "firebase/firestore";
 import {
   HiXCircle,
@@ -51,12 +53,8 @@ const Users = () => {
   const navigate = useNavigate();
 
   const [users, setUsers] = useState<User[]>([]);
-  // new state
-  const pageSize = 5;
-  const [lastVisible, setLastVisible] =
-    useState<QueryDocumentSnapshot<DocumentData> | null>(null);
-  const [hasNextPage, setHasNextPage] = useState<boolean>(true);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const pageSize = 8;
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
@@ -76,6 +74,7 @@ const Users = () => {
     emailVerified: "",
   });
   const [showFilters, setShowFilters] = useState(false);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -288,102 +287,62 @@ const Users = () => {
     }
   };
 
-  // PAGINATION LOGIC
-  // Fetch first page of users
   const fetchUsers = useCallback(async () => {
     if (!dataBase) return;
 
     try {
-      const q = query(
-        collection(dataBase, "users"),
-        orderBy("name", "asc"),
-        limit(pageSize)
-      );
+      const q = query(collection(dataBase, "users"), orderBy("name", "asc"));
       const querySnapshot = await getDocs(q);
       const userList = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       })) as User[];
-      setUsers(userList);
-      setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1]);
-      setHasNextPage(querySnapshot.docs.length === pageSize);
+
+      setAllUsers(userList);
+      setUsers(userList.slice(0, pageSize));
       setCurrentPage(1);
     } catch (error) {
       console.error("Error fetching users: ", error);
     }
-  }, [dataBase]);
+  }, [dataBase, pageSize]);
 
-  // Fetch next page of users
-  const fetchNextPage = useCallback(async () => {
-    if (!dataBase || !lastVisible || !hasNextPage) return;
+  const filteredUsers = useMemo(() => {
+    return allUsers.filter((user) => {
+      const matchesName =
+        !filters.name ||
+        user.name.toLowerCase().includes(filters.name.toLowerCase());
+      const matchesEmail =
+        !filters.email ||
+        user.email.toLowerCase().includes(filters.email.toLowerCase());
+      const matchesRole = !filters.role || user.role === filters.role;
+      const matchesEmailVerified =
+        filters.emailVerified === "" ||
+        user.emailVerified === (filters.emailVerified === "yes");
 
-    try {
-      const q = query(
-        collection(dataBase, "users"),
-        orderBy("name", "asc"),
-        startAfter(lastVisible),
-        limit(pageSize)
-      );
+      return matchesName && matchesEmail && matchesRole && matchesEmailVerified;
+    });
+  }, [allUsers, filters]);
 
-      const querySnapshot = await getDocs(q);
-      const newUsers = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as User[];
+  const paginatedUsers = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return filteredUsers.slice(startIndex, startIndex + pageSize);
+  }, [filteredUsers, currentPage, pageSize]);
 
-      setUsers(newUsers);
-      setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1] || null);
-      setHasNextPage(querySnapshot.docs.length === pageSize);
-      setCurrentPage((prev) => prev + 1);
-    } catch (error) {
-      console.error("Error fetching next page of users: ", error);
-    }
-  }, [dataBase, lastVisible, hasNextPage]);
+  const totalPages = Math.ceil(filteredUsers.length / pageSize);
 
-  const loadPage = useCallback(
-    async (pageNumber: number) => {
-      if (!dataBase) return;
+  useEffect(() => {
+    setUsers(paginatedUsers);
+  }, [paginatedUsers]);
 
-      try {
-        const totalToLoad = pageSize * pageNumber;
-
-        const q = query(
-          collection(dataBase, "users"),
-          orderBy("name", "asc"),
-          limit(totalToLoad)
-        );
-
-        const querySnapshot = await getDocs(q);
-        const allUsers = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as User[];
-
-        // Take only the users from the requested page
-        const startIndex = (pageNumber - 1) * pageSize;
-        const pageUsers = allUsers.slice(startIndex, startIndex + pageSize);
-
-        setUsers(pageUsers);
-        setCurrentPage(pageNumber);
-        setLastVisible(
-          querySnapshot.docs[querySnapshot.docs.length - 1] || null
-        );
-        setHasNextPage(allUsers.length === totalToLoad);
-      } catch (error) {
-        console.error("Error loading page: ", error);
-      }
-    },
-    [dataBase]
-  );
-
-  const fetchPreviousPage = useCallback(async () => {
-    if (currentPage <= 1) return;
-    await loadPage(currentPage - 1);
-  }, [currentPage, loadPage]);
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
 
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
+
+  const displayedUsers = users;
 
   const handleFilterChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -393,18 +352,8 @@ const Users = () => {
       ...prev,
       [name]: value,
     }));
+    setCurrentPage(1); // Reset to first page when filters change
   };
-
-  const filteredUsers = users.filter((user) => {
-    return (
-      user.email.toLowerCase().includes(filters.email.toLowerCase()) &&
-      user.name.toLowerCase().includes(filters.name.toLowerCase()) &&
-      (filters.role === "" || user.role === filters.role) &&
-      (filters.emailVerified === "" ||
-        (filters.emailVerified === "yes" && user.emailVerified) ||
-        (filters.emailVerified === "no" && !user.emailVerified))
-    );
-  });
 
   return (
     <>
@@ -503,10 +452,9 @@ const Users = () => {
                   type="submit"
                   disabled={isSaveDisabled()}
                   className={`mt-4 px-4 py-2 font-bold text-white rounded-md focus:outline-none focus:ring focus:ring-opacity-50
-                    ${
-                      isSaveDisabled()
-                        ? "bg-ooh-yeah-pink cursor-not-allowed opacity-40"
-                        : "bg-ooh-yeah-pink hover:bg-ooh-yeah-pink-700"
+                    ${isSaveDisabled()
+                      ? "bg-ooh-yeah-pink cursor-not-allowed opacity-40"
+                      : "bg-ooh-yeah-pink hover:bg-ooh-yeah-pink-700"
                     }`}
                 >
                   Save
@@ -632,7 +580,6 @@ const Users = () => {
         </div>
       </div>
 
-      {/* Collapsible filter panel */}
       {showFilters && (
         <div className="mb-4 p-4 bg-gray-50 rounded-lg shadow-sm">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -709,87 +656,86 @@ const Users = () => {
               </select>
             </div>
           </div>
-          {/* Active filters display */}
           {(filters.email ||
             filters.name ||
             filters.role ||
             filters.emailVerified) && (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {filters.email && (
-                <span className="px-2 py-1 bg-gray-200 rounded-full text-sm flex items-center gap-1">
-                  Email: {filters.email}
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setFilters((prev) => ({ ...prev, email: "" }))
-                    }
-                    className="text-gray-600 hover:text-gray-800"
-                  >
-                    <HiXCircle size={16} />
-                  </button>
-                </span>
-              )}
-              {filters.name && (
-                <span className="px-2 py-1 bg-gray-200 rounded-full text-sm flex items-center gap-1">
-                  Name: {filters.name}
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setFilters((prev) => ({ ...prev, name: "" }))
-                    }
-                    className="text-gray-600 hover:text-gray-800"
-                  >
-                    <HiXCircle size={16} />
-                  </button>
-                </span>
-              )}
-              {filters.role && (
-                <span className="px-2 py-1 bg-gray-200 rounded-full text-sm flex items-center gap-1">
-                  Role: {filters.role}
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setFilters((prev) => ({ ...prev, role: "" }))
-                    }
-                    className="text-gray-600 hover:text-gray-800"
-                  >
-                    <HiXCircle size={16} />
-                  </button>
-                </span>
-              )}
-              {filters.emailVerified && (
-                <span className="px-2 py-1 bg-gray-200 rounded-full text-sm flex items-center gap-1">
-                  Email:{" "}
-                  {filters.emailVerified === "yes"
-                    ? "Verified"
-                    : "Not Verified"}
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setFilters((prev) => ({ ...prev, emailVerified: "" }))
-                    }
-                    className="text-gray-600 hover:text-gray-800"
-                  >
-                    <HiXCircle size={16} />
-                  </button>
-                </span>
-              )}
-              <button
-                type="button"
-                onClick={() =>
-                  setFilters({
-                    email: "",
-                    name: "",
-                    role: "",
-                    emailVerified: "",
-                  })
-                }
-                className="px-2 py-1 text-sm text-gray-600 hover:text-gray-800"
-              >
-                Clear all
-              </button>
-            </div>
-          )}
+              <div className="mt-3 flex flex-wrap gap-2">
+                {filters.email && (
+                  <span className="px-2 py-1 bg-gray-200 rounded-full text-sm flex items-center gap-1">
+                    Email: {filters.email}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFilters((prev) => ({ ...prev, email: "" }))
+                      }
+                      className="text-gray-600 hover:text-gray-800"
+                    >
+                      <HiXCircle size={16} />
+                    </button>
+                  </span>
+                )}
+                {filters.name && (
+                  <span className="px-2 py-1 bg-gray-200 rounded-full text-sm flex items-center gap-1">
+                    Name: {filters.name}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFilters((prev) => ({ ...prev, name: "" }))
+                      }
+                      className="text-gray-600 hover:text-gray-800"
+                    >
+                      <HiXCircle size={16} />
+                    </button>
+                  </span>
+                )}
+                {filters.role && (
+                  <span className="px-2 py-1 bg-gray-200 rounded-full text-sm flex items-center gap-1">
+                    Role: {filters.role}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFilters((prev) => ({ ...prev, role: "" }))
+                      }
+                      className="text-gray-600 hover:text-gray-800"
+                    >
+                      <HiXCircle size={16} />
+                    </button>
+                  </span>
+                )}
+                {filters.emailVerified && (
+                  <span className="px-2 py-1 bg-gray-200 rounded-full text-sm flex items-center gap-1">
+                    Email:{" "}
+                    {filters.emailVerified === "yes"
+                      ? "Verified"
+                      : "Not Verified"}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFilters((prev) => ({ ...prev, emailVerified: "" }))
+                      }
+                      className="text-gray-600 hover:text-gray-800"
+                    >
+                      <HiXCircle size={16} />
+                    </button>
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFilters({
+                      email: "",
+                      name: "",
+                      role: "",
+                      emailVerified: "",
+                    })
+                  }
+                  className="px-2 py-1 text-sm text-gray-600 hover:text-gray-800"
+                >
+                  Clear all
+                </button>
+              </div>
+            )}
         </div>
       )}
 
@@ -815,7 +761,7 @@ const Users = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredUsers.map((user) => (
+            {displayedUsers.map((user) => (
               <tr key={user.id} className="even:bg-gray-100 hover:bg-gray-50">
                 <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
                   <button
@@ -861,36 +807,35 @@ const Users = () => {
           </tbody>
         </table>
       </div>
-      <div className="flex justify-end items-center mt-4 p-4">
-        <div className="flex items-center gap-2">
+      {totalPages > 1 && (
+        <div className="flex justify-between items-center mt-4 p-4">
           <button
-            onClick={fetchPreviousPage}
+            onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage <= 1}
-            className={`px-3 py-2 rounded-md ${
-              currentPage <= 1
-                ? "bg-gray-300 cursor-not-allowed"
-                : "bg-ooh-yeah-pink text-white hover:bg-ooh-yeah-pink-700"
-            }`}
+            className={`px-3 py-2 rounded-md ${currentPage <= 1
+              ? "bg-gray-300 cursor-not-allowed text-gray-500"
+              : "bg-ooh-yeah-pink text-white hover:bg-ooh-yeah-pink-700"
+              }`}
           >
             <HiArrowLeft />
           </button>
+
           <span className="px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-sm font-semibold shadow-sm border border-gray-300">
-            {currentPage}
+            Page {currentPage} of {totalPages}
           </span>
 
           <button
-            onClick={fetchNextPage}
-            disabled={!hasNextPage}
-            className={`px-3 py-2 rounded-md ${
-              !hasNextPage
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-ooh-yeah-pink text-white hover:bg-ooh-yeah-pink-700"
-            }`}
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage >= totalPages}
+            className={`px-3 py-2 rounded-md ${currentPage >= totalPages
+              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+              : "bg-ooh-yeah-pink text-white hover:bg-ooh-yeah-pink-700"
+              }`}
           >
             <HiArrowRight />
           </button>
         </div>
-      </div>
+      )}
     </>
   );
 };
