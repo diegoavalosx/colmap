@@ -19,6 +19,7 @@ export interface AuthContextType {
   dataBase: Firestore | null;
   role: string | null;
   storage: FirebaseStorage;
+  loading: boolean;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(

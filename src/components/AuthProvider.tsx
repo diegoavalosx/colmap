@@ -145,6 +145,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         clearAuthError,
         resendVerificationEmail,
         storage,
+        loading,
       }}
     >
       {children}
