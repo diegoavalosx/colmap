@@ -43,6 +43,8 @@ const MainContent: React.FC = () => {
 
   const resources = role === "admin" ? adminResources : userResources;
 
+  if (!role) return null;
+
   return (
     <div className="h-full p-4 sm:p-8 md:p-12">
       <h1 className="text-2xl sm:text-3xl font-semibold text-center mb-4 sm:mb-8 text-gray-900">
