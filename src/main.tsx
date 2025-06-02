@@ -9,7 +9,7 @@ import { AuthProvider } from "./components/AuthProvider.tsx";
 import "./styles/styles.css";
 import EmailVerification from "./components/EmailVerification.tsx";
 import NotFound from "./components/NotFound.tsx";
-import Verified from "./components/Verified.tsx";
+import Verified from "./components/VerifyEmail.tsx";
 import AddLocation from "./components/AddLocation.tsx";
 
 const rootElement = document.getElementById("root");
@@ -20,7 +20,7 @@ if (rootElement) {
       <Router>
         <Routes>
           <Route path="/" element={<App />} />
-          <Route path="/verified" element={<Verified />} />
+          <Route path="/verify-email" element={<Verified />} />
           <Route
             path="/*"
             element={
