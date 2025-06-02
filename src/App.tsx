@@ -1,8 +1,10 @@
-import { forwardRef, useRef, useState, useEffect } from "react";
-import WhoWeAre from "./components/WhoWeAre";
-import Contact from "./components/Contact";
+import { forwardRef, useRef, useState, useEffect, Suspense, lazy } from "react";
 import NavBar from "./components/NavBar";
 import defaultImage from "./assets/wooyeahPhotoPoster.jpg";
+import Loader from "./components/Loader";
+
+const WhoWeAre = lazy(() => import("./components/WhoWeAre"));
+const Contact = lazy(() => import("./components/Contact"));
 
 function App() {
   const homeRef = useRef<HTMLDivElement>(null);
@@ -81,8 +83,14 @@ function App() {
         activeSection={currentSection}
       />
       <HomeDummy id="home" ref={homeRef} />
-      <WhoWeAre id="whoWeAre" ref={whoWeAreRef} />
-      <Contact id="contact" ref={contactRef} />
+
+      <Suspense fallback={<Loader />}>
+        <WhoWeAre id="whoWeAre" ref={whoWeAreRef} />
+      </Suspense>
+
+      <Suspense fallback={<Loader />}>
+        <Contact id="contact" ref={contactRef} />
+      </Suspense>
     </div>
   );
 }
@@ -92,21 +100,30 @@ interface HomeDummyProps {
 }
 
 const HomeDummy = forwardRef<HTMLDivElement, HomeDummyProps>(({ id }, ref) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
   return (
     <div
       id={id}
       ref={ref}
-      className="max-h-[48rem] h-auto md:h-[48rem] w-full bg-deluxe-gray overflow-hidden animate-fadeIn sm:pt-0 pt-[4rem]"
+      className="max-h-[48rem] h-auto md:h-[48rem] w-full bg-deluxe-gray overflow-hidden animate-fadeIn sm:pt-0 pt-[4rem] relative"
     >
+      {!imageLoaded && !imageError && <Loader fullScreen />}
+
       <img
         src="https://firebasestorage.googleapis.com/v0/b/colmap-9f519.firebasestorage.app/o/settings%2Fhomepage-image.jpg?alt=media"
         alt="homepage"
-        className="object-contain md:object-cover h-full w-full
-            transition-opacity duration-500 ease-out"
+        className={`object-contain md:object-cover h-full w-full transition-opacity duration-500 ease-out ${
+          imageLoaded ? "opacity-100" : "opacity-0"
+        }`}
         loading="eager"
         decoding="async"
+        onLoad={() => setImageLoaded(true)}
         onError={({ currentTarget }) => {
           currentTarget.src = defaultImage;
+          setImageError(true);
+          setImageLoaded(true);
         }}
       />
     </div>
