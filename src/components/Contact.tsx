@@ -47,6 +47,7 @@ const Contact = forwardRef<HTMLDivElement, ContactProps>(
       }
       return isValid;
     };
+
     const sendEmail = async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
 
@@ -119,7 +120,7 @@ const Contact = forwardRef<HTMLDivElement, ContactProps>(
           <form
             ref={form}
             onSubmit={sendEmail}
-            className="flex flex-col items-center w-full max-w-md space-y-6"
+            className="flex flex-col items-center w-full max-w-md space-y-3"
           >
             <div className="w-full">
               <label htmlFor="POST-name" className="block text-sm font-medium">
@@ -131,10 +132,16 @@ const Contact = forwardRef<HTMLDivElement, ContactProps>(
                 name="user_name"
                 className="w-full border-2 border-gray-300 text-deluxe-black rounded-lg px-4 py-2 mt-1 focus:border-ooh-yeah-pink focus:outline-none transition-colors"
               />
-              {nameError && (
-                <p className="text-red-500 text-sm mt-1">{nameError}</p>
-              )}
+              {/* Reserved space for error message */}
+              <div className="h-5 mt-1">
+                {nameError && (
+                  <p className="text-red-500 text-sm animate-fadeIn">
+                    {nameError}
+                  </p>
+                )}
+              </div>
             </div>
+
             <div className="w-full">
               <label htmlFor="POST-email" className="block text-sm font-medium">
                 Email
@@ -145,10 +152,16 @@ const Contact = forwardRef<HTMLDivElement, ContactProps>(
                 name="user_email"
                 className="w-full border-2 border-gray-300 text-deluxe-black rounded-lg px-4 py-2 mt-1 focus:border-ooh-yeah-pink focus:outline-none transition-colors"
               />
-              {emailError && (
-                <p className="text-red-500 text-sm mt-1">{emailError}</p>
-              )}
+              {/* Reserved space for error message */}
+              <div className="h-5 mt-1">
+                {emailError && (
+                  <p className="text-red-500 text-sm animate-fadeIn">
+                    {emailError}
+                  </p>
+                )}
+              </div>
             </div>
+
             <div className="w-full">
               <label
                 htmlFor="POST-message"
@@ -162,9 +175,14 @@ const Contact = forwardRef<HTMLDivElement, ContactProps>(
                 rows={4}
                 className="w-full border-2 border-gray-300 text-deluxe-black rounded-lg px-4 py-2 mt-1 focus:border-ooh-yeah-pink focus:outline-none transition-colors"
               />
-              {messageError && (
-                <p className="text-red-500 text-sm mt-1">{messageError}</p>
-              )}
+              {/* Reserved space for error message */}
+              <div className="h-5 mt-1">
+                {messageError && (
+                  <p className="text-red-500 text-sm animate-fadeIn">
+                    {messageError}
+                  </p>
+                )}
+              </div>
             </div>
 
             <button
@@ -179,17 +197,19 @@ const Contact = forwardRef<HTMLDivElement, ContactProps>(
               {isLoading ? "SENDING..." : "SEND"}
             </button>
 
-            {formSuccess && (
-              <p
-                className={`text-sm mt-2 ${
-                  formSuccess.startsWith("Form")
-                    ? "text-green-500"
-                    : "text-red-500"
-                }`}
-              >
-                {formSuccess}
-              </p>
-            )}
+            <div className="h-5 text-center">
+              {formSuccess && (
+                <p
+                  className={`text-sm animate-fadeIn ${
+                    formSuccess.startsWith("Form")
+                      ? "text-ooh-yeah-pink"
+                      : "text-red-500"
+                  }`}
+                >
+                  {formSuccess}
+                </p>
+              )}
+            </div>
           </form>
         </div>
       </div>

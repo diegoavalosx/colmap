@@ -1,7 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import App3 from "./App3.tsx";
+import App from "./App.tsx";
 import Login from "./components/Login.tsx";
 import Dashboard from "./components/Dashboard.tsx";
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
@@ -19,7 +19,7 @@ if (rootElement) {
     <StrictMode>
       <Router>
         <Routes>
-          <Route path="/" element={<App3 />} />
+          <Route path="/" element={<App />} />
           <Route path="/verify-email" element={<Verified />} />
           <Route
             path="/*"
