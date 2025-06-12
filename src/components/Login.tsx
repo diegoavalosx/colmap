@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "./useAuth";
 import { useNavigate } from "react-router-dom";
+import { HiEye, HiEyeOff } from "react-icons/hi";
 interface LogInFormData {
   email: string;
   password: string;
@@ -9,6 +10,7 @@ interface LogInFormData {
 const Login = () => {
   const navigate = useNavigate();
   const { login, user, authStatus, authError, clearAuthError } = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState<LogInFormData>({
     email: "",
     password: "",
@@ -45,6 +47,10 @@ const Login = () => {
     }
   };
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
     <div className="flex items-center justify-center h-screen bg-white md:bg-black">
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-none md:shadow-lg">
@@ -75,16 +81,30 @@ const Login = () => {
           >
             Password:
           </label>
-          <input
-            type="password"
-            name="password"
-            id="password"
-            value={formData.password}
-            onChange={handleInputChange}
-            className="w-full px-3 py-2 mb-4 text-black placeholder-gray-400 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink focus:border-transparent"
-            placeholder="••••••••"
-            required
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              id="password"
+              value={formData.password}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 mb-4 text-black placeholder-gray-400 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink focus:border-transparent"
+              placeholder="••••••••"
+              required
+            />
+            <button
+              type="button"
+              onClick={togglePasswordVisibility}
+              className="absolute right-3 top-2.5 text-gray-500 hover:text-gray-700"
+            >
+              {showPassword ? (
+                <HiEyeOff className="w-5 h-5" />
+              ) : (
+                <HiEye className="w-5 h-5" />
+              )}
+            </button>
+          </div>
+
           {authError && (
             <p className="text-red-500 mb-4 text-center">{authError}</p>
           )}

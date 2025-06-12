@@ -10,6 +10,7 @@ const Contact = forwardRef<HTMLDivElement, ContactProps>(
   ({ id, goBackToHome }, ref) => {
     const form = useRef<HTMLFormElement | null>(null);
     const [nameError, setNameError] = useState("");
+    const [phoneError, setPhoneError] = useState("")
     const [emailError, setEmailError] = useState("");
     const [messageError, setmessageError] = useState("");
     const [formSuccess, setformSuccess] = useState<string | null>(null);
@@ -24,6 +25,19 @@ const Contact = forwardRef<HTMLDivElement, ContactProps>(
         setTimeout(() => setNameError(""), 3000);
       } else {
         setNameError("");
+      }
+
+      const phone = form.current?.user_phone.value;
+      if (!phone) {
+        setPhoneError("Phone required");
+        isValid = false;
+        setTimeout(() => setPhoneError(""), 3000);
+      } else if (!/^\+?[\d\s-]{10,}$/.test(phone)) {
+        setPhoneError("Invalid phone number");
+        isValid = false;
+        setTimeout(() => setPhoneError(""), 3000);
+      } else {
+        setPhoneError("");
       }
 
       const email = form.current?.user_email.value;
@@ -57,6 +71,7 @@ const Contact = forwardRef<HTMLDivElement, ContactProps>(
 
       const payload = {
         name: form.current.user_name.value,
+        phone: form.current.user_phone.value,
         email: form.current.user_email.value,
         message: form.current.message.value,
       };
@@ -137,6 +152,26 @@ const Contact = forwardRef<HTMLDivElement, ContactProps>(
                 {nameError && (
                   <p className="text-red-500 text-sm animate-fadeIn">
                     {nameError}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="w-full">
+              <label htmlFor="POST-phone" className="block text-sm font-medium">
+                Phone
+              </label>
+              <input
+                id="POST-phone"
+                type="text"
+                name="user_phone"
+                className="w-full border-2 border-gray-300 text-deluxe-black rounded-lg px-4 py-2 mt-1 focus:border-ooh-yeah-pink focus:outline-none transition-colors"
+              />
+              {/* Reserved space for error message */}
+              <div className="h-5 mt-1">
+                {phoneError && (
+                  <p className="text-red-500 text-sm animate-fadeIn">
+                    {phoneError}
                   </p>
                 )}
               </div>
