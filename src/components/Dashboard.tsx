@@ -15,7 +15,7 @@ const Dashboard = () => {
   return (
     <div className="flex w-full max-h-full">
       <Sidebar />
-      <div className="flex-1 px-4 pt-10 pb-4 md:p-6 bg-gray-100 overflow-scroll">
+      <div className="flex-1 px-4 pt-10 pb-4 lg:p-6 bg-gray-100 overflow-auto">
         <Suspense fallback={<Loader />}>
           <Routes>
             <Route path="/" element={<MainContent />} />

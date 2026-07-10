@@ -273,8 +273,8 @@ const UserDetail = () => {
       </ReactModal>
       <ToastContainer />
 
-      <div className="flex justify-between mt-4">
-        <h1 className="text-left text-2xl font-bold">User Campaigns</h1>
+      <div className="flex justify-between items-center mt-6 mb-5 lg:my-5">
+        <h1 className="lg:text-left text-2xl font-bold">User Campaigns</h1>
         <div className="flex gap-2">
           <button
             className="px-4 py-2 text-white font-bold rounded-md bg-gray-600 hover:bg-gray-700 transition-colors flex items-center gap-2"
@@ -284,7 +284,7 @@ const UserDetail = () => {
             <HiFilter size={20} />
           </button>
           <button
-            className="px-4 py-2 text-white font-bold rounded-md bg-ooh-yeah-pink"
+            className="px-4 py-2 text-white font-bold rounded-md bg-ooh-yeah-pink hover:bg-ooh-yeah-pink-700 transition-colors"
             type="button"
             onClick={handleCreateCampaignClick}
           >
@@ -296,7 +296,7 @@ const UserDetail = () => {
       {/* Collapsible filter panel */}
       {showFilters && (
         <div className="mb-4 p-4 bg-gray-50 rounded-lg shadow-sm">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div>
               <label
                 htmlFor="filter-name"
@@ -404,36 +404,51 @@ const UserDetail = () => {
         </div>
       )}
 
-      <div className="flex mt-6 overflow-x-auto">
-        <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+      <div className="mt-0 overflow-x-auto rounded-lg border border-gray-200 bg-white">
+        <table className="min-w-full">
           <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200 w-1/3">
+            <tr className="border-b border-gray-200">
+              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm w-1/3">
                 Name
               </th>
-              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200 w-1/6">
+              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm w-1/6">
                 Status
               </th>
-              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200 w-1/3">
+              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm w-1/3">
                 Created at
               </th>
-              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200 w-1/6">
+              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm w-1/6">
                 Details
               </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-gray-200">
             {filteredCampaigns.length > 0 ? (
               filteredCampaigns.map((campaign) => (
-                <tr key={campaign.id} className="border-b border-gray-200">
-                  <td className="px-6 py-4 truncate">{campaign.name}</td>
-                  <td className="px-6 py-4">{campaign.status}</td>
-                  <td className="px-6 py-4 truncate">
+                <tr
+                  key={campaign.id}
+                  className="odd:bg-white even:bg-gray-50 hover:bg-gray-100"
+                >
+                  <td className="px-6 py-4 text-left text-gray-800">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        navigate(`/dashboard/campaign/${campaign.id}`)
+                      }
+                      className="text-ooh-yeah-pink hover:underline truncate block w-full text-left"
+                    >
+                      {campaign.name}
+                    </button>
+                  </td>
+                  <td className="px-6 py-4 text-left text-gray-800">
+                    {campaign.status}
+                  </td>
+                  <td className="px-6 py-4 text-left text-gray-800 truncate">
                     {campaign.createdAt instanceof Date
                       ? campaign.createdAt.toLocaleString()
                       : campaign.createdAt.toDate().toLocaleString()}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 text-left text-gray-800">
                     <button
                       type="button"
                       onClick={() => {
