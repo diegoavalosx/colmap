@@ -694,10 +694,8 @@ const Campaigns = () => {
           </form>
         )}
       </ReactModal>
-      <div className="flex justify-between items-center my-5 md:my-5">
-        <h1 className="text-center lg:text-left text-2xl font-bold">
-          Campaigns
-        </h1>
+      <div className="flex justify-between items-center mt-6 mb-5 lg:my-5">
+        <h1 className="lg:text-left text-2xl font-bold">Campaigns</h1>
         <div className="flex gap-2">
           <button
             className="px-4 py-2 text-white font-bold rounded-md bg-gray-600 hover:bg-gray-700 transition-colors flex items-center gap-2"
@@ -718,7 +716,7 @@ const Campaigns = () => {
 
       {showFilters && (
         <div className="mb-4 p-4 bg-gray-50 rounded-lg shadow-sm">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div>
               <label
                 htmlFor="filter-name"
@@ -829,31 +827,31 @@ const Campaigns = () => {
         </div>
       )}
 
-      <div className="flex mt-0 overflow-scroll">
-        <table className="min-w-full bg-white shadow-md rounded-lg">
+      <div className="mt-0 overflow-x-auto rounded-lg border border-gray-200 bg-white">
+        <table className="min-w-full">
           <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200 w-1/3">
+            <tr className="border-b border-gray-200">
+              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm w-1/3">
                 Name
               </th>
-              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200 w-1/6">
+              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm w-1/6">
                 Actions
               </th>
-              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200 w-1/6">
+              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm w-1/6">
                 Status
               </th>
-              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200 w-1/3">
+              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm w-1/3">
                 Owner
               </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-gray-200">
             {filteredCampaigns.map((campaign) => (
               <tr
                 key={campaign.id}
-                className="even:bg-gray-100 hover:bg-gray-50"
+                className="odd:bg-white even:bg-gray-50 hover:bg-gray-100"
               >
-                <td className="px-6 py-4 md:text-left text-center text-gray-800 border-b border-gray-200">
+                <td className="px-6 py-4 text-left text-gray-800">
                   <button
                     type="button"
                     onClick={() =>
@@ -864,12 +862,11 @@ const Campaigns = () => {
                     {campaign.name}
                   </button>
                 </td>
-                <td className="px-6 py-4 md:text-left text-center text-gray-800 border-b border-gray-200">
+                <td className="px-6 py-4 text-left text-gray-800">
                   <div className="flex items-center justify-start gap-2">
                     <button
                       type="button"
                       onClick={() => handleOpenEditModal(campaign)}
-                      className="hover:text-ooh-yeah-pink transition-colors"
                     >
                       <HiPencilAlt size={25} />
                     </button>
@@ -878,7 +875,6 @@ const Campaigns = () => {
                       onClick={() => {
                         handleOpenModal(campaign);
                       }}
-                      className="hover:text-red-500 transition-colors"
                     >
                       <BiTrash size={25} />
                     </button>
@@ -887,24 +883,22 @@ const Campaigns = () => {
                       onClick={() => {
                         navigate(`/dashboard/campaign/${campaign.id}`);
                       }}
-                      className="hover:text-ooh-yeah-pink transition-colors"
                     >
                       <HiEye size={25} />
                     </button>
                     <button
                       type="button"
                       onClick={() => handleCopyLocationLink(campaign.id)}
-                      className="hover:text-ooh-yeah-pink transition-colors"
                       title="Copy location link"
                     >
                       <HiLink size={25} />
                     </button>
                   </div>
                 </td>
-                <td className="px-6 py-4 md:text-left text-center text-gray-800 border-b border-gray-200">
+                <td className="px-6 py-4 text-left text-gray-800">
                   {campaign.status}
                 </td>
-                <td className="px-6 py-4 md:text-left text-center text-gray-800 border-b border-gray-200 truncate">
+                <td className="px-6 py-4 text-left text-gray-800 truncate">
                   {userEmails[campaign.userId] || "No email available"}
                 </td>
               </tr>
@@ -918,7 +912,7 @@ const Campaigns = () => {
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage <= 1}
             className={`px-3 py-2 rounded-md ${currentPage <= 1
-              ? "bg-gray-300 cursor-not-allowed"
+              ? "bg-gray-300 cursor-not-allowed text-gray-500"
               : "bg-ooh-yeah-pink text-white hover:bg-ooh-yeah-pink-700"
               }`}
           >

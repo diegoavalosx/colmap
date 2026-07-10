@@ -560,7 +560,7 @@ const Users = () => {
           </form>
         )}
       </ReactModal>
-      <div className="flex justify-between items-center my-5 md:my-5">
+      <div className="flex justify-between items-center mt-6 mb-5 lg:my-5">
         <h1 className="lg:text-left text-2xl font-bold">Users</h1>
         <div className="flex gap-2">
           <button
@@ -582,7 +582,7 @@ const Users = () => {
 
       {showFilters && (
         <div className="mb-4 p-4 bg-gray-50 rounded-lg shadow-sm">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
             <div>
               <label
                 htmlFor="filter-email"
@@ -739,31 +739,31 @@ const Users = () => {
         </div>
       )}
 
-      <div className="flex mt-0 overflow-x-auto">
-        <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+      <div className="mt-0 overflow-x-auto rounded-lg border border-gray-200 bg-white">
+        <table className="min-w-full">
           <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200 w-1/3">
+            <tr className="border-b border-gray-200">
+              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm w-1/3">
                 Email
               </th>
-              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200 w-1/6">
+              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm w-1/6">
                 Actions
               </th>
-              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200 w-1/4">
+              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm w-1/4">
                 Name
               </th>
-              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200 w-1/6">
+              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm w-1/6">
                 Email verified
               </th>
-              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm border-b border-gray-200 w-1/6">
+              <th className="px-6 py-3 text-left text-gray-600 font-bold text-sm w-1/6">
                 Role
               </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-gray-200">
             {displayedUsers.map((user) => (
-              <tr key={user.id} className="even:bg-gray-100 hover:bg-gray-50">
-                <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
+              <tr key={user.id} className="odd:bg-white even:bg-gray-50 hover:bg-gray-100">
+                <td className="px-6 py-4 text-left text-gray-800">
                   <button
                     type="button"
                     onClick={() => navigate(`/dashboard/user/${user.id}`)}
@@ -772,7 +772,7 @@ const Users = () => {
                     {user.email}
                   </button>
                 </td>
-                <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
+                <td className="px-6 py-4 text-left text-gray-800">
                   <div className="flex items-center justify-start gap-2">
                     <button
                       type="button"
@@ -793,13 +793,13 @@ const Users = () => {
                     </button>
                   </div>
                 </td>
-                <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200 truncate">
+                <td className="px-6 py-4 text-left text-gray-800 truncate">
                   {user.name}
                 </td>
-                <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
+                <td className="px-6 py-4 text-left text-gray-800">
                   {user.emailVerified ? "Yes" : "No"}
                 </td>
-                <td className="px-6 py-4 text-left text-gray-800 border-b border-gray-200">
+                <td className="px-6 py-4 text-left text-gray-800">
                   {user.role}
                 </td>
               </tr>
