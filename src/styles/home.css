@@ -167,19 +167,6 @@
   transform: scale(1.015);
 }
 
-.oohyeah-home-time {
-  display: block;
-  margin-top: clamp(18px, 2.55vw, 24px);
-  color: #a3a3a3;
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
-  font-weight: 300;
-  letter-spacing: 0.15em;
-  line-height: 1.4;
-  text-align: center;
-  white-space: nowrap;
-}
-
 /* Medium viewports retain the desktop composition at a shared fluid scale. */
 @media (min-width: 721px) and (max-width: 1050px) {
   .oohyeah-home-intro {
@@ -271,11 +258,6 @@
     flex: 0 0 auto;
   }
 
-  .oohyeah-home-time {
-    margin-top: 18px;
-    font-size: 11px;
-    letter-spacing: 0.12em;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
