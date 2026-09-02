@@ -11,6 +11,7 @@ import EmailVerification from "./components/EmailVerification.tsx";
 import NotFound from "./components/NotFound.tsx";
 import Verified from "./components/VerifyEmail.tsx";
 import AddLocation from "./components/AddLocation.tsx";
+import OohyeahTest from "./pages/OohyeahTest.tsx";
 
 const rootElement = document.getElementById("root");
 
@@ -20,6 +21,7 @@ if (rootElement) {
       <Router>
         <Routes>
           <Route path="/" element={<App />} />
+          <Route path="/test" element={<OohyeahTest />} />
           <Route path="/verify-email" element={<Verified />} />
           <Route
             path="/*"

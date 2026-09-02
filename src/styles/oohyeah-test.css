@@ -1,0 +1,290 @@
+@import url("https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@200;300;400;500;600&display=swap");
+
+.oohyeah-test-page {
+  min-height: 100%;
+  overflow: hidden;
+  background: #050505;
+  color: #f7f7f4;
+  font-family: "Bai Jamjuree", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 300;
+}
+
+.oohyeah-test-page * {
+  box-sizing: border-box;
+}
+
+.oohyeah-test-shell {
+  width: min(944px, calc(100% - 48px));
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: clamp(36px, 5.3vw, 50px) 0 clamp(24px, 3.4vw, 32px);
+}
+
+.oohyeah-test-header {
+  display: grid;
+  grid-template-columns: 44.0678% 50%;
+  column-gap: 5.9322%;
+}
+
+.oohyeah-test-logo {
+  display: flex;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 416 / 157;
+  align-items: center;
+  overflow: hidden;
+}
+
+.oohyeah-test-logo img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.oohyeah-test-intro nav {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  height: clamp(18px, 2.55vw, 24px);
+  align-items: start;
+}
+
+.oohyeah-test-nav-item {
+  appearance: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #858585;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: clamp(14px, 1.8vw, 17px);
+  font-weight: 300;
+  letter-spacing: 0.1em;
+  line-height: 1.4;
+  text-align: left;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color 160ms ease;
+}
+
+.oohyeah-test-nav-item.is-active,
+.oohyeah-test-nav-item:hover,
+.oohyeah-test-nav-item:focus-visible {
+  color: #ffffff;
+}
+
+.oohyeah-test-nav-item:focus-visible,
+.oohyeah-test-logo:focus-visible,
+.oohyeah-test-gallery:focus-visible {
+  outline: 1px solid #e91e63;
+  outline-offset: 5px;
+}
+
+.oohyeah-test-content {
+  max-width: 448px;
+  margin: clamp(14px, 1.9vw, 18px) 0 0;
+  animation: oohyeah-content-in 240ms ease-out;
+}
+
+.oohyeah-test-content p {
+  margin: 0;
+  color: #f7f7f4;
+  font-size: clamp(15px, 1.9vw, 18px);
+  font-weight: 300;
+  letter-spacing: 0.1em;
+  line-height: 1.4;
+}
+
+.oohyeah-test-content a {
+  color: #ffffff;
+  text-decoration-color: #e91e63;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.oohyeah-test-content a:hover,
+.oohyeah-test-content a:focus-visible {
+  color: #e91e63;
+}
+
+@keyframes oohyeah-content-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.oohyeah-test-gallery-region {
+  width: 100%;
+  height: auto;
+  margin-top: 0;
+  padding-top: clamp(28px, 4.77vw, 45px);
+  overflow: hidden;
+}
+
+.oohyeah-test-gallery {
+  display: flex;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 944 / 466;
+  gap: clamp(10px, 1.6vw, 15px);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  overscroll-behavior-inline: contain;
+  touch-action: pan-x pan-y;
+}
+
+.oohyeah-test-gallery::-webkit-scrollbar {
+  display: none;
+}
+
+.oohyeah-test-slide {
+  width: 74.1525%;
+  height: 100%;
+  margin: 0;
+  flex: 0 0 74.1525%;
+  overflow: hidden;
+  background: #171717;
+}
+
+.oohyeah-test-slide img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.88) contrast(1.02);
+  transition: filter 240ms ease, transform 700ms cubic-bezier(0.2, 0.7, 0, 1);
+}
+
+.oohyeah-test-slide:hover img {
+  filter: saturate(1) contrast(1.02);
+  transform: scale(1.015);
+}
+
+.oohyeah-test-time {
+  display: block;
+  margin-top: clamp(18px, 2.55vw, 24px);
+  color: #a3a3a3;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 300;
+  letter-spacing: 0.15em;
+  line-height: 1.4;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Medium viewports retain the desktop composition at a shared fluid scale. */
+@media (min-width: 721px) and (max-width: 1050px) {
+  .oohyeah-test-intro {
+    min-width: 0;
+  }
+
+  .oohyeah-test-intro nav {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: 10px;
+  }
+
+  .oohyeah-test-nav-item {
+    min-width: 0;
+    font-size: clamp(13px, 1.8vw, 17px);
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+
+  .oohyeah-test-content {
+    max-width: 100%;
+  }
+
+  .oohyeah-test-content p {
+    letter-spacing: 0.08em;
+  }
+}
+
+@media (max-width: 720px) {
+  .oohyeah-test-shell {
+    width: min(320px, calc(100% - 40px));
+    padding-top: 20px;
+  }
+
+  .oohyeah-test-header {
+    display: block;
+    min-height: 0;
+  }
+
+  .oohyeah-test-logo {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 416 / 157;
+  }
+
+  .oohyeah-test-intro {
+    margin-top: 20px;
+  }
+
+  .oohyeah-test-intro nav {
+    height: 18px;
+  }
+
+  .oohyeah-test-nav-item {
+    font-size: 12px;
+    letter-spacing: 0.12em;
+  }
+
+  .oohyeah-test-content {
+    margin-top: clamp(10px, 3.75vw, 12px);
+  }
+
+  .oohyeah-test-content p {
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    line-height: 1.4;
+  }
+
+  .oohyeah-test-gallery-region {
+    height: auto;
+    padding-top: clamp(12px, 4.6875vw, 15px);
+    overflow: hidden;
+  }
+
+  .oohyeah-test-gallery {
+    flex-direction: column;
+    height: auto;
+    aspect-ratio: 8 / 9;
+    gap: clamp(8px, 3.125vw, 10px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+  }
+
+  .oohyeah-test-slide {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 700 / 466;
+    flex: 0 0 auto;
+  }
+
+  .oohyeah-test-time {
+    margin-top: 18px;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .oohyeah-test-nav-item,
+  .oohyeah-test-content,
+  .oohyeah-test-gallery,
+  .oohyeah-test-slide img {
+    animation: none;
+    scroll-behavior: auto;
+    transition: none;
+  }
+}

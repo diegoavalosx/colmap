@@ -31,3 +31,7 @@ dist-ssr
 # TypeScript build info files
 tsconfig.app.tsbuildinfo
 tsconfig.node.tsbuildinfo
+
+# Local agent tooling
+.agents/
+skills-lock.json
