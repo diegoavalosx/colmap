@@ -65,9 +65,9 @@ const Home = () => {
       default:
         return (
           <p>
-            OOHYEAH is a boutique outdoor media agency specializing in
-            distinctive guerrilla marketing, wild posting, and campaign
-            installations from concept to street.
+            Oohyeah is a guerrilla marketing agency. From production to
+            installation we execute wild posting, stenciling, stickering and
+            street campaigns worldwide.
           </p>
         );
     }
