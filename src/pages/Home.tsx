@@ -1,13 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import logo from "../assets/oohyeah-logo-white.png";
-import posterImage from "../assets/wooyeahPhotoPoster.jpg";
-import wallImage from "../assets/carousel-images/3.png";
-import "../styles/oohyeah-test.css";
+import { homepageGallery } from "../data/homepageGallery";
+import "../styles/home.css";
 
-const homepageImage =
-  "https://firebasestorage.googleapis.com/v0/b/colmap-9f519.firebasestorage.app/o/settings%2Fhomepage-image.jpg?alt=media";
-const consultationImage =
-  "https://firebasestorage.googleapis.com/v0/b/colmap-9f519.firebasestorage.app/o/settings%2Fconsult-image.jpg?alt=media";
 const contactEmail = "hello@oohyeahmedia.com";
 
 type MenuSection = "about" | "contact";
@@ -15,13 +10,6 @@ type MenuSection = "about" | "contact";
 const menuItems: Array<{ id: MenuSection; label: string }> = [
   { id: "about", label: "About" },
   { id: "contact", label: "Contact" },
-];
-
-const galleryImages = [
-  { src: posterImage, alt: "Wild posting campaign installed on a city wall" },
-  { src: wallImage, alt: "Outdoor poster campaign across an urban wall" },
-  { src: homepageImage, alt: "Oohyeah outdoor media installation" },
-  { src: consultationImage, alt: "Oohyeah campaign consultation" },
 ];
 
 const formatTimestamp = (date: Date) => {
@@ -43,7 +31,7 @@ const formatTimestamp = (date: Date) => {
   return `${dateLabel}, ${timeLabel}${timeZone ? ` (${timeZone})` : ""}`;
 };
 
-const OohyeahTest = () => {
+const Home = () => {
   const [now, setNow] = useState(() => new Date());
   const [activeSection, setActiveSection] =
     useState<MenuSection>("about");
@@ -111,23 +99,23 @@ const OohyeahTest = () => {
   };
 
   return (
-    <main className="oohyeah-test-page">
-      <div className="oohyeah-test-shell">
-        <header className="oohyeah-test-header">
-          <a className="oohyeah-test-logo" href="/" aria-label="Oohyeah home">
+    <main className="oohyeah-home-page">
+      <div className="oohyeah-home-shell">
+        <header className="oohyeah-home-header">
+          <a className="oohyeah-home-logo" href="/" aria-label="Oohyeah home">
             <img src={logo} alt="Oohyeah" />
           </a>
 
-          <div className="oohyeah-test-intro">
+          <div className="oohyeah-home-intro">
             <nav aria-label="Agency information">
               {menuItems.map((item) => (
                 <button
                   key={item.id}
-                  id={`oohyeah-test-tab-${item.id}`}
+                  id={`oohyeah-home-tab-${item.id}`}
                   type="button"
-                  aria-controls="oohyeah-test-menu-content"
+                  aria-controls="oohyeah-home-menu-content"
                   aria-pressed={activeSection === item.id}
-                  className={`oohyeah-test-nav-item ${
+                  className={`oohyeah-home-nav-item ${
                     activeSection === item.id ? "is-active" : ""
                   }`}
                   onClick={() => setActiveSection(item.id)}
@@ -135,16 +123,16 @@ const OohyeahTest = () => {
                   {item.label}
                 </button>
               ))}
-              <a className="oohyeah-test-nav-item" href="/login">
+              <a className="oohyeah-home-nav-item" href="/login">
                 Client Portal
               </a>
             </nav>
             <div
               key={activeSection}
-              id="oohyeah-test-menu-content"
-              className="oohyeah-test-content"
+              id="oohyeah-home-menu-content"
+              className="oohyeah-home-content"
               role="region"
-              aria-labelledby={`oohyeah-test-tab-${activeSection}`}
+              aria-labelledby={`oohyeah-home-tab-${activeSection}`}
               aria-live="polite"
             >
               {renderSectionContent()}
@@ -152,25 +140,25 @@ const OohyeahTest = () => {
           </div>
         </header>
 
-        <section className="oohyeah-test-gallery-region" aria-label="Selected work">
+        <section className="oohyeah-home-gallery-region" aria-label="Selected work">
           <div
             ref={galleryRef}
-            className="oohyeah-test-gallery"
+            className="oohyeah-home-gallery"
             role="region"
             aria-label="Selected campaign gallery. Use the arrow keys or swipe to browse."
             tabIndex={0}
             onKeyDown={handleGalleryKeyDown}
           >
-            {galleryImages.map((image) => (
-              <figure className="oohyeah-test-slide" key={image.src}>
+            {homepageGallery.map((image, index) => (
+              <figure className="oohyeah-home-slide" key={image.src}>
                 <img
                   src={image.src}
                   alt={image.alt}
                   draggable={false}
-                  loading="eager"
+                  loading={index === 0 ? "eager" : "lazy"}
                   onError={({ currentTarget }) => {
                     currentTarget.onerror = null;
-                    currentTarget.src = posterImage;
+                    currentTarget.src = homepageGallery[0].src;
                   }}
                 />
               </figure>
@@ -178,7 +166,7 @@ const OohyeahTest = () => {
           </div>
         </section>
 
-        <time className="oohyeah-test-time" dateTime={now.toISOString()}>
+        <time className="oohyeah-home-time" dateTime={now.toISOString()}>
           {formatTimestamp(now)}
         </time>
       </div>
@@ -186,4 +174,4 @@ const OohyeahTest = () => {
   );
 };
 
-export default OohyeahTest;
+export default Home;

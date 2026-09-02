@@ -1,7 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import App from "./App.tsx";
 import Login from "./components/Login.tsx";
 import Dashboard from "./components/Dashboard.tsx";
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
@@ -11,7 +10,7 @@ import EmailVerification from "./components/EmailVerification.tsx";
 import NotFound from "./components/NotFound.tsx";
 import Verified from "./components/VerifyEmail.tsx";
 import AddLocation from "./components/AddLocation.tsx";
-import OohyeahTest from "./pages/OohyeahTest.tsx";
+import Home from "./pages/Home.tsx";
 
 const rootElement = document.getElementById("root");
 
@@ -20,8 +19,7 @@ if (rootElement) {
     <StrictMode>
       <Router>
         <Routes>
-          <Route path="/" element={<App />} />
-          <Route path="/test" element={<OohyeahTest />} />
+          <Route path="/" element={<Home />} />
           <Route path="/verify-email" element={<Verified />} />
           <Route
             path="/*"
