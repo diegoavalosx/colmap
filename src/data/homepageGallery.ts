@@ -9,9 +9,19 @@ import eatCouchChinatown from "../assets/homepage/08-eat-couch-chinatown.webp";
 import dontBeDumbGreenpoint from "../assets/homepage/09-dont-be-dumb-greenpoint.webp";
 import justiceEvictionCampaign from "../assets/homepage/10-justice-eviction-campaign.webp";
 import juliaFoxStoopSale from "../assets/homepage/11-julia-fox-stoop-sale.webp";
+import timesSquareStencil from "../assets/homepage/12-times-square-street-stencil.webp";
 import dontBeDumbNight from "../assets/homepage/13-dont-be-dumb-night.webp";
+import dontBeDumbStreet from "../assets/homepage/14-dont-be-dumb-street.webp";
+import shippingPinkStencil from "../assets/homepage/15-shipping-pink-stencil.webp";
+import killDickStencil from "../assets/homepage/16-kill-dick-stencil.webp";
 
-export const homepageGallery = [
+type HomepageGalleryImage = {
+  src: string;
+  alt: string;
+  objectPosition?: string;
+};
+
+export const homepageGallery: HomepageGalleryImage[] = [
   {
     src: dknyNewYorkStories,
     alt: "DKNY New York Stories wild posting campaign on a city wall",
@@ -19,6 +29,11 @@ export const homepageGallery = [
   {
     src: catsJellicleBall,
     alt: "Cats The Jellicle Ball posters installed across a construction wall",
+  },
+  {
+    src: timesSquareStencil,
+    alt: "Yellow street stencil campaign photographed near Radio City Music Hall",
+    objectPosition: "50% 100%",
   },
   {
     src: boomBoomBoom,
@@ -33,6 +48,11 @@ export const homepageGallery = [
     alt: "Early Life Crisis fashion posters installed along a city sidewalk",
   },
   {
+    src: shippingPinkStencil,
+    alt: "Bright pink campaign stencil installed on a SoHo sidewalk",
+    objectPosition: "50% 100%",
+  },
+  {
     src: dontBeDumbScaffolding,
     alt: "Don't Be Dumb campaign posters under sidewalk scaffolding",
   },
@@ -45,6 +65,11 @@ export const homepageGallery = [
     alt: "Eat Couch wild postings installed on a Chinatown storefront",
   },
   {
+    src: dontBeDumbStreet,
+    alt: "Don't Be Dumb campaign stencil installed on a city sidewalk",
+    objectPosition: "50% 100%",
+  },
+  {
     src: dontBeDumbGreenpoint,
     alt: "Don't Be Dumb campaign posters beside a Greenpoint subway entrance",
   },
@@ -55,6 +80,11 @@ export const homepageGallery = [
   {
     src: juliaFoxStoopSale,
     alt: "Julia Fox stoop sale poster installed on a street newspaper box",
+  },
+  {
+    src: killDickStencil,
+    alt: "Black campaign stencil installed on a Queens sidewalk",
+    objectPosition: "50% 100%",
   },
   {
     src: dontBeDumbNight,

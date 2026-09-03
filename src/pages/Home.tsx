@@ -3,7 +3,7 @@ import logo from "../assets/oohyeah-logo-white.png";
 import { homepageGallery } from "../data/homepageGallery";
 import "../styles/home.css";
 
-const contactEmail = "hello@oohyeahmedia.com";
+const contactEmail = "info@oohyeahmedia.com";
 
 type MenuSection = "about" | "contact";
 
@@ -12,35 +12,10 @@ const menuItems: Array<{ id: MenuSection; label: string }> = [
   { id: "contact", label: "Contact" },
 ];
 
-const formatTimestamp = (date: Date) => {
-  const dateLabel = date
-    .toLocaleDateString("en-US", { month: "long", day: "numeric" })
-    .toUpperCase();
-  const timeLabel = date.toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true,
-  });
-  const timeZone = new Intl.DateTimeFormat("en-US", {
-    timeZoneName: "short",
-  })
-    .formatToParts(date)
-    .find((part) => part.type === "timeZoneName")?.value;
-
-  return `${dateLabel}, ${timeLabel}${timeZone ? ` (${timeZone})` : ""}`;
-};
-
 const Home = () => {
-  const [now, setNow] = useState(() => new Date());
   const [activeSection, setActiveSection] =
     useState<MenuSection>("about");
   const galleryRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const timer = window.setInterval(() => setNow(new Date()), 1000);
-    return () => window.clearInterval(timer);
-  }, []);
 
   useEffect(() => {
     const gallery = galleryRef.current;
@@ -90,9 +65,9 @@ const Home = () => {
       default:
         return (
           <p>
-            OOHYEAH is a boutique outdoor media agency specializing in
-            distinctive guerrilla marketing, wild posting, and campaign
-            installations from concept to street.
+            Oohyeah is a guerrilla marketing agency. From production to
+            installation we execute wild posting, stenciling, stickering and
+            street campaigns worldwide.
           </p>
         );
     }
@@ -156,6 +131,7 @@ const Home = () => {
                   alt={image.alt}
                   draggable={false}
                   loading={index === 0 ? "eager" : "lazy"}
+                  style={{ objectPosition: image.objectPosition ?? "center" }}
                   onError={({ currentTarget }) => {
                     currentTarget.onerror = null;
                     currentTarget.src = homepageGallery[0].src;
@@ -166,9 +142,6 @@ const Home = () => {
           </div>
         </section>
 
-        <time className="oohyeah-home-time" dateTime={now.toISOString()}>
-          {formatTimestamp(now)}
-        </time>
       </div>
     </main>
   );
