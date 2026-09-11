@@ -57,8 +57,7 @@ const Home = () => {
       case "contact":
         return (
           <p>
-            Ready to put your brand on the street? Email{" "}
-            <a href={`mailto:${contactEmail}`}>{contactEmail}</a>.
+            <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
           </p>
         );
       case "about":

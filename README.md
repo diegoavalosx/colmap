@@ -49,3 +49,22 @@ export default tseslint.config({
 })
 ```
 # colmap
+
+## Google Drive campaign imports
+
+Campaign managers can select up to five photos from Google Drive. The app reads
+GPS metadata supplied by Drive, asks the manager to place photos without GPS on
+a map, groups photos taken within 25 meters, copies them to Firebase Storage,
+and creates the corresponding Firestore map locations.
+
+To enable the Drive picker, copy `.env.example` to `.env.local` and configure:
+
+- `VITE_GOOGLE_DRIVE_CLIENT_ID`: a Google OAuth web client ID.
+- `VITE_GOOGLE_DRIVE_API_KEY`: a browser API key with the Google Picker and
+  Drive APIs enabled. Restrict it to the site's authorized origins and APIs.
+- `VITE_GOOGLE_DRIVE_APP_ID`: the Google Cloud project number.
+
+The OAuth client must include the local and deployed site origins under its
+authorized JavaScript origins. Drive access uses the narrow `drive.file` scope,
+and access tokens are kept in memory rather than stored in Firestore or browser
+storage.

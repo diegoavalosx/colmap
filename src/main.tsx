@@ -11,6 +11,7 @@ import NotFound from "./components/NotFound.tsx";
 import Verified from "./components/VerifyEmail.tsx";
 import AddLocation from "./components/AddLocation.tsx";
 import Home from "./pages/Home.tsx";
+import "react-toastify/dist/ReactToastify.css";
 
 const rootElement = document.getElementById("root");
 
