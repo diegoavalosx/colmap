@@ -39,6 +39,10 @@ type GoogleTokenClient = {
   requestAccessToken: (options: { prompt: string }) => void;
 };
 
+type GoogleOAuthError = {
+  type?: string;
+};
+
 type GooglePickerBuilder = {
   addView: (view: unknown) => GooglePickerBuilder;
   enableFeature: (feature: unknown) => GooglePickerBuilder;
@@ -57,6 +61,7 @@ type GoogleServices = {
         client_id: string;
         scope: string;
         callback: (response: TokenResponse) => void;
+        error_callback?: (error: GoogleOAuthError) => void;
       }) => GoogleTokenClient;
     };
   };
@@ -266,7 +271,7 @@ const loadScript = (id: string, src: string) =>
 const loadGooglePicker = async () => {
   if (pickerLibraryPromise) return pickerLibraryPromise;
 
-  pickerLibraryPromise = Promise.all([
+  const loadingPromise = Promise.all([
     loadScript("google-api-script", "https://apis.google.com/js/api.js"),
     loadScript("google-identity-script", "https://accounts.google.com/gsi/client"),
   ]).then(
@@ -280,6 +285,11 @@ const loadGooglePicker = async () => {
         googleWindow.gapi.load("picker", resolve);
       })
   );
+
+  pickerLibraryPromise = loadingPromise.catch((error) => {
+    pickerLibraryPromise = null;
+    throw error;
+  });
 
   return pickerLibraryPromise;
 };
@@ -298,6 +308,17 @@ const requestAccessToken = async (clientId: string) => {
       client_id: clientId,
       scope: DRIVE_SCOPE,
       callback: () => undefined,
+      error_callback: (error) => {
+        if (error.type === "popup_failed_to_open") {
+          reject(
+            new Error(
+              "Google sign-in could not open. Please allow pop-ups and try again."
+            )
+          );
+          return;
+        }
+        reject(new Error("Google Drive authorization could not be opened."));
+      },
     });
 
     tokenClient.callback = (response) => {
@@ -313,7 +334,7 @@ const requestAccessToken = async (clientId: string) => {
       resolve(response.access_token);
     };
 
-    tokenClient.requestAccessToken({ prompt: "consent" });
+    tokenClient.requestAccessToken({ prompt: "" });
   });
 };
 
@@ -413,8 +434,10 @@ export const selectGoogleDrivePhotos = async (
   configuration: GoogleDriveConfiguration,
   maxFiles: number
 ) => {
-  await loadGooglePicker();
-  const accessToken = await requestAccessToken(configuration.clientId);
+  // Keep this call before the first await so mobile browsers recognize the
+  // OAuth popup as a direct result of the user's tap.
+  const accessTokenRequest = requestAccessToken(configuration.clientId);
+  const accessToken = await accessTokenRequest;
   const selectedFiles = await openPicker(configuration, accessToken);
   const limitedFiles = selectedFiles.slice(0, maxFiles);
   const photos: GoogleDrivePhotoAsset[] = [];

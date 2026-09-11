@@ -36,15 +36,24 @@ const DrivePhotoImporter = ({
   disabled = false,
 }: DrivePhotoImporterProps) => {
   const [loading, setLoading] = useState(false);
+  const [pickerReady, setPickerReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activePhotoId, setActivePhotoId] = useState<string | null>(null);
   const configuration = useMemo(() => getGoogleDriveConfiguration(), []);
 
   useEffect(() => {
     if (!configuration) return;
-    prepareGoogleDrivePicker().catch(() => {
-      setError("Google Drive could not be loaded.");
-    });
+    let active = true;
+    prepareGoogleDrivePicker()
+      .then(() => {
+        if (active) setPickerReady(true);
+      })
+      .catch(() => {
+        if (active) setError("Google Drive could not be loaded.");
+      });
+    return () => {
+      active = false;
+    };
   }, [configuration]);
 
   const activePhoto = useMemo(
@@ -149,10 +158,19 @@ const DrivePhotoImporter = ({
           type="button"
           className="flex w-full items-center justify-center gap-2 rounded-md border border-gray-300 px-4 py-3 font-semibold text-gray-800 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
           onClick={handleChoosePhotos}
-          disabled={disabled || loading || photos.length >= 10}
+          disabled={
+            disabled ||
+            loading ||
+            photos.length >= 10 ||
+            Boolean(configuration && !pickerReady)
+          }
         >
           <Cloud size={18} aria-hidden="true" />
-          {loading ? "Loading Drive photos..." : "Choose from Google Drive"}
+          {!pickerReady && configuration
+            ? "Loading Google Drive..."
+            : loading
+              ? "Loading Drive photos..."
+              : "Choose from Google Drive"}
         </button>
         <p className="mt-2 text-xs text-gray-500">
           Select up to 10 photos. GPS coordinates are read from each photo
