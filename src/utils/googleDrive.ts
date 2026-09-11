@@ -54,6 +54,10 @@ type GooglePickerBuilder = {
   build: () => { setVisible: (visible: boolean) => void };
 };
 
+type GoogleDocsView = {
+  setMode: (mode: unknown) => GoogleDocsView;
+};
+
 type GoogleServices = {
   accounts: {
     oauth2: {
@@ -67,6 +71,8 @@ type GoogleServices = {
   };
   picker: {
     Action: { PICKED: string; CANCEL: string };
+    DocsView: new (viewId: unknown) => GoogleDocsView;
+    DocsViewMode: { LIST: unknown };
     Feature: { MULTISELECT_ENABLED: unknown };
     PickerBuilder: new () => GooglePickerBuilder;
     ViewId: { DOCS_IMAGES: unknown };
@@ -347,8 +353,11 @@ const openPicker = (
   if (!picker) throw new Error("Google Drive Picker is unavailable.");
 
   return new Promise<PickerDocument[]>((resolve, reject) => {
+    const imageView = new picker.DocsView(picker.ViewId.DOCS_IMAGES).setMode(
+      picker.DocsViewMode.LIST
+    );
     const pickerInstance = new picker.PickerBuilder()
-      .addView(picker.ViewId.DOCS_IMAGES)
+      .addView(imageView)
       .enableFeature(picker.Feature.MULTISELECT_ENABLED)
       .setOAuthToken(accessToken)
       .setDeveloperKey(configuration.developerKey)
