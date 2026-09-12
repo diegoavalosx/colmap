@@ -1,11 +1,11 @@
 import { initializeApp } from "firebase/app";
 import {
   type Auth,
-  browserSessionPersistence,
+  browserLocalPersistence,
   getAuth,
   setPersistence,
 } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { initializeFirestore } from "firebase/firestore";
 import type { Firestore } from "firebase/firestore/lite";
 import { type FirebaseStorage, getStorage } from "firebase/storage";
 
@@ -32,7 +32,7 @@ interface FirebaseInstances {
 }
 
 const firebaseInstancesPromise: Promise<FirebaseInstances> =
-  fetchFirebaseConfig().then((configResponse) => {
+  fetchFirebaseConfig().then(async (configResponse) => {
     const firebaseConfig = {
       apiKey: configResponse.apiKey,
       authDomain: "colmap-9f519.firebaseapp.com",
@@ -47,17 +47,16 @@ const firebaseInstancesPromise: Promise<FirebaseInstances> =
 
     const auth = getAuth(app);
 
-    const db = getFirestore(app);
+    const usesSafariWebKit =
+      /AppleWebKit/i.test(navigator.userAgent) &&
+      !/(Chrome|Chromium|Edg|OPR|Android)/i.test(navigator.userAgent);
+    const db = initializeFirestore(app, {
+      experimentalForceLongPolling: usesSafariWebKit,
+    });
 
     const storage = getStorage(app);
 
-    setPersistence(auth, browserSessionPersistence)
-      .then(() => {
-        console.log("Persistence set");
-      })
-      .catch((error) => {
-        console.error("Error setting persistence:", error);
-      });
+    await setPersistence(auth, browserLocalPersistence);
 
     return { auth, db, storage };
   });
