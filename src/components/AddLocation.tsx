@@ -113,7 +113,7 @@ const AddLocation = () => {
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files) {
-      const selected = Array.from(files).slice(0, 5);
+      const selected = Array.from(files).slice(0, 10);
       setImages(selected);
     }
   };
@@ -253,7 +253,7 @@ const AddLocation = () => {
         </div>
         <div>
           <label htmlFor="images" className="block font-medium mb-1">
-            Upload Images (max 5)
+            Upload Images (max 10)
           </label>
           <input
             id="images"

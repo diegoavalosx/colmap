@@ -10,11 +10,19 @@ body,
 }
 
 html {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 html,
 body,
 #root {
+  background-color: #ffffff;
+  color: #111827;
+}
+
+html:has(.oohyeah-home-page),
+html:has(.oohyeah-home-page) body,
+html:has(.oohyeah-home-page) #root {
   background-color: #050505;
+  color-scheme: dark;
 }

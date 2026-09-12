@@ -6,6 +6,7 @@ type CarouselProps = {
 };
 
 const Carousel = ({ images }: CarouselProps) => {
+  const uniqueImages = [...new Set(images)];
   const responsive = {
     superLargeDesktop: { breakpoint: { max: 4000, min: 1024 }, items: 1 },
     desktop: { breakpoint: { max: 1024, min: 768 }, items: 1 },
@@ -16,21 +17,32 @@ const Carousel = ({ images }: CarouselProps) => {
   const divClasses = "card w-full h-auto flex items-center justify-center";
   const imgClasses = "w-full h-[400px] object-cover rounded-md";
 
+  if (uniqueImages.length === 1) {
+    return (
+      <div className={divClasses}>
+        <img
+          className={imgClasses}
+          src={uniqueImages[0]}
+          alt="Location"
+        />
+      </div>
+    );
+  }
+
   return (
     <CarouselReact
       responsive={responsive}
-      arrows
+      arrows={uniqueImages.length > 1}
       autoPlay={false}
       className="w-full"
       centerMode={false}
-      infinite={true}
+      infinite={false}
       autoPlaySpeed={3000}
       containerClass="carousel-container w-full"
       itemClass="carousel-item px-2"
     >
-      {images.map((image, index) => (
-        // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-        <div key={index} className={divClasses}>
+      {uniqueImages.map((image, index) => (
+        <div key={image} className={divClasses}>
           <img
             className={imgClasses}
             src={image}

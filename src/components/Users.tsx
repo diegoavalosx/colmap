@@ -30,7 +30,6 @@ import {
 import { useNavigate } from "react-router-dom";
 import ReactModal from "react-modal";
 import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import Loader from "./Loader";
 import { BiTrash } from "react-icons/bi";
 
