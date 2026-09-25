@@ -1,32 +1,30 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
 import {
-  addDoc,
   collection,
   doc,
   getDoc,
   getDocs,
   type Timestamp,
   deleteDoc,
-  setDoc,
 } from "firebase/firestore";
 import ReactModal from "react-modal";
 import { useAuth } from "./useAuth";
 import Loader from "./Loader";
 
 import { toast, ToastContainer } from "react-toastify";
-import {
-  ref,
-  uploadBytes,
-  getDownloadURL,
-  deleteObject,
-} from "firebase/storage";
+import { ref, deleteObject } from "firebase/storage";
 import InteractiveMap from "./InteractiveMap";
 import Carousel from "./Carousel";
 import DrivePhotoImporter, {
   type DrivePhotoDraft,
 } from "./DrivePhotoImporter";
+import DevicePhotoImporter, {
+  type DevicePhotoDraft,
+} from "./DevicePhotoImporter";
 import { optimizePhotoForWeb } from "../utils/googleDrive";
+import { hasValidPhotoCoordinates } from "../utils/locationGrouping";
+import { saveGroupedPhotoLocations } from "../utils/locationUploads";
 
 interface Campaign {
   id: string;
@@ -50,22 +48,6 @@ interface Location {
 
 type LocationInputMode = "device" | "drive";
 
-const hasValidCoordinates = (photo: DrivePhotoDraft) => {
-  const latitude = Number.parseFloat(photo.latitude);
-  const longitude = Number.parseFloat(photo.longitude);
-  return (
-    Number.isFinite(latitude) &&
-    latitude >= -90 &&
-    latitude <= 90 &&
-    Number.isFinite(longitude) &&
-    longitude >= -180 &&
-    longitude <= 180
-  );
-};
-
-const safeStorageName = (name: string) =>
-  name.replace(/[^a-zA-Z0-9._-]/g, "-").slice(-120);
-
 const CampaignDetail = () => {
   const { dataBase, storage } = useAuth();
   const { campaignId } = useParams<{ campaignId: string }>();
@@ -73,15 +55,14 @@ const CampaignDetail = () => {
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [coordinates, setCoordinates] = useState<string>("");
-  const [locationLatitude, setLocationLatitude] = useState<string>("");
-  const [locationLongitude, setLocationLongitude] = useState<string>("");
-  const [locationImages, setLocationImages] = useState<File[]>([]);
+  const [devicePhotos, setDevicePhotos] = useState<DevicePhotoDraft[]>([]);
   const [locationInputMode, setLocationInputMode] =
     useState<LocationInputMode>("device");
   const [drivePhotos, setDrivePhotos] = useState<DrivePhotoDraft[]>([]);
   const drivePhotosRef = useRef<DrivePhotoDraft[]>([]);
+  const devicePhotosRef = useRef<DevicePhotoDraft[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [uploadStatus, setUploadStatus] = useState("");
   const [hoveredLocationId, setHoveredLocationId] = useState<string | null>(
     null
   );
@@ -97,9 +78,16 @@ const CampaignDetail = () => {
     drivePhotosRef.current = drivePhotos;
   }, [drivePhotos]);
 
+  useEffect(() => {
+    devicePhotosRef.current = devicePhotos;
+  }, [devicePhotos]);
+
   useEffect(
     () => () => {
       drivePhotosRef.current.forEach((photo) =>
+        URL.revokeObjectURL(photo.previewUrl)
+      );
+      devicePhotosRef.current.forEach((photo) =>
         URL.revokeObjectURL(photo.previewUrl)
       );
     },
@@ -151,12 +139,11 @@ const CampaignDetail = () => {
 
   const resetLocationForm = () => {
     drivePhotos.forEach((photo) => URL.revokeObjectURL(photo.previewUrl));
-    setCoordinates("");
-    setLocationLatitude("");
-    setLocationLongitude("");
-    setLocationImages([]);
+    devicePhotos.forEach((photo) => URL.revokeObjectURL(photo.previewUrl));
+    setDevicePhotos([]);
     setDrivePhotos([]);
     setLocationInputMode("device");
+    setUploadStatus("");
   };
 
   const closeLocationModal = () => {
@@ -164,41 +151,12 @@ const CampaignDetail = () => {
     setIsModalOpen(false);
   };
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files) {
-      const selected = Array.from(files).slice(0, 10);
-      setLocationImages(selected);
-    }
-  };
-
-  const handleCoordinatesParse = (value: string) => {
-    // Remove any whitespace and parentheses
-    const cleanValue = value.replace(/[()\s]/g, "");
-
-    // Split by comma and check if we have two numbers
-    const parts = cleanValue.split(",");
-    if (parts.length === 2) {
-      const lat = parseFloat(parts[0]);
-      const lng = parseFloat(parts[1]);
-
-      if (!isNaN(lat) && !isNaN(lng)) {
-        setLocationLatitude(lat.toString());
-        setLocationLongitude(lng.toString());
-        return;
-      }
-    }
-
-    // If we couldn't parse the coordinates, clear the fields
-    setLocationLatitude("");
-    setLocationLongitude("");
-  };
-
   const handleFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!dataBase || !storage || !campaignId) return;
 
     setIsLoading(true);
+    setUploadStatus("");
     try {
       if (locationInputMode === "drive") {
         if (drivePhotos.length === 0) {
@@ -206,7 +164,7 @@ const CampaignDetail = () => {
           return;
         }
 
-        if (!drivePhotos.every(hasValidCoordinates)) {
+        if (!drivePhotos.every(hasValidPhotoCoordinates)) {
           toast.error("Add a valid location for every Drive photo.");
           return;
         }
@@ -233,33 +191,29 @@ const CampaignDetail = () => {
           return;
         }
 
-        for (const photo of photosToImport) {
-          const locationDocRef = doc(locationRef);
-          const storageRef = ref(
-            storage,
-            `campaigns/${campaignId}/locations/${locationDocRef.id}/${photo.driveFileId}_${safeStorageName(photo.name)}`
-          );
-          await uploadBytes(storageRef, photo.blob, {
-            contentType: photo.mimeType,
-          });
-          const imageUrl = await getDownloadURL(storageRef);
-
-          await setDoc(locationDocRef, {
-            latitude: Number.parseFloat(photo.latitude).toFixed(6),
-            longitude: Number.parseFloat(photo.longitude).toFixed(6),
-            imageUrls: [imageUrl],
-            driveFileIds: [photo.driveFileId],
-            source: "google-drive",
-            createdAt: new Date(),
-          });
-        }
+        const result = await saveGroupedPhotoLocations({
+          dataBase,
+          storage,
+          campaignId,
+          photos: photosToImport.map((photo) => ({
+            ...photo,
+            id: photo.driveFileId,
+          })),
+          source: "google-drive",
+          preparePhoto: async (photo) => ({
+            blob: photo.blob,
+            name: photo.name,
+            mimeType: photo.mimeType,
+          }),
+          onProgress: setUploadStatus,
+        });
 
         const skippedCount = drivePhotos.length - photosToImport.length;
         toast.success(
           `${photosToImport.length} Drive photo${
             photosToImport.length === 1 ? "" : "s"
-          } added as ${photosToImport.length} map pin${
-            photosToImport.length === 1 ? "" : "s"
+          } added as ${result.locationCount} map pin${
+            result.locationCount === 1 ? "" : "s"
           }${skippedCount ? `; ${skippedCount} duplicate skipped` : ""}.`
         );
         closeLocationModal();
@@ -267,39 +221,29 @@ const CampaignDetail = () => {
         return;
       }
 
-      const imageUrls: string[] = [];
-
-      for (const image of locationImages) {
-        const optimizedImage = await optimizePhotoForWeb(
-          image,
-          image.name,
-          image.type
-        );
-        const storageRef = ref(
-          storage,
-          `campaigns/${campaignId}/locations/${Date.now()}_${safeStorageName(optimizedImage.name)}`
-        );
-        await uploadBytes(storageRef, optimizedImage.blob, {
-          contentType: optimizedImage.mimeType,
-        });
-        const downloadUrl = await getDownloadURL(storageRef);
-        imageUrls.push(downloadUrl);
+      if (devicePhotos.length === 0) {
+        toast.error("Choose at least one device photo.");
+        return;
+      }
+      if (!devicePhotos.every(hasValidPhotoCoordinates)) {
+        toast.error("Add a valid location for every device photo.");
+        return;
       }
 
-      const locationData: Location = {
-        latitude: locationLatitude,
-        longitude: locationLongitude,
-        imageUrls,
-        createdAt: new Date(),
-      };
-
-      const locationRef = collection(
+      const result = await saveGroupedPhotoLocations({
         dataBase,
-        `campaigns/${campaignId}/locations`
+        storage,
+        campaignId,
+        photos: devicePhotos,
+        source: "device",
+        preparePhoto: async (photo) =>
+          optimizePhotoForWeb(photo.file, photo.name, photo.file.type),
+        onProgress: setUploadStatus,
+      });
+      toast.success(
+        `${result.photoCount} photo${result.photoCount === 1 ? "" : "s"} added as ${result.locationCount} location${result.locationCount === 1 ? "" : "s"}.`
       );
-      await addDoc(locationRef, locationData);
 
-      toast.success("Location successfully added!");
       closeLocationModal();
       await fetchCampaignAndLocations();
     } catch (error) {
@@ -307,6 +251,7 @@ const CampaignDetail = () => {
       console.error("Upload error:", error);
     } finally {
       setIsLoading(false);
+      setUploadStatus("");
     }
   };
 
@@ -386,9 +331,12 @@ const CampaignDetail = () => {
         className="w-full max-w-2xl max-h-[90vh] overflow-y-auto p-0 bg-white rounded-lg shadow-lg"
         shouldCloseOnOverlayClick={true}
       >
-        <div className="p-6 bg-white rounded-lg w-full">
+        <div className="flex min-h-[22rem] w-full flex-col rounded-lg bg-white p-6">
           <h2 className="text-xl font-bold mb-4">Add location</h2>
-          <form onSubmit={handleFormSubmit} className="flex flex-col gap-4">
+          <form
+            onSubmit={handleFormSubmit}
+            className="flex flex-1 flex-col gap-4"
+          >
             <div className="grid grid-cols-2 rounded-md bg-gray-100 p-1">
               <button
                 type="button"
@@ -414,68 +362,36 @@ const CampaignDetail = () => {
               </button>
             </div>
 
-            {locationInputMode === "device" ? (
-              <>
-                <div>
-                  <label
-                    htmlFor="coordinates"
-                    className="block text-sm font-medium mb-1"
-                  >
-                    Coordinates
-                  </label>
-                  <input
-                    type="text"
-                    id="coordinates"
-                    className="w-full p-2 border rounded-md focus:outline-none focus:ring focus:ring-opacity-50"
-                    value={coordinates}
-                    onChange={(e) => {
-                      setCoordinates(e.target.value);
-                      handleCoordinatesParse(e.target.value);
-                    }}
-                    placeholder="(latitude, longitude) or latitude, longitude"
-                    required
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="images"
-                    className="block text-sm font-medium mb-1"
-                  >
-                    Upload Images (max 10)
-                  </label>
-                  <input
-                    type="file"
-                    id="images"
-                    accept="image/*"
-                    multiple
-                    onChange={handleImageUpload}
-                  />
-                  {locationImages.length > 0 && (
-                    <ul className="text-sm mt-2 list-disc list-inside">
-                      {locationImages.map((img) => (
-                        <li key={`${img.name}-${img.lastModified}`}>{img.name}</li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </>
-            ) : (
-              <DrivePhotoImporter
-                photos={drivePhotos}
-                onChange={setDrivePhotos}
-                disabled={isLoading}
-              />
+            <div className="flex-1">
+              {locationInputMode === "device" ? (
+                <DevicePhotoImporter
+                  photos={devicePhotos}
+                  onChange={setDevicePhotos}
+                  disabled={isLoading}
+                />
+              ) : (
+                <DrivePhotoImporter
+                  photos={drivePhotos}
+                  onChange={setDrivePhotos}
+                  disabled={isLoading}
+                />
+              )}
+            </div>
+            {uploadStatus && (
+              <p className="text-center text-sm text-gray-600" aria-live="polite">
+                {uploadStatus}
+              </p>
             )}
             <button
               type="submit"
-              className={`mt-4 px-4 py-2 font-bold text-white bg-ooh-yeah-pink rounded-md focus:outline-none focus:ring focus:ring-opacity-50 ${
-                isLoading
-                  ? "opacity-50 cursor-not-allowed"
-                  : "hover:bg-ooh-yeah-pink-700"
-              }`}
+              className="mt-4 rounded-md bg-ooh-yeah-pink px-4 py-2 font-bold text-white hover:bg-ooh-yeah-pink-700 focus:outline-none focus:ring focus:ring-opacity-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-ooh-yeah-pink"
               disabled={
                 isLoading ||
-                (locationInputMode === "drive" && drivePhotos.length === 0)
+                (locationInputMode === "drive"
+                  ? drivePhotos.length === 0 ||
+                    !drivePhotos.every(hasValidPhotoCoordinates)
+                  : devicePhotos.length === 0 ||
+                    !devicePhotos.every(hasValidPhotoCoordinates))
               }
             >
               {isLoading

@@ -1,21 +1,18 @@
 import { useEffect, useState, useRef } from "react";
-import { collection, getDocs, addDoc, getDoc, doc } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { collection, getDocs, getDoc, doc } from "firebase/firestore";
 import { useAuth } from "./useAuth";
 import { toast, ToastContainer } from "react-toastify";
 import { useSearchParams } from "react-router-dom";
+import DevicePhotoImporter, {
+  type DevicePhotoDraft,
+} from "./DevicePhotoImporter";
+import { hasValidPhotoCoordinates } from "../utils/locationGrouping";
+import { saveGroupedPhotoLocations } from "../utils/locationUploads";
+import { optimizePhotoForWeb } from "../utils/googleDrive";
 
 interface Campaign {
   id: string;
   name: string;
-}
-
-interface Location {
-  description?: string;
-  latitude: string;
-  longitude: string;
-  imageUrls: string[];
-  createdAt: Date;
 }
 
 const AddLocation = () => {
@@ -25,15 +22,27 @@ const AddLocation = () => {
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(
     null
   );
-  const [googleMapsUrl, setGoogleMapsUrl] = useState("");
-  const [latitude, setLatitude] = useState("");
-  const [longitude, setLongitude] = useState("");
-  const [images, setImages] = useState<File[]>([]);
+  const [photos, setPhotos] = useState<DevicePhotoDraft[]>([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState("");
   const [searchParams] = useSearchParams();
   const campaignId = searchParams.get("campaignId");
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const photosRef = useRef<DevicePhotoDraft[]>([]);
+
+  useEffect(() => {
+    photosRef.current = photos;
+  }, [photos]);
+
+  useEffect(
+    () => () => {
+      photosRef.current.forEach((photo) =>
+        URL.revokeObjectURL(photo.previewUrl)
+      );
+    },
+    []
+  );
 
   useEffect(() => {
     const fetchCampaigns = async () => {
@@ -89,79 +98,45 @@ const AddLocation = () => {
     };
   }, []);
 
-  const handleUrlParse = (value: string) => {
-    // Remove any whitespace and parentheses
-    const cleanValue = value.replace(/[()\s]/g, "");
-
-    // Split by comma and check if we have two numbers
-    const parts = cleanValue.split(",");
-    if (parts.length === 2) {
-      const lat = parseFloat(parts[0]);
-      const lng = parseFloat(parts[1]);
-
-      if (!isNaN(lat) && !isNaN(lng)) {
-        setLatitude(lat.toString());
-        setLongitude(lng.toString());
-        return;
-      }
-    }
-
-    setLatitude("");
-    setLongitude("");
-  };
-
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files) {
-      const selected = Array.from(files).slice(0, 10);
-      setImages(selected);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!dataBase || !storage || !selectedCampaign) return;
 
     setIsLoading(true);
+    setUploadStatus("");
     try {
-      const imageUrls: string[] = [];
-
-      for (const image of images) {
-        const storageRef = ref(
-          storage,
-          `campaigns/${selectedCampaign.id}/locations/${Date.now()}_${
-            image.name
-          }`
-        );
-        await uploadBytes(storageRef, image);
-        const downloadUrl = await getDownloadURL(storageRef);
-        imageUrls.push(downloadUrl);
+      if (photos.length === 0) {
+        toast.error("Choose at least one photo.");
+        return;
+      }
+      if (!photos.every(hasValidPhotoCoordinates)) {
+        toast.error("Add a valid location for every photo.");
+        return;
       }
 
-      const locationData: Location = {
-        latitude,
-        longitude,
-        imageUrls,
-        createdAt: new Date(),
-      };
-
-      const locationRef = collection(
+      const result = await saveGroupedPhotoLocations({
         dataBase,
-        `campaigns/${selectedCampaign.id}/locations`
+        storage,
+        campaignId: selectedCampaign.id,
+        photos,
+        source: "device",
+        preparePhoto: async (photo) =>
+          optimizePhotoForWeb(photo.file, photo.name, photo.file.type),
+        onProgress: setUploadStatus,
+      });
+      toast.success(
+        `${result.photoCount} photo${result.photoCount === 1 ? "" : "s"} added as ${result.locationCount} location${result.locationCount === 1 ? "" : "s"}.`
       );
-      await addDoc(locationRef, locationData);
 
-      toast.success("Location successfully added!");
-      setLatitude("");
-      setLongitude("");
-      setGoogleMapsUrl("");
       setSelectedCampaign(null);
-      setImages([]);
+      photos.forEach((photo) => URL.revokeObjectURL(photo.previewUrl));
+      setPhotos([]);
     } catch (error) {
       toast.error("Failed to add location. Try again.");
       console.error("Upload error:", error);
     } finally {
       setIsLoading(false);
+      setUploadStatus("");
     }
   };
 
@@ -235,50 +210,25 @@ const AddLocation = () => {
             </div>
           )}
         </div>
-        <div>
-          <label htmlFor="url" className="block font-medium mb-1">
-            Coordinates
-          </label>
-          <input
-            id="url"
-            type="text"
-            className="w-full p-2 border rounded"
-            value={googleMapsUrl}
-            onChange={(e) => {
-              setGoogleMapsUrl(e.target.value);
-              handleUrlParse(e.target.value);
-            }}
-            placeholder="(latitude, longitude) or latitude, longitude"
-          />
-        </div>
-        <div>
-          <label htmlFor="images" className="block font-medium mb-1">
-            Upload Images (max 10)
-          </label>
-          <input
-            id="images"
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={handleImageUpload}
-          />
-          {images.length > 0 && (
-            <ul className="text-sm mt-2 list-disc list-inside">
-              {images.map((img, i) => (
-                // biome-ignore lint/suspicious/noArrayIndexKey: it's okay in this case
-                <li key={i}>{img.name}</li>
-              ))}
-            </ul>
-          )}
-        </div>
+        <DevicePhotoImporter
+          photos={photos}
+          onChange={setPhotos}
+          disabled={isLoading}
+        />
+        {uploadStatus && (
+          <p className="text-center text-sm text-gray-600" aria-live="polite">
+            {uploadStatus}
+          </p>
+        )}
         <button
           type="submit"
-          className={`w-full bg-ooh-yeah-pink text-white py-2 rounded font-bold transition-colors ${
-            isLoading || !selectedCampaign || !latitude || !longitude
-              ? "opacity-50 cursor-not-allowed"
-              : "hover:bg-ooh-yeah-pink-700"
-          }`}
-          disabled={isLoading || !selectedCampaign || !latitude || !longitude}
+          className="w-full rounded bg-ooh-yeah-pink py-2 font-bold text-white transition-colors hover:bg-ooh-yeah-pink-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-ooh-yeah-pink"
+          disabled={
+            isLoading ||
+            !selectedCampaign ||
+            photos.length === 0 ||
+            !photos.every(hasValidPhotoCoordinates)
+          }
         >
           {isLoading ? "UPLOADING..." : "Upload Location"}
         </button>
