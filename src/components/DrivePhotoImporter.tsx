@@ -6,6 +6,7 @@ import {
   prepareGoogleDrivePicker,
   selectGoogleDrivePhotos,
 } from "../utils/googleDrive";
+import { groupPhotosByLocation } from "../utils/locationGrouping";
 
 export type DrivePhotoDraft = {
   driveFileId: string;
@@ -40,6 +41,10 @@ const DrivePhotoImporter = ({
   const [error, setError] = useState<string | null>(null);
   const [activePhotoId, setActivePhotoId] = useState<string | null>(null);
   const configuration = useMemo(() => getGoogleDriveConfiguration(), []);
+  const groupedPhotos = useMemo(
+    () => groupPhotosByLocation(photos),
+    [photos]
+  );
 
   useEffect(() => {
     if (!configuration) return;
@@ -174,7 +179,7 @@ const DrivePhotoImporter = ({
         </button>
         <p className="mt-2 text-xs text-gray-500">
           Select up to 10 photos. GPS coordinates are read from each photo
-          when available. Photos are optimized to WebP before upload.
+          when available.
         </p>
         {!configuration && (
           <p className="mt-2 text-sm text-amber-700">
@@ -186,6 +191,20 @@ const DrivePhotoImporter = ({
 
       {photos.length > 0 && (
         <div className="space-y-3">
+          <div className="rounded-md bg-gray-100 p-3 text-sm">
+            <span className="font-semibold">
+              {photos.length} photo{photos.length === 1 ? "" : "s"} →{" "}
+              {groupedPhotos.groups.length} location
+              {groupedPhotos.groups.length === 1 ? "" : "s"}
+            </span>
+            {groupedPhotos.unlocated.length > 0 && (
+              <span className="mt-1 block text-amber-700">
+                {groupedPhotos.unlocated.length} photo
+                {groupedPhotos.unlocated.length === 1 ? " needs" : "s need"} a
+                location before upload.
+              </span>
+            )}
+          </div>
           {photos.map((photo) => {
             const coordinatesValid =
               isValidCoordinate(photo.latitude, -90, 90) &&
@@ -238,7 +257,7 @@ const DrivePhotoImporter = ({
                       min="-90"
                       max="90"
                       step="any"
-                      className="mt-1 w-full rounded border p-2 text-sm"
+                      className="mt-1 w-full rounded border p-2 text-base sm:text-sm"
                       value={photo.latitude}
                       onChange={(event) =>
                         updatePhoto(photo.driveFileId, {
@@ -255,7 +274,7 @@ const DrivePhotoImporter = ({
                       min="-180"
                       max="180"
                       step="any"
-                      className="mt-1 w-full rounded border p-2 text-sm"
+                      className="mt-1 w-full rounded border p-2 text-base sm:text-sm"
                       value={photo.longitude}
                       onChange={(event) =>
                         updatePhoto(photo.driveFileId, {

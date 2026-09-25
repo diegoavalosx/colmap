@@ -122,8 +122,16 @@ let heicWasmPromise: Promise<ArrayBuffer> | null = null;
 const isHeicPhoto = (name: string, mimeType: string) =>
   HEIC_MIME_TYPES.has(mimeType.toLowerCase()) || /\.hei[cf]$/i.test(name);
 
-const webpNameFor = (name: string) =>
-  /\.[^.]+$/.test(name) ? name.replace(/\.[^.]+$/, ".webp") : `${name}.webp`;
+const optimizedNameFor = (name: string, extension: "webp" | "jpg") =>
+  /\.[^.]+$/.test(name)
+    ? name.replace(/\.[^.]+$/, `.${extension}`)
+    : `${name}.${extension}`;
+
+type OptimizedBrowserImage = {
+  blob: Blob;
+  extension: "webp" | "jpg";
+  mimeType: "image/webp" | "image/jpeg";
+};
 
 const optimizeBrowserImage = async (blob: Blob, name: string) => {
   const objectUrl = URL.createObjectURL(blob);
@@ -145,20 +153,34 @@ const optimizeBrowserImage = async (blob: Blob, name: string) => {
     if (!context) throw new Error("Image optimization is unavailable.");
     context.drawImage(image, 0, 0, canvas.width, canvas.height);
 
-    const optimizedBlob = await new Promise<Blob>((resolve, reject) => {
+    const webpBlob = await new Promise<Blob | null>((resolve) => {
       canvas.toBlob(
-        (result) =>
-          result
-            ? resolve(result)
-            : reject(new Error(`${name} could not be optimized.`)),
+        resolve,
         "image/webp",
         WEB_IMAGE_QUALITY
       );
     });
-    if (optimizedBlob.type !== "image/webp") {
-      throw new Error("This browser cannot create WebP images.");
+
+    if (webpBlob?.type === "image/webp") {
+      return {
+        blob: webpBlob,
+        extension: "webp",
+        mimeType: "image/webp",
+      } satisfies OptimizedBrowserImage;
     }
-    return optimizedBlob;
+
+    const jpegBlob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(resolve, "image/jpeg", WEB_IMAGE_QUALITY);
+    });
+    if (!jpegBlob || jpegBlob.type !== "image/jpeg") {
+      throw new Error(`${name} could not be optimized by this browser.`);
+    }
+
+    return {
+      blob: jpegBlob,
+      extension: "jpg",
+      mimeType: "image/jpeg",
+    } satisfies OptimizedBrowserImage;
   } finally {
     URL.revokeObjectURL(objectUrl);
   }
@@ -186,13 +208,18 @@ const convertHeicToWebp = async (blob: Blob, name: string) => {
     );
     const decoder = new LibheifDecoder({ wasmBinary: await loadHeicWasm() });
     try {
-      return await convertHeic(blob, {
+      const webpBlob = await convertHeic(blob, {
         to: "webp",
         quality: WEB_IMAGE_QUALITY,
         maxWidth: WEB_IMAGE_MAX_DIMENSION,
         maxHeight: WEB_IMAGE_MAX_DIMENSION,
         decoder,
       });
+      return {
+        blob: webpBlob,
+        extension: "webp",
+        mimeType: "image/webp",
+      } satisfies OptimizedBrowserImage;
     } finally {
       decoder.free();
     }
@@ -216,7 +243,7 @@ const convertHeicToWebp = async (blob: Blob, name: string) => {
     console.error(`HEIC conversion failed for ${name}`, decoderErrors);
     const detail = decoderErrors.filter(Boolean).join(" / ").slice(0, 240);
     throw new Error(
-      `${name} could not be converted from HEIC to WebP.${
+      `${name} could not be converted from HEIC to a web-compatible image.${
         detail ? ` ${detail}` : ""
       }`
     );
@@ -234,13 +261,13 @@ export const optimizePhotoForWeb = async (
 
   if (!shouldOptimize) return { blob, name, mimeType };
 
-  const optimizedBlob = isHeic
+  const optimizedImage = isHeic
     ? await convertHeicToWebp(blob, name)
     : await optimizeBrowserImage(blob, name);
   return {
-    blob: optimizedBlob,
-    name: webpNameFor(name),
-    mimeType: "image/webp",
+    blob: optimizedImage.blob,
+    name: optimizedNameFor(name, optimizedImage.extension),
+    mimeType: optimizedImage.mimeType,
   };
 };
 
