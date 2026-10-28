@@ -7,6 +7,7 @@ import {
   getDocs,
   type Timestamp,
   deleteDoc,
+  updateDoc,
 } from "firebase/firestore";
 import ReactModal from "react-modal";
 import { useAuth } from "./useAuth";
@@ -33,6 +34,7 @@ interface Campaign {
   status: string;
   createdAt: Date | Timestamp;
   userId: string;
+  isPublic?: boolean;
 }
 
 interface Location {
@@ -47,6 +49,7 @@ interface Location {
 }
 
 type LocationInputMode = "device" | "drive";
+type MobileCampaignView = "map" | "list";
 
 const CampaignDetail = () => {
   const { dataBase, storage } = useAuth();
@@ -58,11 +61,13 @@ const CampaignDetail = () => {
   const [devicePhotos, setDevicePhotos] = useState<DevicePhotoDraft[]>([]);
   const [locationInputMode, setLocationInputMode] =
     useState<LocationInputMode>("device");
+  const [mobileView, setMobileView] = useState<MobileCampaignView>("map");
   const [drivePhotos, setDrivePhotos] = useState<DrivePhotoDraft[]>([]);
   const drivePhotosRef = useRef<DrivePhotoDraft[]>([]);
   const devicePhotosRef = useRef<DevicePhotoDraft[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [uploadStatus, setUploadStatus] = useState("");
+  const [isUpdatingShare, setIsUpdatingShare] = useState(false);
   const [hoveredLocationId, setHoveredLocationId] = useState<string | null>(
     null
   );
@@ -135,6 +140,59 @@ const CampaignDetail = () => {
 
   const handleAddLocationClick = () => {
     setIsModalOpen(true);
+  };
+
+  const getPublicCampaignUrl = () =>
+    `${window.location.origin}/public/campaign/${campaignId}`;
+
+  const copyPublicCampaignUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(getPublicCampaignUrl());
+      toast.success("Public campaign link copied.");
+    } catch (error) {
+      console.error("Unable to copy public campaign link:", error);
+      toast.error("Unable to copy the link. Try again.");
+    }
+  };
+
+  const enablePublicCampaign = async () => {
+    if (!dataBase || !campaignId || campaign?.status !== "active") return;
+
+    setIsUpdatingShare(true);
+    try {
+      await updateDoc(doc(dataBase, "campaigns", campaignId), {
+        isPublic: true,
+      });
+      setCampaign((current) =>
+        current ? { ...current, isPublic: true } : current
+      );
+      toast.success("Public campaign link enabled.");
+    } catch (error) {
+      console.error("Unable to enable public campaign:", error);
+      toast.error("Unable to enable the public link. Try again.");
+    } finally {
+      setIsUpdatingShare(false);
+    }
+  };
+
+  const disablePublicCampaign = async () => {
+    if (!dataBase || !campaignId) return;
+
+    setIsUpdatingShare(true);
+    try {
+      await updateDoc(doc(dataBase, "campaigns", campaignId), {
+        isPublic: false,
+      });
+      setCampaign((current) =>
+        current ? { ...current, isPublic: false } : current
+      );
+      toast.success("Public campaign link disabled.");
+    } catch (error) {
+      console.error("Unable to disable public campaign:", error);
+      toast.error("Unable to disable the public link. Try again.");
+    } finally {
+      setIsUpdatingShare(false);
+    }
   };
 
   const resetLocationForm = () => {
@@ -290,15 +348,15 @@ const CampaignDetail = () => {
   if (!campaign) return <p>Campaign not found</p>;
 
   return (
-    <div className="flex flex-col w-full max-h-full h-full mt-8">
+    <div className="mt-8 flex h-full max-h-full w-full flex-col lg:mt-0">
       <ReactModal
         isOpen={imageModalOpen}
         onRequestClose={() => setImageModalOpen(false)}
-        overlayClassName="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center"
-        className="bg-white rounded-lg max-w-2xl w-full p-6 relative shadow-lg sm:ml-64 ml-0"
+        overlayClassName="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-95 md:bg-opacity-60 md:p-4"
+        className="relative w-full bg-transparent p-0 outline-none md:ml-64 md:max-w-2xl md:rounded-lg md:bg-white md:p-6 md:shadow-lg"
         shouldCloseOnOverlayClick={true}
       >
-        <h2 className="text-xl font-semibold mb-4 text-center">
+        <h2 className="mb-4 hidden text-center text-xl font-semibold md:block">
           Location Images
         </h2>
         {activeImageUrls.length > 0 ? (
@@ -308,21 +366,62 @@ const CampaignDetail = () => {
         )}
         <button
           type="button"
-          className="absolute top-4 right-4 text-gray-600 hover:text-gray-900 text-xl"
+          className="absolute right-4 top-4 hidden text-xl text-gray-600 hover:text-gray-900 md:block"
           onClick={() => setImageModalOpen(false)}
         >
           &times;
         </button>
       </ReactModal>
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">{campaign.name}</h2>
-        <button
-          className="px-4 py-2 text-white font-bold rounded-md bg-ooh-yeah-pink hover:bg-ooh-yeah-pink-700 transition-colors"
-          type="button"
-          onClick={handleAddLocationClick}
-        >
-          Add Location
-        </button>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="truncate text-xl font-bold">{campaign.name}</h2>
+          <p className="text-sm text-gray-600">
+            {locations.length}{" "}
+            {locations.length === 1 ? "location" : "locations"}
+          </p>
+        </div>
+        <div className="flex flex-wrap justify-end gap-2">
+          {campaign.isPublic ? (
+            <>
+              <button
+                className="rounded-md bg-gray-800 px-4 py-2 font-bold text-white transition-colors hover:bg-black"
+                type="button"
+                onClick={copyPublicCampaignUrl}
+              >
+                Copy Public Link
+              </button>
+              <button
+                className="rounded-md bg-gray-200 px-4 py-2 font-bold text-gray-800 transition-colors hover:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-50"
+                type="button"
+                disabled={isUpdatingShare}
+                onClick={disablePublicCampaign}
+              >
+                Disable Link
+              </button>
+            </>
+          ) : (
+            <button
+              className="rounded-md bg-gray-800 px-4 py-2 font-bold text-white transition-colors hover:bg-black disabled:cursor-not-allowed disabled:opacity-50"
+              type="button"
+              disabled={isUpdatingShare || campaign.status !== "active"}
+              title={
+                campaign.status !== "active"
+                  ? "Activate the campaign before sharing it"
+                  : "Create a read-only public link"
+              }
+              onClick={enablePublicCampaign}
+            >
+              Enable Public Link
+            </button>
+          )}
+          <button
+            className="rounded-md bg-ooh-yeah-pink px-4 py-2 font-bold text-white transition-colors hover:bg-ooh-yeah-pink-700"
+            type="button"
+            onClick={handleAddLocationClick}
+          >
+            Add Location
+          </button>
+        </div>
       </div>
       <ReactModal
         isOpen={isModalOpen}
@@ -440,8 +539,51 @@ const CampaignDetail = () => {
         </div>
       </ReactModal>
       <ToastContainer />
+      <div
+        className="mb-4 grid grid-cols-2 rounded-md bg-gray-200 p-1 md:hidden"
+        role="tablist"
+        aria-label="Campaign view"
+      >
+        <button
+          id="campaign-map-tab"
+          type="button"
+          role="tab"
+          aria-selected={mobileView === "map"}
+          aria-controls="campaign-map-panel"
+          className={`min-h-11 rounded px-4 py-2 text-sm font-semibold transition-colors ${
+            mobileView === "map"
+              ? "bg-white text-black shadow-sm"
+              : "text-gray-600"
+          }`}
+          onClick={() => setMobileView("map")}
+        >
+          Map
+        </button>
+        <button
+          id="campaign-list-tab"
+          type="button"
+          role="tab"
+          aria-selected={mobileView === "list"}
+          aria-controls="campaign-list-panel"
+          className={`min-h-11 rounded px-4 py-2 text-sm font-semibold transition-colors ${
+            mobileView === "list"
+              ? "bg-white text-black shadow-sm"
+              : "text-gray-600"
+          }`}
+          onClick={() => setMobileView("list")}
+        >
+          List
+        </button>
+      </div>
       <div className="flex flex-col md:flex-row gap-4 h-full">
-        <div className="h-[50vh] md:h-full md:flex-1 w-full bg-white shadow-sm overflow-y-auto flex-shrink-0">
+        <div
+          id="campaign-map-panel"
+          role="tabpanel"
+          aria-labelledby="campaign-map-tab"
+          className={`${
+            mobileView === "map" ? "block" : "hidden"
+          } h-[50vh] w-full flex-shrink-0 overflow-y-auto bg-white shadow-sm md:block md:h-full md:flex-1`}
+        >
           <InteractiveMap
             campaignId={campaign.id}
             hoveredLocationId={hoveredLocationId}
@@ -449,58 +591,112 @@ const CampaignDetail = () => {
             setImageModalOpen={setImageModalOpen}
           />
         </div>
-        <div className="p-4 md:min-w-80 md:w-80 w-full bg-white shadow-sm overflow-y-auto">
-          <h3 className="text-xl font-bold mb-4">{campaign.name}</h3>
+        <div
+          id="campaign-list-panel"
+          role="tabpanel"
+          aria-labelledby="campaign-list-tab"
+          className={`${
+            mobileView === "list" ? "block" : "hidden"
+          } w-full overflow-y-auto bg-transparent md:block md:min-w-80 md:w-80`}
+        >
           {locations.length > 0 ? (
-            <ul className="space-y-2">
-              {locations.map((location) => (
-                <li
-                  key={location.id}
-                  className="border p-4 rounded-md"
-                  onMouseEnter={() =>
-                    location.id && setHoveredLocationId(location.id)
-                  }
-                  onMouseLeave={() => setHoveredLocationId(null)}
-                >
-                  <p>
-                    <strong>Latitude:</strong> {location.latitude}
-                  </p>
-                  <p>
-                    <strong>Longitude:</strong> {location.longitude}
-                  </p>
-                  <p>
-                    <strong>Created At:</strong>{" "}
-                    {location.createdAt instanceof Date
-                      ? location.createdAt.toLocaleString()
-                      : location.createdAt.toDate().toLocaleString()}
-                  </p>
-                  <div className="flex justify-between items-center mt-2">
-                    <button
-                      type="button"
-                      className="text-ooh-yeah-pink hover:underline font-medium"
-                      onClick={() => {
-                        setActiveImageUrls(location.imageUrls ?? []);
-                        setImageModalOpen(true);
-                      }}
-                    >
-                      View Images
-                    </button>
-                    <button
-                      type="button"
-                      className="text-red-500 hover:text-red-700 font-medium"
-                      onClick={() => {
-                        setLocationToDelete(location);
-                        setDeleteModalOpen(true);
-                      }}
-                    >
-                      Delete Location
-                    </button>
-                  </div>
-                </li>
-              ))}
+            <ul className="space-y-3">
+              {locations.map((location) => {
+                const photoUrls =
+                  location.imageUrls?.length && location.imageUrls.length > 0
+                    ? location.imageUrls
+                    : location.imageUrl
+                      ? [location.imageUrl]
+                      : [];
+                const createdAt =
+                  location.createdAt instanceof Date
+                    ? location.createdAt
+                    : location.createdAt.toDate();
+
+                return (
+                  <li
+                    key={location.id}
+                    className="rounded-lg border border-gray-100 bg-white p-3 shadow-sm transition-shadow hover:shadow-md"
+                    onMouseEnter={() =>
+                      location.id && setHoveredLocationId(location.id)
+                    }
+                    onMouseLeave={() => setHoveredLocationId(null)}
+                  >
+                    <div className="flex gap-3">
+                      <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-md bg-gray-100 text-center text-xs text-gray-500">
+                        {photoUrls[0] ? (
+                          <img
+                            src={photoUrls[0]}
+                            alt="Location photo"
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <span>No photo</span>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm text-gray-600">
+                          {photoUrls.length}{" "}
+                          {photoUrls.length === 1 ? "photo" : "photos"}
+                        </p>
+                        <time
+                          className="mt-1 block text-sm text-gray-500"
+                          dateTime={createdAt.toISOString()}
+                        >
+                          {createdAt.toLocaleDateString(undefined, {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </time>
+                      </div>
+                      <details className="group relative self-start text-sm">
+                        <summary
+                          className="flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-full text-sm font-bold tracking-normal text-gray-500 hover:bg-gray-100 hover:text-gray-900 [&::-webkit-details-marker]:hidden"
+                          aria-label="More options for this location"
+                          title="More options"
+                        >
+                          •••
+                        </summary>
+                        <div className="absolute right-0 top-10 z-20 w-56 rounded-md bg-white p-3 text-xs text-gray-500 shadow-lg ring-1 ring-black/5">
+                          <p className="mb-1 font-semibold text-gray-700">
+                            Coordinates
+                          </p>
+                          <p className="break-words">
+                            {location.latitude}, {location.longitude}
+                          </p>
+                          <button
+                            type="button"
+                            className="mt-2 font-medium text-red-600 hover:text-red-700 hover:underline"
+                            onClick={() => {
+                              setLocationToDelete(location);
+                              setDeleteModalOpen(true);
+                            }}
+                          >
+                            Delete Location
+                          </button>
+                        </div>
+                      </details>
+                    </div>
+                    <div className="mt-3">
+                      <button
+                        type="button"
+                        className="w-full rounded-md bg-ooh-yeah-pink px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-ooh-yeah-pink-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        disabled={photoUrls.length === 0}
+                        onClick={() => {
+                          setActiveImageUrls(photoUrls);
+                          setImageModalOpen(true);
+                        }}
+                      >
+                        View Photos
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           ) : (
-            <p>No locations linked to this campaign.</p>
+            <p className="text-right">No locations linked to this campaign.</p>
           )}
         </div>
       </div>

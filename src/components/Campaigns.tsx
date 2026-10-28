@@ -9,6 +9,7 @@ import {
   addDoc,
   orderBy,
   query,
+  where,
 } from "firebase/firestore";
 import {
   HiXCircle,
@@ -16,7 +17,6 @@ import {
   HiEye,
   HiFilter,
   HiPlus,
-  HiLink,
   HiArrowLeft,
   HiArrowRight,
 } from "react-icons/hi";
@@ -32,6 +32,7 @@ interface Campaign {
   status: string;
   createdAt: Date;
   userId: string;
+  isPublic?: boolean;
 }
 
 interface User {
@@ -242,6 +243,7 @@ const Campaigns = () => {
       const campaignData = {
         ...formData,
         createdAt: new Date(),
+        isPublic: false,
       };
 
       const campaignRef = collection(dataBase, "campaigns");
@@ -259,22 +261,20 @@ const Campaigns = () => {
       });
 
       // Refresh the campaigns list
-      const campaignsQuery = query(
-        collection(dataBase, "campaigns"),
-        orderBy("name", "asc")
-      );
+      const campaignsQuery =
+        role === "admin"
+          ? query(collection(dataBase, "campaigns"), orderBy("name", "asc"))
+          : query(
+              collection(dataBase, "campaigns"),
+              where("userId", "==", user?.uid)
+            );
       const campaignsSnapshot = await getDocs(campaignsQuery);
       const campaignsList = campaignsSnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       })) as Campaign[];
-
-      const visibleCampaigns =
-        role === "admin"
-          ? campaignsList
-          : campaignsList.filter((campaign) => campaign.userId === user?.uid);
-
-      setAllCampaigns(visibleCampaigns);
+      campaignsList.sort((a, b) => a.name.localeCompare(b.name));
+      setAllCampaigns(campaignsList);
 
       setIsCreateModalOpen(false);
       setFormData({
@@ -345,22 +345,23 @@ const Campaigns = () => {
       if (!dataBase || !role || !user) return;
 
       try {
-        const campaignsQuery = query(
-          collection(dataBase, "campaigns"),
-          orderBy("name", "asc")
-        );
+        const campaignsQuery =
+          role === "admin"
+            ? query(
+                collection(dataBase, "campaigns"),
+                orderBy("name", "asc")
+              )
+            : query(
+                collection(dataBase, "campaigns"),
+                where("userId", "==", user.uid)
+              );
         const campaignsSnapshot = await getDocs(campaignsQuery);
         const campaignsList = campaignsSnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         })) as Campaign[];
-
-        const visibleCampaigns =
-          role === "admin"
-            ? campaignsList
-            : campaignsList.filter((campaign) => campaign.userId === user.uid);
-
-        setAllCampaigns(visibleCampaigns);
+        campaignsList.sort((a, b) => a.name.localeCompare(b.name));
+        setAllCampaigns(campaignsList);
         setCurrentPage(1);
 
         if (role !== "admin") return;
@@ -384,36 +385,6 @@ const Campaigns = () => {
 
     fetchCampaignsAndUsers();
   }, [dataBase, role, user]);
-
-  const handleCopyLocationLink = (campaignId: string) => {
-    const url = `${window.location.origin}/addlocation?campaignId=${campaignId}`;
-    navigator.clipboard
-      .writeText(url)
-      .then(() => {
-        toast.success("Link copied to clipboard!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "colored",
-        });
-      })
-      .catch(() => {
-        toast.error("Failed to copy link", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "colored",
-        });
-      });
-  };
 
   return (
     <>
@@ -885,13 +856,6 @@ const Campaigns = () => {
                       }}
                     >
                       <HiEye size={25} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleCopyLocationLink(campaign.id)}
-                      title="Copy location link"
-                    >
-                      <HiLink size={25} />
                     </button>
                   </div>
                 </td>

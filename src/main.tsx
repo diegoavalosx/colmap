@@ -9,8 +9,8 @@ import "./styles/styles.css";
 import EmailVerification from "./components/EmailVerification.tsx";
 import NotFound from "./components/NotFound.tsx";
 import Verified from "./components/VerifyEmail.tsx";
-import AddLocation from "./components/AddLocation.tsx";
 import Home from "./pages/Home.tsx";
+import PublicCampaign from "./components/PublicCampaign.tsx";
 import "react-toastify/dist/ReactToastify.css";
 
 const rootElement = document.getElementById("root");
@@ -29,6 +29,10 @@ if (rootElement) {
                 <Routes>
                   <Route path="/login" element={<Login />} />
                   <Route
+                    path="/public/campaign/:campaignId"
+                    element={<PublicCampaign />}
+                  />
+                  <Route
                     path="/dashboard/*"
                     element={
                       <ProtectedRoute>
@@ -41,7 +45,6 @@ if (rootElement) {
                     element={<EmailVerification />}
                   />
                   <Route path="*" element={<NotFound />} />
-                  <Route path="addlocation" element={<AddLocation />} />
                 </Routes>
               </AuthProvider>
             }
