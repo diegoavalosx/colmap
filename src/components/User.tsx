@@ -36,6 +36,7 @@ interface Campaign {
   status: string;
   createdAt: Date | Timestamp;
   id?: string;
+  isPublic?: boolean;
 }
 
 async function createCampaign(
@@ -48,6 +49,7 @@ async function createCampaign(
       ...campaignData,
       userId: userId,
       createdAt: new Date(),
+      isPublic: false,
     };
 
     const campaignRef = collection(db, "campaigns");

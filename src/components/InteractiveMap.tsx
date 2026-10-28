@@ -17,10 +17,10 @@ const INITIAL_CAMERA = {
   zoom: 12,
 };
 
-interface Location {
+export interface MapLocation {
   id: string;
-  name: string;
-  description: string;
+  name?: string;
+  description?: string;
   latitude: number;
   longitude: number;
   imageUrls: string[];
@@ -31,6 +31,7 @@ interface InteractiveMapProps {
   hoveredLocationId?: string | null;
   setActiveImageUrls?: React.Dispatch<React.SetStateAction<string[]>>;
   setImageModalOpen?: React.Dispatch<React.SetStateAction<boolean>>;
+  providedLocations?: MapLocation[];
 }
 
 const InteractiveMap: React.FC<InteractiveMapProps> = ({
@@ -38,6 +39,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
   hoveredLocationId,
   setActiveImageUrls,
   setImageModalOpen,
+  providedLocations,
 }) => {
   const [cameraProps, setCameraProps] =
     useState<MapCameraProps>(INITIAL_CAMERA);
@@ -46,7 +48,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
     []
   );
   const [googleMapsApiKey, setGoogleMapsApiKey] = useState<string | null>(null);
-  const [locations, setLocations] = useState<Location[]>([]);
+  const [locations, setLocations] = useState<MapLocation[]>([]);
   const { user, dataBase } = useAuth();
 
   useEffect(() => {
@@ -63,6 +65,11 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
   }, []);
 
   useEffect(() => {
+    if (providedLocations) {
+      setLocations(providedLocations);
+      return;
+    }
+
     if (!user || !dataBase) return;
 
     let unsubscribeLocations: (() => void) | undefined;
@@ -74,7 +81,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
         `campaigns/${campaignId}/locations`
       );
       unsubscribeLocations = onSnapshot(locationsRef, (snapshot) => {
-        const locationsData: Location[] = snapshot.docs.map((doc) => {
+        const locationsData: MapLocation[] = snapshot.docs.map((doc) => {
           const data = doc.data();
           return {
             id: doc.id,
@@ -144,7 +151,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
         unsubscribeLocations();
       }
     };
-  }, [user, dataBase, campaignId]);
+  }, [user, dataBase, campaignId, providedLocations]);
 
   return (
     <>
@@ -175,15 +182,9 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
                 }}
               >
                 <Pin
-                  background={
-                    hoveredLocationId === location.id ? "#E91E63" : "#E91E63"
-                  }
-                  borderColor={
-                    hoveredLocationId === location.id ? "#E91E63" : "#E91E63"
-                  }
-                  glyphColor={
-                    hoveredLocationId === location.id ? "white" : "white"
-                  }
+                  background="#E91E63"
+                  borderColor="#E91E63"
+                  glyphColor="white"
                   scale={hoveredLocationId === location.id ? 1.2 : 1}
                 />
               </AdvancedMarker>

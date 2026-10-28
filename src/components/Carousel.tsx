@@ -14,7 +14,8 @@ const Carousel = ({ images }: CarouselProps) => {
     mobile: { breakpoint: { max: 464, min: 0 }, items: 1 },
   };
 
-  const divClasses = "card w-full h-auto flex items-center justify-center";
+  const divClasses =
+    "card flex h-auto w-full items-center justify-center px-2";
   const imgClasses = "w-full h-[400px] object-cover rounded-md";
 
   if (uniqueImages.length === 1) {
@@ -39,7 +40,7 @@ const Carousel = ({ images }: CarouselProps) => {
       infinite={false}
       autoPlaySpeed={3000}
       containerClass="carousel-container w-full"
-      itemClass="carousel-item px-2"
+      itemClass="carousel-item"
     >
       {uniqueImages.map((image, index) => (
         <div key={image} className={divClasses}>

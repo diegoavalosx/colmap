@@ -1,0 +1,323 @@
+rules_version = '2';
+
+// ===============================================================
+// Assumed data model
+// ===============================================================
+//
+// users/{userId}
+//   email: string, name: string, role: "admin"|"user",
+//   emailVerified: bool, uid?: string, createdAt?: timestamp
+//
+// campaigns/{campaignId}
+//   name: string, description?: string, status: "active"|"inactive",
+//   createdAt: timestamp, userId: string, isPublic?: bool
+//
+// campaigns/{campaignId}/locations/{locationId}
+//   latitude: string, longitude: string, imageUrls: list<string>,
+//   createdAt: timestamp, name?: string, description?: string,
+//   imageUrl?: string, driveFileIds?: list<string>,
+//   source?: "device"|"google-drive"
+//
+// settings/siteSettings
+//   homepageImageUrl: string, consultImageUrl: string,
+//   lastUpdated: timestamp
+//
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function canAccessCampaign(campaignId) {
+      return isAdmin() ||
+        (isAuthenticated() &&
+          exists(/databases/$(database)/documents/campaigns/$(campaignId)) &&
+          get(/databases/$(database)/documents/campaigns/$(campaignId)).data.userId == request.auth.uid);
+    }
+
+    function isCampaignPublic(campaignId) {
+      return exists(/databases/$(database)/documents/campaigns/$(campaignId)) &&
+        get(/databases/$(database)/documents/campaigns/$(campaignId)).data.isPublic == true &&
+        get(/databases/$(database)/documents/campaigns/$(campaignId)).data.status == 'active';
+    }
+
+    function hasRequiredFields(data, fields) {
+      return data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(data, fields) {
+      return data.keys().hasOnly(fields);
+    }
+
+    function validString(value, minLength, maxLength) {
+      return value is string &&
+        value.size() >= minLength &&
+        value.size() <= maxLength;
+    }
+
+    function validOptionalString(data, field, minLength, maxLength) {
+      return !data.keys().hasAny([field]) ||
+        validString(data[field], minLength, maxLength);
+    }
+
+    function validOptionalTimestamp(data, field) {
+      return !data.keys().hasAny([field]) || data[field] is timestamp;
+    }
+
+    function validUrl(value) {
+      return value is string &&
+        value.size() <= 2048 &&
+        value.matches('^https://.+');
+    }
+
+    function validEmail(value) {
+      return value is string &&
+        value.size() >= 3 &&
+        value.size() <= 254 &&
+        value.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$');
+    }
+
+    function isRecent(value) {
+      return value is timestamp &&
+        value > request.time - duration.value(10, 'm') &&
+        value <= request.time + duration.value(1, 'm');
+    }
+
+    function validLatitude(value) {
+      return value is string &&
+        value.size() >= 1 &&
+        value.size() <= 16 &&
+        value.matches('^-?([0-8]?[0-9](\\.[0-9]{1,6})?|90(\\.0{1,6})?)$');
+    }
+
+    function validLongitude(value) {
+      return value is string &&
+        value.size() >= 1 &&
+        value.size() <= 17 &&
+        value.matches(
+          '^-?(([0-9]?[0-9]|1[0-7][0-9])(\\.[0-9]{1,6})?|180(\\.0{1,6})?)$'
+        );
+    }
+
+    function validCampaignImageUrl(value, campaignId) {
+      return value is string &&
+        value.size() <= 2048 &&
+        value.matches(
+          '^https://firebasestorage\\.googleapis\\.com/v0/b/' +
+          'colmap-9f519\\.firebasestorage\\.app/o/campaigns%2F' +
+          campaignId +
+          '%2Flocations%2F.+'
+        );
+    }
+
+    function validCampaignImageUrlAt(values, index, campaignId) {
+      return values.size() <= index ||
+        validCampaignImageUrl(values[index], campaignId);
+    }
+
+    function validStringAt(values, index, maxLength) {
+      return values.size() <= index ||
+        (values[index] is string &&
+          values[index].size() >= 1 &&
+          values[index].size() <= maxLength);
+    }
+
+    function validImageUrls(values, campaignId) {
+      return values is list &&
+        values.size() >= 1 &&
+        values.size() <= 10 &&
+        validCampaignImageUrlAt(values, 0, campaignId) &&
+        validCampaignImageUrlAt(values, 1, campaignId) &&
+        validCampaignImageUrlAt(values, 2, campaignId) &&
+        validCampaignImageUrlAt(values, 3, campaignId) &&
+        validCampaignImageUrlAt(values, 4, campaignId) &&
+        validCampaignImageUrlAt(values, 5, campaignId) &&
+        validCampaignImageUrlAt(values, 6, campaignId) &&
+        validCampaignImageUrlAt(values, 7, campaignId) &&
+        validCampaignImageUrlAt(values, 8, campaignId) &&
+        validCampaignImageUrlAt(values, 9, campaignId);
+    }
+
+    function validOptionalDriveFileIds(data) {
+      return !data.keys().hasAny(['driveFileIds']) ||
+        (data.driveFileIds is list &&
+          data.driveFileIds.size() <= 10 &&
+          validStringAt(data.driveFileIds, 0, 256) &&
+          validStringAt(data.driveFileIds, 1, 256) &&
+          validStringAt(data.driveFileIds, 2, 256) &&
+          validStringAt(data.driveFileIds, 3, 256) &&
+          validStringAt(data.driveFileIds, 4, 256) &&
+          validStringAt(data.driveFileIds, 5, 256) &&
+          validStringAt(data.driveFileIds, 6, 256) &&
+          validStringAt(data.driveFileIds, 7, 256) &&
+          validStringAt(data.driveFileIds, 8, 256) &&
+          validStringAt(data.driveFileIds, 9, 256));
+    }
+
+    function validUser(data, userId) {
+      return hasRequiredFields(
+          data,
+          ['email', 'name', 'role', 'emailVerified']
+        ) &&
+        hasOnlyAllowedFields(
+          data,
+          ['email', 'name', 'role', 'emailVerified', 'uid', 'createdAt']
+        ) &&
+        validEmail(data.email) &&
+        validString(data.name, 1, 100) &&
+        data.role in ['admin', 'user'] &&
+        data.emailVerified is bool &&
+        validOptionalString(data, 'uid', 1, 128) &&
+        (!data.keys().hasAny(['uid']) || data.uid == userId) &&
+        validOptionalTimestamp(data, 'createdAt');
+    }
+
+    function validCampaign(data) {
+      return hasRequiredFields(
+          data,
+          ['name', 'status', 'createdAt', 'userId']
+        ) &&
+        hasOnlyAllowedFields(
+          data,
+          ['name', 'description', 'status', 'createdAt', 'userId', 'isPublic']
+        ) &&
+        validString(data.name, 1, 120) &&
+        validOptionalString(data, 'description', 0, 2000) &&
+        data.status in ['active', 'inactive'] &&
+        data.createdAt is timestamp &&
+        validString(data.userId, 1, 128) &&
+        (!data.keys().hasAny(['isPublic']) || data.isPublic is bool);
+    }
+
+    function validLocation(data, campaignId) {
+      return hasRequiredFields(
+          data,
+          ['latitude', 'longitude', 'imageUrls', 'createdAt']
+        ) &&
+        hasOnlyAllowedFields(
+          data,
+          [
+            'latitude',
+            'longitude',
+            'imageUrls',
+            'createdAt',
+            'name',
+            'description',
+            'imageUrl',
+            'driveFileIds',
+            'source'
+          ]
+        ) &&
+        validLatitude(data.latitude) &&
+        validLongitude(data.longitude) &&
+        validImageUrls(data.imageUrls, campaignId) &&
+        data.createdAt is timestamp &&
+        validOptionalString(data, 'name', 0, 120) &&
+        validOptionalString(data, 'description', 0, 1000) &&
+        (!data.keys().hasAny(['imageUrl']) ||
+          validCampaignImageUrl(data.imageUrl, campaignId)) &&
+        validOptionalDriveFileIds(data) &&
+        (!data.keys().hasAny(['source']) ||
+          data.source in ['device', 'google-drive']);
+    }
+
+    function validSiteSettings(data) {
+      return hasRequiredFields(
+          data,
+          ['homepageImageUrl', 'consultImageUrl', 'lastUpdated']
+        ) &&
+        hasOnlyAllowedFields(
+          data,
+          ['homepageImageUrl', 'consultImageUrl', 'lastUpdated']
+        ) &&
+        (data.homepageImageUrl == '' || validUrl(data.homepageImageUrl)) &&
+        (data.consultImageUrl == '' || validUrl(data.consultImageUrl)) &&
+        data.lastUpdated is timestamp;
+    }
+
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+
+      allow create: if isAdmin() &&
+        validUser(request.resource.data, userId);
+
+      allow update: if validUser(request.resource.data, userId) &&
+        !request.resource.data.diff(resource.data).affectedKeys()
+          .hasAny(['email', 'uid', 'createdAt']) &&
+        (
+          isAdmin() ||
+          (isOwner(userId) &&
+            request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['emailVerified']) &&
+            request.resource.data.emailVerified == true &&
+            request.auth.token.email_verified == true)
+        );
+
+      allow delete: if isAdmin();
+    }
+
+    match /campaigns/{campaignId} {
+      allow get: if isAdmin() ||
+        (isAuthenticated() && resource.data.userId == request.auth.uid) ||
+        (resource.data.isPublic == true && resource.data.status == 'active');
+
+      allow list: if isAdmin() ||
+        (isAuthenticated() && resource.data.userId == request.auth.uid);
+
+      allow create: if validCampaign(request.resource.data) &&
+        isAuthenticated() &&
+        isRecent(request.resource.data.createdAt) &&
+        (
+          isAdmin() ||
+          request.resource.data.userId == request.auth.uid
+        );
+
+      allow update: if validCampaign(request.resource.data) &&
+        (isAdmin() ||
+          (isAuthenticated() && resource.data.userId == request.auth.uid)) &&
+        request.resource.data.userId == resource.data.userId &&
+        request.resource.data.createdAt == resource.data.createdAt;
+
+      allow delete: if isAdmin() ||
+        (isAuthenticated() && resource.data.userId == request.auth.uid);
+
+      match /locations/{locationId} {
+        allow read: if canAccessCampaign(campaignId) ||
+          isCampaignPublic(campaignId);
+
+        allow create: if canAccessCampaign(campaignId) &&
+          validLocation(request.resource.data, campaignId) &&
+          isRecent(request.resource.data.createdAt);
+
+        allow update: if canAccessCampaign(campaignId) &&
+          validLocation(request.resource.data, campaignId) &&
+          request.resource.data.createdAt == resource.data.createdAt;
+
+        allow delete: if canAccessCampaign(campaignId);
+      }
+    }
+
+    match /settings/siteSettings {
+      allow read: if true;
+
+      allow create: if isAdmin() && validSiteSettings(request.resource.data);
+
+      allow update: if isAdmin() && validSiteSettings(request.resource.data);
+
+      allow delete: if isAdmin();
+    }
+  }
+}
